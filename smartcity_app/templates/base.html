@@ -1,0 +1,604 @@
+{% load smartcity_filters %}
+<!DOCTYPE html>
+<html lang="fr" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ page_title|default:"SmartCity - Mobilité Urbaine" }}{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    {% load static %}
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-bg: #ecf0f1;
+            --dark-bg: #34495e;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--primary-color) !important;
+        }
+
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .navbar-nav .nav-link {
+            color: white !important;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #f8f9fa !important;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border: none;
+            border-radius: 25px;
+            padding: 10px 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .footer {
+            background: var(--primary-color);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table th {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .badge {
+            font-size: 0.85em;
+            padding: 0.5em 0.8em;
+        }
+
+        .loading-spinner {
+            display: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sparql-query {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .entity-card {
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .question-example {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .question-example:hover {
+            background: rgba(52, 152, 219, 0.2);
+            border-color: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 2rem 0;
+            }
+            
+            .stat-card {
+                margin-bottom: 1rem;
+            }
+            
+            .navbar-nav {
+                text-align: center;
+            }
+        }
+
+        /* Bouton flottant d'accès rapide */
+        .floating-modules-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .floating-modules-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+            color: white;
+        }
+
+        .floating-modules-menu {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            z-index: 1040;
+            display: none;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            padding: 1rem;
+            min-width: 250px;
+        }
+
+        .floating-modules-menu.show {
+            display: block;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .floating-module-link {
+            display: block;
+            padding: 0.5rem 1rem;
+            color: #333;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0.25rem 0;
+            transition: background-color 0.3s ease;
+        }
+
+        .floating-module-link:hover {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'smartcity_app:index' %}">
+                <i class="fas fa-city"></i> SmartCity
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                {% if user.is_authenticated %}
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            {% if user.profilutilisateur.est_administrateur %}
+                                <a class="nav-link" href="{% url 'gestion_utilisateurs:dashboard_admin' %}">
+                                    <i class="fas fa-tachometer-alt"></i> Dashboard Admin
+                                </a>
+                            {% else %}
+                                <a class="nav-link" href="{% url 'gestion_utilisateurs:dashboard_user' %}">
+                                    <i class="fas fa-user"></i> Mon Dashboard
+                                </a>
+                            {% endif %}
+                        </li>
+                        
+                        <!-- Menu Admin uniquement -->
+                        {% if user.profilutilisateur.est_administrateur %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'smartcity_app:entities_list' %}">
+                                <i class="fas fa-list"></i> Entités
+                            </a>
+                        </li>
+                        
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'smartcity_app:search' %}">
+                                <i class="fas fa-search"></i> Recherche
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        <!-- Menu Modules de Gestion -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-cubes"></i> Modules SmartCity
+                            </a>
+                            <ul class="dropdown-menu">
+                                <!-- Module Trajets (Fonctionnel) -->
+                                <li><a class="dropdown-item" href="{% url 'gestion_trajets:index_trajets' %}">
+                                    <i class="fas fa-route text-success"></i> 
+                                    <span class="ms-2">Gestion des Trajets</span>
+                                    <span class="badge bg-success ms-2">Opérationnel</span>
+                                </a></li>
+                                
+                                <li><a class="dropdown-item" href="{% url 'gestion_trajets:planificateur_trajet' %}">
+                                    <i class="fas fa-brain text-primary"></i>
+                                    <span class="ms-2">Planificateur IA</span>
+                                </a></li>
+                                
+                                <li><hr class="dropdown-divider"></li>
+                                
+                                <!-- Modules en Développement -->
+                                <li><a class="dropdown-item" href="{% url 'gestion_stations:index_stations' %}">
+                                    <i class="fas fa-subway text-warning"></i>
+                                    <span class="ms-2">Gestion des Stations</span>
+                                    <span class="badge bg-warning ms-2">En développement</span>
+                                </a></li>
+                                
+                                <li><a class="dropdown-item" href="{% url 'gestion_trafic:index_trafic' %}">
+                                    <i class="fas fa-traffic-light text-danger"></i>
+                                    <span class="ms-2">Gestion du Trafic</span>
+                                    <span class="badge bg-danger ms-2">IA + ML</span>
+                                </a></li>
+                                
+                                <li><a class="dropdown-item" href="{% url 'gestion_vehicules:index_vehicules' %}">
+                                    <i class="fas fa-car text-info"></i>
+                                    <span class="ms-2">Gestion des Véhicules</span>
+                                    <span class="badge bg-info ms-2">IoT + GPS</span>
+                                </a></li>
+                                
+                                <li><hr class="dropdown-divider"></li>
+                                
+                                <!-- Modules Techniques/Infrastructure -->
+                                <li class="dropdown-header">
+                                    <i class="fas fa-tools"></i> Infrastructure
+                                </li>
+                                
+                                <li><a class="dropdown-item" href="{% url 'api_manager:index_api_manager' %}">
+                                    <i class="fas fa-plug text-secondary"></i>
+                                    <span class="ms-2">API Manager</span>
+                                    <span class="badge bg-secondary ms-2">Infrastructure</span>
+                                </a></li>
+                                
+                                <li><hr class="dropdown-divider"></li>
+                                
+                               
+                            </ul>
+                        </li>
+                        
+                        {% if user.profilutilisateur.peut_acceder_ontologie %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'smartcity_app:ontology_view' %}">
+                                <i class="fas fa-project-diagram"></i> Ontologie
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'smartcity_app:query' %}">
+                                <i class="fas fa-code"></i> Requêtes SPARQL
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% if user.profilutilisateur.est_administrateur %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'gestion_utilisateurs:liste_utilisateurs' %}">
+                                <i class="fas fa-users-cog"></i> Gestion Utilisateurs
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                    
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle"></i> 
+                                {{ user.get_full_name|default:user.username }}
+                                {% if user.profilutilisateur.est_administrateur %}
+                                    <span class="badge bg-danger ms-1">Admin</span>
+                                {% else %}
+                                    <span class="badge bg-primary ms-1">User</span>
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'gestion_utilisateurs:profil_utilisateur' %}">
+                                    <i class="fas fa-user"></i> Mon Profil
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'gestion_utilisateurs:deconnexion' %}">
+                                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                                </a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                {% else %}
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'gestion_utilisateurs:connexion' %}">
+                                <i class="fas fa-sign-in-alt"></i> Se connecter
+                            </a>
+                        </li>
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle"></i>
+                    {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-triangle"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-circle"></i>
+                    {% else %}
+                        <i class="fas fa-info-circle"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5><i class="fas fa-city"></i> SmartCity Platform</h5>
+                    <p class="mb-3">Plateforme sémantique pour la gestion de la mobilité urbaine intelligente.</p>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'smartcity_app:index' %}" class="text-light"><i class="fab fa-github"></i></a>
+                        <a href="{% url 'smartcity_app:ontology_view' %}" class="text-light"><i class="fas fa-project-diagram"></i></a>
+                        <a href="{% url 'smartcity_app:query' %}" class="text-light"><i class="fas fa-brain"></i></a>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <h6><i class="fas fa-cubes"></i> 5 Gestions Métier</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'gestion_trajets:index_trajets' %}" class="text-light text-decoration-none">
+                            <i class="fas fa-route text-success"></i> Trajets (Opérationnel)
+                        </a></li>
+                        <li><a href="{% url 'gestion_stations:index_stations' %}" class="text-light text-decoration-none">
+                            <i class="fas fa-subway text-warning"></i> Stations
+                        </a></li>
+                        <li><a href="{% url 'gestion_trafic:index_trafic' %}" class="text-light text-decoration-none">
+                            <i class="fas fa-traffic-light text-danger"></i> Trafic IA
+                        </a></li>
+                        <li><a href="{% url 'gestion_vehicules:index_vehicules' %}" class="text-light text-decoration-none">
+                            <i class="fas fa-car text-info"></i> Véhicules
+                        </a></li>
+                        <li><a href="{% url 'gestion_utilisateurs:dashboard_user' %}" class="text-light text-decoration-none">
+                            <i class="fas fa-users text-primary"></i> Utilisateurs
+                        </a></li>
+                    </ul>
+                    <hr class="my-2" style="border-color: rgba(255,255,255,0.2);">
+                    <small class="text-muted">Infrastructure :</small>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'api_manager:index_api_manager' %}" class="text-light text-decoration-none">
+                            <i class="fas fa-plug text-secondary"></i> API Manager
+                        </a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-4 text-md-end">
+                   
+                    <small class="d-block mt-3">
+                        <strong>Technologies:</strong> Django • RDF/SPARQL • IA • Bootstrap
+                    </small>
+                    <small class="d-block">
+                        &copy; 2025 - Projet Académique Web Sémantique
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bouton flottant d'accès rapide aux modules -->
+    {% if user.is_authenticated %}
+    <button class="floating-modules-btn" id="floatingModulesBtn" title="Accès rapide aux modules">
+        <i class="fas fa-cubes"></i>
+    </button>
+    
+    <div class="floating-modules-menu" id="floatingModulesMenu">
+        <h6 class="text-center mb-3">
+            <i class="fas fa-cubes text-primary"></i> Modules SmartCity
+        </h6>
+        
+        <a href="{% url 'gestion_trajets:index_trajets' %}" class="floating-module-link">
+            <i class="fas fa-route text-success"></i> Trajets (Opérationnel)
+        </a>
+        
+        <a href="{% url 'gestion_trajets:planificateur_trajet' %}" class="floating-module-link">
+            <i class="fas fa-brain text-primary"></i> Planificateur IA
+        </a>
+        
+        <hr class="my-2">
+        
+        <a href="{% url 'gestion_stations:index_stations' %}" class="floating-module-link">
+            <i class="fas fa-subway text-warning"></i> Stations
+        </a>
+        
+        <a href="{% url 'gestion_trafic:index_trafic' %}" class="floating-module-link">
+            <i class="fas fa-traffic-light text-danger"></i> Trafic IA
+        </a>
+        
+        <a href="{% url 'gestion_vehicules:index_vehicules' %}" class="floating-module-link">
+            <i class="fas fa-car text-info"></i> Véhicules
+        </a>
+        
+        <a href="{% url 'api_manager:index_api_manager' %}" class="floating-module-link">
+            <i class="fas fa-plug text-secondary"></i> API Manager
+        </a>
+        
+        <hr class="my-2">
+        
+        <a href="#" onclick="window.open('/static/docs/GUIDE_DEMARRAGE.md', '_blank')" class="floating-module-link">
+            <i class="fas fa-book text-primary"></i> Guide Équipe
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script pour le bouton flottant -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const floatingBtn = document.getElementById('floatingModulesBtn');
+            const floatingMenu = document.getElementById('floatingModulesMenu');
+            
+            if (floatingBtn && floatingMenu) {
+                floatingBtn.addEventListener('click', function() {
+                    floatingMenu.classList.toggle('show');
+                });
+                
+                // Fermer le menu si on clique en dehors
+                document.addEventListener('click', function(e) {
+                    if (!floatingBtn.contains(e.target) && !floatingMenu.contains(e.target)) {
+                        floatingMenu.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    {% block extra_js %}{% endblock %}
+
+    <script>
+        // Animations d'entrée
+        $(document).ready(function() {
+            $('.card').addClass('fade-in');
+            
+            // Smooth scroll pour les ancres
+            $('a[href^="#"]').on('click', function(event) {
+                var target = $(this.getAttribute('href'));
+                if( target.length ) {
+                    event.preventDefault();
+                    $('html, body').stop().animate({
+                        scrollTop: target.offset().top - 70
+                    }, 1000);
+                }
+            });
+        });
+
+        // Fonction utilitaire pour afficher un loading spinner
+        function showLoading(element) {
+            $(element).find('.loading-spinner').show();
+            $(element).find('.btn').prop('disabled', true);
+        }
+
+        function hideLoading(element) {
+            $(element).find('.loading-spinner').hide();
+            $(element).find('.btn').prop('disabled', false);
+        }
+
+        // Dark mode toggle (optionnel)
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Restore theme from localStorage
+        $(document).ready(function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        });
+    </script>
+</body>
+</html>

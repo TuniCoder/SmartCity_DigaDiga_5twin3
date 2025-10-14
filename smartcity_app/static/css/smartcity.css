@@ -1,0 +1,444 @@
+/*
+ * SmartCity Platform - Styles CSS personnalisés
+ * Styles supplémentaires pour la plateforme de mobilité urbaine
+ */
+
+/* Variables CSS personnalisées */
+:root {
+    --smartcity-primary: #2c3e50;
+    --smartcity-secondary: #3498db;
+    --smartcity-success: #27ae60;
+    --smartcity-info: #17a2b8;
+    --smartcity-warning: #f39c12;
+    --smartcity-danger: #e74c3c;
+    --smartcity-light: #ecf0f1;
+    --smartcity-dark: #34495e;
+    --smartcity-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --smartcity-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --smartcity-shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Styles généraux */
+.smartcity-gradient {
+    background: var(--smartcity-gradient);
+}
+
+.smartcity-shadow {
+    box-shadow: var(--smartcity-shadow);
+}
+
+.smartcity-shadow-hover:hover {
+    box-shadow: var(--smartcity-shadow-hover);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+/* Navigation améliorée */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.navbar-nav .nav-link {
+    font-weight: 500;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 2px;
+    background: #fff;
+    border-radius: 1px;
+}
+
+/* Cards améliorées */
+.card {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--smartcity-shadow-hover);
+}
+
+.card-header {
+    font-weight: 600;
+    border-bottom: none;
+}
+
+/* Badges et labels */
+.badge-custom {
+    padding: 0.5em 0.8em;
+    font-size: 0.9em;
+    border-radius: 20px;
+}
+
+/* Boutons personnalisés */
+.btn-smartcity {
+    background: var(--smartcity-gradient);
+    border: none;
+    color: white;
+    border-radius: 25px;
+    padding: 10px 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-smartcity:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--smartcity-shadow-hover);
+    color: white;
+}
+
+/* Animations personnalisées */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 30px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.animate-slide-up {
+    animation: slideInUp 0.6s ease-out;
+}
+
+.animate-fade-scale {
+    animation: fadeInScale 0.5s ease-out;
+}
+
+/* Styles pour les entités */
+.entity-card {
+    border-left: 4px solid var(--smartcity-secondary);
+    transition: all 0.3s ease;
+}
+
+.entity-card:hover {
+    border-left-color: var(--smartcity-primary);
+    background-color: rgba(52, 152, 219, 0.05);
+}
+
+.entity-link {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.entity-link:hover {
+    background-color: var(--smartcity-secondary) !important;
+    color: white !important;
+    transform: scale(1.05);
+}
+
+/* Styles pour les requêtes SPARQL */
+.sparql-query {
+    background: #2d3748;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    font-size: 0.9em;
+    line-height: 1.4;
+    overflow-x: auto;
+    border: 2px solid #4a5568;
+}
+
+.sparql-query::selection {
+    background: #4299e1;
+}
+
+/* Styles pour les questions exemples */
+.question-example {
+    background: rgba(52, 152, 219, 0.1);
+    border: 1px solid rgba(52, 152, 219, 0.3);
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.question-example:hover {
+    background: rgba(52, 152, 219, 0.2);
+    border-color: var(--smartcity-secondary);
+    transform: translateX(5px);
+}
+
+.question-example::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--smartcity-secondary);
+    border-radius: 0 3px 3px 0;
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.question-example:hover::before {
+    transform: scaleY(1);
+}
+
+/* Statistiques animées */
+.stat-card {
+    background: var(--smartcity-gradient);
+    color: white;
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    transform: rotate(45deg);
+    transition: all 0.6s;
+    transform-origin: center;
+    opacity: 0;
+}
+
+.stat-card:hover::before {
+    opacity: 1;
+    animation: shine 0.6s ease-in-out;
+}
+
+@keyframes shine {
+    0% {
+        transform: rotate(45deg) translate(-200%, -200%);
+    }
+    100% {
+        transform: rotate(45deg) translate(200%, 200%);
+    }
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Styles pour les tableaux */
+.table-responsive {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--smartcity-shadow);
+}
+
+.table th {
+    background: var(--smartcity-primary);
+    color: white;
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+    transform: scale(1.01);
+}
+
+/* Alertes personnalisées */
+.alert {
+    border: none;
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    box-shadow: var(--smartcity-shadow);
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+    color: #0c5460;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    color: #155724;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    color: #856404;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    color: #721c24;
+}
+
+/* Loading spinner personnalisé */
+.loading-spinner {
+    border: 3px solid rgba(52, 152, 219, 0.3);
+    border-radius: 50%;
+    border-top: 3px solid var(--smartcity-secondary);
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Hero section */
+.hero-section {
+    background: var(--smartcity-gradient);
+    color: white;
+    padding: 4rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: 
+        radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: float 20s infinite linear;
+}
+
+@keyframes float {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Footer */
+.footer {
+    background: var(--smartcity-primary);
+    color: white;
+    padding: 2rem 0;
+    margin-top: 4rem;
+    position: relative;
+}
+
+.footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--smartcity-gradient);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 2rem 0;
+    }
+    
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .question-example {
+        font-size: 0.9em;
+    }
+    
+    .sparql-query {
+        font-size: 0.8em;
+    }
+}
+
+/* Accessibilité */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Mode sombre (optionnel) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --smartcity-light: #2c3e50;
+        --smartcity-dark: #ecf0f1;
+    }
+    
+    .card {
+        background-color: #34495e;
+        color: #ecf0f1;
+    }
+    
+    .table {
+        color: #ecf0f1;
+    }
+    
+    .table tbody tr:hover {
+        background-color: rgba(52, 152, 219, 0.2);
+    }
+}
+
+/* Styles d'impression */
+@media print {
+    .navbar,
+    .footer,
+    .btn,
+    .alert {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #dee2e6 !important;
+        box-shadow: none !important;
+    }
+    
+    .hero-section {
+        background: white !important;
+        color: black !important;
+    }
+}

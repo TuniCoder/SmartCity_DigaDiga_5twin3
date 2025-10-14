@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load smartcity_filters %}
+
+{% block title %}{{ entity_name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    {% if entity_type == 'users' %}
+                        <i class="fas fa-users text-primary"></i>
+                    {% elif entity_type == 'vehicles' %}
+                        <i class="fas fa-car text-success"></i>
+                    {% elif entity_type == 'stations' %}
+                        <i class="fas fa-map-marker-alt text-warning"></i>
+                    {% elif entity_type == 'trips' %}
+                        <i class="fas fa-route text-info"></i>
+                    {% else %}
+                        <i class="fas fa-traffic-light text-danger"></i>
+                    {% endif %}
+                    {{ entity_name }}
+                </h1>
+                <span class="badge bg-secondary fs-6">{{ total_count }} élément(s)</span>
+            </div>
+        </div>
+    </div>
+
+    {% if entities %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-table"></i> Liste des {{ entity_name }}</span>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" onclick="exportEntities('csv')">
+                                <i class="fas fa-download"></i> CSV
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="exportEntities('json')">
+                                <i class="fas fa-download"></i> JSON
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        {% if entities.object_list %}
+                                            {% for key in entities.object_list.0.keys %}
+                                                <th><i class="fas fa-tag"></i> {{ key|capfirst }}</th>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for entity in entities %}
+                                        <tr>
+                                            {% for key, value in entity.items %}
+                                                <td>
+                                                    {% if 'http' in value %}
+                                                        <span class="badge bg-light text-dark entity-link" 
+                                                              data-uri="{{ value }}" 
+                                                              title="{{ value }}"
+                                                              onclick="smartCity.showEntityDetails('{{ value }}')">
+                                                            {{ value|extract_name|default:value }}
+                                                        </span>
+                                                    {% else %}
+                                                        {{ value|default:"-" }}
+                                                    {% endif %}
+                                                </td>
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if entities.has_other_pages %}
+                            <nav aria-label="Navigation {{ entity_name }}">
+                                <ul class="pagination justify-content-center">
+                                    {% if entities.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1">Première</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ entities.previous_page_number }}">Précédente</a>
+                                        </li>
+                                    {% endif %}
+
+                                    <li class="page-item active">
+                                        <span class="page-link">
+                                            Page {{ entities.number }} sur {{ entities.paginator.num_pages }}
+                                        </span>
+                                    </li>
+
+                                    {% if entities.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ entities.next_page_number }}">Suivante</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ entities.paginator.num_pages }}">Dernière</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center">
+                    <i class="fas fa-info-circle fa-5x text-muted mb-4"></i>
+                    <h3 class="text-muted">Aucune donnée disponible</h3>
+                    <p class="text-muted">Il n'y a actuellement aucun {{ entity_name|lower }} dans le système.</p>
+                    <a href="{% url 'smartcity_app:index' %}" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Retour à l'accueil
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal pour les détails d'entité -->
+<div class="modal fade" id="entityDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle"></i> Détails de l'Entité
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="entityDetailsContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function exportEntities(format) {
+        const entities = [
+            {% for entity in entities %}
+                {
+                    {% for key, value in entity.items %}
+                        "{{ key }}": "{{ value|escapejs }}",
+                    {% endfor %}
+                },
+            {% endfor %}
+        ];
+        
+        if (format === 'csv') {
+            exportToCSV(entities, '{{ entity_type }}-{{ entity_name|lower }}');
+        } else if (format === 'json') {
+            exportToJSON(entities, '{{ entity_type }}-{{ entity_name|lower }}');
+        }
+    }
+    
+    function exportToCSV(data, filename) {
+        if (data.length === 0) return;
+        
+        const headers = Object.keys(data[0]);
+        let csv = headers.join(',') + '\n';
+        
+        data.forEach(row => {
+            const values = headers.map(header => {
+                const value = row[header] || '';
+                return `"${value.toString().replace(/"/g, '""')}"`;
+            });
+            csv += values.join(',') + '\n';
+        });
+        
+        downloadFile(csv, filename + '.csv', 'text/csv');
+    }
+    
+    function exportToJSON(data, filename) {
+        const json = JSON.stringify(data, null, 2);
+        downloadFile(json, filename + '.json', 'application/json');
+    }
+    
+    function downloadFile(content, filename, contentType) {
+        const blob = new Blob([content], { type: contentType });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+</script>
+{% endblock %}

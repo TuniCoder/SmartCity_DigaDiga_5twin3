@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Préférences Trajets - SmartCity{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+    .preference-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #007bff;
+    }
+    .form-check-input:checked {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .range-value {
+        font-weight: bold;
+        color: #007bff;
+    }
+    .preference-icon {
+        font-size: 2rem;
+        color: #007bff;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- En-tête -->
+            <div class="text-center mb-4">
+                <h1 class="h3 mb-1">
+                    <i class="bi bi-gear-fill text-primary"></i>
+                    Mes Préférences de Trajets
+                </h1>
+                <p class="text-muted">Personnalisez vos critères de transport pour des recommandations optimales</p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Préférences Générales -->
+                <div class="preference-section">
+                    <div class="text-center">
+                        <i class="bi bi-bullseye preference-icon"></i>
+                        <h4>Priorités par Défaut</h4>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="priorite_defaut" class="form-label">Priorité principale</label>
+                            <select name="priorite_defaut" id="priorite_defaut" class="form-select">
+                                <option value="rapidite" {% if preferences.priorite_defaut == 'rapidite' %}selected{% endif %}>
+                                    ⚡ Rapidité - Arriver le plus vite possible
+                                </option>
+                                <option value="economie" {% if preferences.priorite_defaut == 'economie' %}selected{% endif %}>
+                                    💰 Économie - Réduire les coûts
+                                </option>
+                                <option value="confort" {% if preferences.priorite_defaut == 'confort' %}selected{% endif %}>
+                                    🛋️ Confort - Voyage agréable
+                                </option>
+                                <option value="ecologie" {% if preferences.priorite_defaut == 'ecologie' %}selected{% endif %}>
+                                    🌱 Écologie - Impact environnemental minimal
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="budget_defaut" class="form-label">
+                                Budget par défaut: <span class="range-value" id="budget-display">{{ preferences.budget_defaut }}€</span>
+                            </label>
+                            <input type="range" name="budget_defaut" id="budget_defaut" class="form-range" 
+                                   min="0" max="100" step="5" value="{{ preferences.budget_defaut }}"
+                                   oninput="document.getElementById('budget-display').textContent = this.value + '€'">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contraintes Temporelles -->
+                <div class="preference-section">
+                    <div class="text-center">
+                        <i class="bi bi-clock preference-icon"></i>
+                        <h4>Contraintes de Temps</h4>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="duree_max_defaut" class="form-label">
+                                Durée maximale acceptable: <span class="range-value" id="duree-display">{{ preferences.duree_max_defaut }}min</span>
+                            </label>
+                            <input type="range" name="duree_max_defaut" id="duree_max_defaut" class="form-range" 
+                                   min="10" max="180" step="10" value="{{ preferences.duree_max_defaut }}"
+                                   oninput="document.getElementById('duree-display').textContent = this.value + 'min'">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="tolerance_marche" class="form-label">
+                                Tolérance marche: <span class="range-value" id="marche-display">{{ preferences.tolerance_marche }}min</span>
+                            </label>
+                            <input type="range" name="tolerance_marche" id="tolerance_marche" class="form-range" 
+                                   min="0" max="30" step="5" value="{{ preferences.tolerance_marche }}"
+                                   oninput="document.getElementById('marche-display').textContent = this.value + 'min'">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Véhicules Préférés -->
+                <div class="preference-section">
+                    <div class="text-center">
+                        <i class="bi bi-heart preference-icon"></i>
+                        <h4>Véhicules Favoris</h4>
+                        <p class="text-muted">Sélectionnez vos modes de transport préférés</p>
+                    </div>
+                    
+                    <div class="row">
+                        {% for vehicule in vehicules_disponibles %}
+                        <div class="col-md-4 col-sm-6 mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" name="vehicules_favoris" value="{{ vehicule.id }}" 
+                                       class="form-check-input" id="vehicule_{{ vehicule.id }}"
+                                       {% if vehicule in preferences.vehicules_favoris.all %}checked{% endif %}>
+                                <label class="form-check-label" for="vehicule_{{ vehicule.id }}">
+                                    <i class="{{ vehicule.icone }} me-2" style="color: {{ vehicule.couleur }};"></i>
+                                    {{ vehicule.nom }}
+                                    <small class="d-block text-muted">{{ vehicule.get_categorie_display }}</small>
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Véhicules à Éviter -->
+                <div class="preference-section">
+                    <div class="text-center">
+                        <i class="bi bi-x-circle preference-icon text-danger"></i>
+                        <h4>Véhicules à Éviter</h4>
+                        <p class="text-muted">Modes de transport que vous préférez éviter</p>
+                    </div>
+                    
+                    <div class="row">
+                        {% for vehicule in vehicules_disponibles %}
+                        <div class="col-md-4 col-sm-6 mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" name="vehicules_evites" value="{{ vehicule.id }}" 
+                                       class="form-check-input" id="eviter_{{ vehicule.id }}"
+                                       {% if vehicule in preferences.vehicules_evites.all %}checked{% endif %}>
+                                <label class="form-check-label" for="eviter_{{ vehicule.id }}">
+                                    <i class="{{ vehicule.icone }} me-2" style="color: {{ vehicule.couleur }};"></i>
+                                    {{ vehicule.nom }}
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Contraintes d'Accessibilité -->
+                <div class="preference-section">
+                    <div class="text-center">
+                        <i class="bi bi-universal-access preference-icon"></i>
+                        <h4>Accessibilité</h4>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="necessite_pmr" class="form-check-input" 
+                                       id="necessite_pmr" {% if preferences.necessite_pmr %}checked{% endif %}>
+                                <label class="form-check-label" for="necessite_pmr">
+                                    <strong>Accessibilité PMR requise</strong>
+                                    <small class="d-block text-muted">Privilégier les transports accessibles aux personnes à mobilité réduite</small>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="preference_directe" class="form-check-input" 
+                                       id="preference_directe" {% if preferences.preference_directe %}checked{% endif %}>
+                                <label class="form-check-label" for="preference_directe">
+                                    <strong>Préférer les trajets directs</strong>
+                                    <small class="d-block text-muted">Minimiser le nombre de changements</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Préférences Environnementales -->
+                <div class="preference-section">
+                    <div class="text-center">
+                        <i class="bi bi-tree preference-icon text-success"></i>
+                        <h4>Impact Environnemental</h4>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="poids_historique" class="form-label">
+                                Importance de l'historique: <span class="range-value" id="eco-display">{{ preferences.poids_historique|floatformat:1 }}/1</span>
+                            </label>
+                            <input type="range" name="poids_historique" id="poids_historique" class="form-range" 
+                                   min="0" max="1" step="0.1" value="{{ preferences.poids_historique }}"
+                                   oninput="document.getElementById('eco-display').textContent = this.value + '/1'">
+                            <small class="text-muted">0 = Peu important, 1 = Très important</small>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="apprentissage_actif" class="form-check-input" 
+                                       id="apprentissage_actif" {% if preferences.apprentissage_actif %}checked{% endif %}>
+                                <label class="form-check-label" for="apprentissage_actif">
+                                    <strong>Apprentissage automatique</strong>
+                                    <small class="d-block text-muted">L'IA s'améliore selon vos choix</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="text-center pt-4">
+                    <button type="submit" class="btn btn-primary btn-lg me-3">
+                        <i class="bi bi-check-circle"></i> Sauvegarder mes Préférences
+                    </button>
+                    <a href="{% url 'gestion_trajets:planificateur_trajet' %}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-arrow-left"></i> Retour au Planificateur
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Animation des sections
+    $('.preference-section').each(function(index) {
+        $(this).css('opacity', '0').css('transform', 'translateY(20px)');
+        $(this).delay(index * 200).animate({
+            opacity: 1
+        }, 600, function() {
+            $(this).css('transform', 'translateY(0)');
+        });
+    });
+
+    // Validation du formulaire
+    $('form').on('submit', function(e) {
+        let vehiculesFavoris = $('input[name="vehicules_favoris"]:checked').length;
+        let vehiculesEvites = $('input[name="vehicules_evites"]:checked').length;
+        
+        if (vehiculesFavoris === 0) {
+            if (!confirm('Aucun véhicule favori sélectionné. Continuer ?')) {
+                e.preventDefault();
+                return false;
+            }
+        }
+        
+        // Vérifier qu'un véhicule n'est pas à la fois favori et évité
+        $('input[name="vehicules_favoris"]:checked').each(function() {
+            let vehiculeId = $(this).val();
+            if ($('input[name="vehicules_evites"][value="' + vehiculeId + '"]:checked').length > 0) {
+                alert('Un véhicule ne peut pas être à la fois favori et évité !');
+                e.preventDefault();
+                return false;
+            }
+        });
+    });
+
+    // Interactivité entre véhicules favoris et évités
+    $('input[name="vehicules_favoris"]').on('change', function() {
+        if ($(this).is(':checked')) {
+            let vehiculeId = $(this).val();
+            $('input[name="vehicules_evites"][value="' + vehiculeId + '"]').prop('checked', false);
+        }
+    });
+
+    $('input[name="vehicules_evites"]').on('change', function() {
+        if ($(this).is(':checked')) {
+            let vehiculeId = $(this).val();
+            $('input[name="vehicules_favoris"][value="' + vehiculeId + '"]').prop('checked', false);
+        }
+    });
+});
+</script>
+{% endblock %}

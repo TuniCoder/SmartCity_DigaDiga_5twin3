@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load smartcity_filters %}
+
+{% block title %}Entités - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    <i class="fas fa-database text-primary"></i>
+                    Entités de l'Ontologie SmartCity
+                </h1>
+                <div class="btn-group">
+                    <a href="{% url 'smartcity_app:ontology_view' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-project-diagram"></i> Vue Ontologie
+                    </a>
+                    <a href="{% url 'smartcity_app:query' %}" class="btn btn-outline-success">
+                        <i class="fas fa-search"></i> Requêtes SPARQL
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques générales -->
+    {% if statistics %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar"></i> Statistiques de l'Ontologie
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number">{{ statistics.total_triples|default:0 }}</div>
+                                <div class="stat-label">Triplets RDF</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number">{{ statistics.total_classes|default:0 }}</div>
+                                <div class="stat-label">Classes</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number">{{ statistics.total_properties|default:0 }}</div>
+                                <div class="stat-label">Propriétés</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number">{{ statistics.total_individuals|default:0 }}</div>
+                                <div class="stat-label">Individus</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Entités par catégorie -->
+    <div class="row">
+        <!-- Véhicules -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-car text-success"></i> Véhicules
+                    </h5>
+                    <span class="badge bg-success">{{ entities_sample.vehicles|length|default:0 }}</span>
+                </div>
+                <div class="card-body">
+                    {% if entities_sample.vehicles %}
+                        <div class="list-group list-group-flush">
+                            {% for vehicle in entities_sample.vehicles %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ vehicle.vehicle|default:"Véhicule"|slice:":30" }}...</strong>
+                                        <br><small class="text-muted">{{ vehicle.marque|default:"" }} {{ vehicle.modele|default:"" }}</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="showEntityDetails('{{ vehicle.vehicle }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'smartcity_app:entities' 'vehicles' %}" class="btn btn-success">
+                                Voir tous les véhicules
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-car fa-2x mb-2"></i>
+                            <p>Aucun véhicule trouvé</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Stations -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-map-marker-alt text-warning"></i> Stations
+                    </h5>
+                    <span class="badge bg-warning">{{ entities_sample.stations|length|default:0 }}</span>
+                </div>
+                <div class="card-body">
+                    {% if entities_sample.stations %}
+                        <div class="list-group list-group-flush">
+                            {% for station in entities_sample.stations %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ station.nomStation|default:station.station|slice:":30" }}...</strong>
+                                        <br><small class="text-muted">{{ station.adresse|default:"Station"|slice:":40" }}</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="showEntityDetails('{{ station.station }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'smartcity_app:entities' 'stations' %}" class="btn btn-warning">
+                                Voir toutes les stations
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-map-marker-alt fa-2x mb-2"></i>
+                            <p>Aucune station trouvée</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Trajets -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-route text-info"></i> Trajets
+                    </h5>
+                    <span class="badge bg-info">{{ entities_sample.trips|length|default:0 }}</span>
+                </div>
+                <div class="card-body">
+                    {% if entities_sample.trips %}
+                        <div class="list-group list-group-flush">
+                            {% for trip in entities_sample.trips %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ trip.trajet|default:"Trajet"|slice:":30" }}...</strong>
+                                        <br><small class="text-muted">{{ trip.pointDepart|default:"" }} → {{ trip.pointArrivee|default:"" }}</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="showEntityDetails('{{ trip.trajet }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'smartcity_app:entities' 'trips' %}" class="btn btn-info">
+                                Voir tous les trajets
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-route fa-2x mb-2"></i>
+                            <p>Aucun trajet trouvé</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sections admin uniquement -->
+        {% if is_admin %}
+        <!-- Utilisateurs -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users text-primary"></i> Utilisateurs
+                    </h5>
+                    <span class="badge bg-primary">{{ entities_sample.users|length|default:0 }}</span>
+                </div>
+                <div class="card-body">
+                    {% if entities_sample.users %}
+                        <div class="list-group list-group-flush">
+                            {% for user in entities_sample.users %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ user.nom|default:user.user|slice:":30" }}...</strong>
+                                        <br><small class="text-muted">{{ user.email|default:"Utilisateur" }}</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="showEntityDetails('{{ user.user }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'smartcity_app:entities' 'users' %}" class="btn btn-primary">
+                                Voir tous les utilisateurs
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-users fa-2x mb-2"></i>
+                            <p>Aucun utilisateur trouvé</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Message si aucune entité -->
+    {% if not entities_sample.vehicles and not entities_sample.stations and not entities_sample.trips %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-warning text-center">
+                <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                <h4>Aucune entité disponible</h4>
+                <p class="mb-3">Il semble qu'il n'y ait pas d'entités chargées dans l'ontologie.</p>
+                <div class="btn-group">
+                    <a href="{% url 'smartcity_app:ontology_view' %}" class="btn btn-primary">
+                        <i class="fas fa-project-diagram"></i> Vérifier l'ontologie
+                    </a>
+                    <a href="{% url 'smartcity_app:query' %}" class="btn btn-success">
+                        <i class="fas fa-search"></i> Exécuter une requête
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal pour les détails d'entité -->
+<div class="modal fade" id="entityDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle"></i> Détails de l'Entité
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="entityDetailsContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-card {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #495057;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+.list-group-item {
+    border-left: none;
+    border-right: none;
+}
+
+.list-group-item:first-child {
+    border-top: none;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showEntityDetails(entityUri) {
+    // Ouvrir le modal et charger les détails de l'entité
+    const modal = new bootstrap.Modal(document.getElementById('entityDetailsModal'));
+    const content = document.getElementById('entityDetailsContent');
+    
+    // Afficher le spinner
+    content.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+            <p class="mt-2">Chargement des détails...</p>
+        </div>
+    `;
+    
+    modal.show();
+    
+    // Simuler le chargement des détails (à implémenter)
+    setTimeout(() => {
+        content.innerHTML = `
+            <div class="alert alert-info">
+                <h6>URI de l'entité :</h6>
+                <code>${entityUri}</code>
+            </div>
+            <p>Les détails complets de cette entité seront bientôt disponibles via une requête SPARQL.</p>
+            <div class="text-center">
+                <a href="{% url 'smartcity_app:query' %}" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Interroger maintenant
+                </a>
+            </div>
+        `;
+    }, 1000);
+}
+</script>
+{% endblock %}
