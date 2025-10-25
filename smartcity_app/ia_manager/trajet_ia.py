@@ -1,6 +1,6 @@
 """
 Intelligence Artificielle pour la Planification de Trajets - SmartCity
-Module : 🤖 IA Trajets Intelligents
+Module : 🤖 IA Trajets Intelligents avec Cohérence Géographique
 """
 
 import json
@@ -16,6 +16,9 @@ from ..gestion_trajets.models import (
     AlerteTransportTempsReel,
     PreferenceUtilisateurIA
 )
+
+# Import du gestionnaire de cohérence géographique
+from .geo_coherence import geo_coherence_manager
 
 class MoteurRecommandationTrajet:
     """
@@ -135,8 +138,31 @@ class MoteurRecommandationTrajet:
         return conditions
     
     def _generer_options_trajet(self, demande: DemandeTrajetIntelligent, contexte: Dict, conditions: Dict) -> List[Dict]:
-        """Génère toutes les options de trajet possibles"""
+        """Génère toutes les options de trajet possibles avec cohérence géographique"""
         options = []
+        
+        # **NOUVEAUTÉ** : Calculer la distance réelle entre départ et arrivée
+        depart_coords = (demande.lieu_depart_lat, demande.lieu_depart_lng) if demande.lieu_depart_lat and demande.lieu_depart_lng else None
+        arrivee_coords = (demande.lieu_arrivee_lat, demande.lieu_arrivee_lng) if demande.lieu_arrivee_lat and demande.lieu_arrivee_lng else None
+        
+        # Si pas de coordonnées, essayer de les déduire des noms de lieux
+        if not depart_coords and demande.lieu_depart:
+            depart_coords = geo_coherence_manager.obtenir_coordonnees_ville(demande.lieu_depart)
+        
+        if not arrivee_coords and demande.lieu_arrivee:
+            arrivee_coords = geo_coherence_manager.obtenir_coordonnees_ville(demande.lieu_arrivee)
+        
+        # Calculer la distance réelle
+        distance_reelle = None
+        if depart_coords and arrivee_coords:
+            distance_reelle = geo_coherence_manager.calculer_distance_reelle(depart_coords, arrivee_coords)
+        
+        # Si pas de distance réelle, utiliser une estimation (fallback)
+        if distance_reelle is None:
+            distance_reelle = random.uniform(5, 25)  # km (estimation par défaut)
+        
+        # **NOUVEAUTÉ** : Obtenir les informations de zone
+        zone_info = geo_coherence_manager.obtenir_info_zone(distance_reelle)
         
         # Récupérer les véhicules disponibles
         vehicules_disponibles = TypeVehiculeIntelligent.objects.filter(disponible=True)
@@ -147,29 +173,63 @@ class MoteurRecommandationTrajet:
             vehicules_prioritaires = vehicules_disponibles
         
         # Générer des options pour chaque type de véhicule
+        options_brutes = []
         for vehicule in vehicules_prioritaires:
-            option = self._calculer_trajet_vehicule(demande, vehicule, contexte, conditions)
+            option = self._calculer_trajet_vehicule(
+                demande, vehicule, contexte, conditions, distance_reelle
+            )
             if option:
-                options.append(option)
+                options_brutes.append(option)
         
-        # Générer des options combinées (multimodal)
-        options_multimodales = self._generer_trajets_multimodaux(demande, contexte, conditions)
-        options.extend(options_multimodales)
+        # **NOUVEAUTÉ** : Filtrer avec cohérence géographique
+        if depart_coords and arrivee_coords:
+            options_coherentes = geo_coherence_manager.filtrer_vehicules_coherents(
+                options_brutes,
+                distance_reelle,
+                depart_coords,
+                arrivee_coords
+            )
+            
+            # Ajouter des informations contextuelles
+            for option in options_coherentes:
+                option['zone_geographique'] = zone_info['nom']
+                option['distance_reelle_km'] = distance_reelle
+        else:
+            # Fallback si pas de coordonnées : garder tous mais signaler
+            options_coherentes = options_brutes
+            for option in options_coherentes:
+                option['coherence_geo'] = {
+                    'est_adapte': True,
+                    'raison': 'Coordonnées non disponibles - vérification impossible',
+                    'zone': 'inconnue',
+                    'explication': '⚠️ Recommandation sans vérification géographique'
+                }
+                option['zone_geographique'] = 'Non déterminée'
+                option['distance_reelle_km'] = distance_reelle
         
-        return options
+        # Générer des options combinées (multimodal) uniquement si pertinent
+        if distance_reelle and 5 < distance_reelle < 30:  # Multimodal pertinent pour 5-30km
+            options_multimodales = self._generer_trajets_multimodaux(demande, contexte, conditions, distance_reelle)
+            options_coherentes.extend(options_multimodales)
+        
+        return options_coherentes
     
     def _calculer_trajet_vehicule(self, demande: DemandeTrajetIntelligent, vehicule: TypeVehiculeIntelligent, 
-                                 contexte: Dict, conditions: Dict) -> Optional[Dict]:
+                                 contexte: Dict, conditions: Dict, distance_reelle: Optional[float] = None) -> Optional[Dict]:
         """Calcule un trajet pour un véhicule spécifique"""
         
-        # Calculer la distance (simulation - en production utiliserait une API de routing)
-        distance = self._calculer_distance(
-            demande.lieu_depart_lat, demande.lieu_depart_lng,
-            demande.lieu_arrivee_lat, demande.lieu_arrivee_lng
-        )
-        
-        if distance is None:
-            distance = random.uniform(5, 25)  # km
+        # Utiliser la distance fournie ou la calculer
+        if distance_reelle is not None:
+            distance = distance_reelle
+        else:
+            # Calculer la distance (simulation - en production utiliserait une API de routing)
+            distance = self._calculer_distance(
+                demande.lieu_depart_lat, demande.lieu_depart_lng,
+                demande.lieu_arrivee_lat, demande.lieu_arrivee_lng
+            )
+            
+            if distance is None:
+                distance = random.uniform(5, 25)  # km
         
         # Calculer les métriques selon le type de véhicule
         if vehicule.categorie == 'public':
@@ -424,7 +484,8 @@ class MoteurRecommandationTrajet:
         except PreferenceUtilisateurIA.DoesNotExist:
             return {'vehicules_favoris': [], 'vehicules_evites': []}
     
-    def _generer_trajets_multimodaux(self, demande: DemandeTrajetIntelligent, contexte: Dict, conditions: Dict) -> List[Dict]:
+    def _generer_trajets_multimodaux(self, demande: DemandeTrajetIntelligent, contexte: Dict, 
+                                    conditions: Dict, distance_reelle: float) -> List[Dict]:
         """Génère des options de trajets multimodaux (combinaison de véhicules)"""
         # Simulation simple - en production cela serait plus complexe
         options_multimodales = []
@@ -435,7 +496,7 @@ class MoteurRecommandationTrajet:
             duree_mins = random.randint(25, 45)
             cout = random.uniform(1.5, 3.0)
             confort = random.randint(6, 8)
-            distance = random.uniform(8, 20)
+            distance = distance_reelle  # Utiliser la distance réelle
             empreinte = random.uniform(20, 50)
             
             # Score simple basé sur les critères

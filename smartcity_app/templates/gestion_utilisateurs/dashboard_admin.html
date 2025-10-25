@@ -310,17 +310,42 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Vérifier si Chart.js est disponible et le graphique existe
-    if (typeof Chart !== 'undefined' && document.getElementById('rolesChart')) {
-        const ctx = document.getElementById('rolesChart').getContext('2d');
-        
-        const adminCount = {{ stats.admin_users|default:0 }};
-        const normalCount = {{ stats.normal_users|default:0 }};
-        
+    console.log('Dashboard chargé');
+    
+    // Vérifier si Chart.js est disponible
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js n\'est pas chargé');
+        return;
+    }
+    
+    const chartElement = document.getElementById('rolesChart');
+    if (!chartElement) {
+        console.error('Élément rolesChart non trouvé');
+        return;
+    }
+    
+    console.log('Chart.js disponible, élément trouvé');
+    
+    const ctx = chartElement.getContext('2d');
+    
+    const adminCount = {{ stats.admin_users|default:0 }};
+    const normalCount = {{ stats.normal_users|default:0 }};
+    
+    console.log('Données du graphique:', { adminCount, normalCount });
+    
+    // Vérifier que nous avons des données
+    if (adminCount === 0 && normalCount === 0) {
+        console.warn('Aucune donnée à afficher');
+        chartElement.style.display = 'none';
+        chartElement.parentElement.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-chart-pie fa-3x mb-3"></i><p>Aucune donnée à afficher</p></div>';
+        return;
+    }
+    
+    try {
         new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Administrateurs', 'Utilisateurs'],
+                labels: ['Administrateurs', 'Utilisateurs Standard'],
                 datasets: [{
                     data: [adminCount, normalCount],
                     backgroundColor: [
@@ -337,10 +362,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 plugins: {
                     legend: {
                         position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = adminCount + normalCount;
+                                const percentage = Math.round((context.parsed / total) * 100);
+                                return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                            }
+                        }
                     }
                 }
             }
         });
+        console.log('Graphique créé avec succès');
+    } catch (error) {
+        console.error('Erreur lors de la création du graphique:', error);
     }
 });
 </script>

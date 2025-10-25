@@ -326,7 +326,8 @@ def get_api_status(request):
                 'entities': '/api/entities/<type>/',
                 'search': '/api/search/?q=<keyword>',
                 'predefined_queries': '/api/queries/predefined/',
-                'execute_predefined': '/api/queries/predefined/<id>/execute/'
+                'execute_predefined': '/api/queries/predefined/<id>/execute/',
+                'add_trip': '/api/trips/add/'
             }
         }, status=status.HTTP_200_OK)
         
@@ -335,5 +336,190 @@ def get_api_status(request):
         return Response({
             'success': False,
             'status': 'Erreur API',
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def add_trip_to_ontology(request):
+    """
+    API endpoint pour ajouter un nouveau trajet dans l'ontologie RDF
+    POST /api/trips/add/
+    """
+    try:
+        data = request.data
+        
+        # Validation des champs obligatoires
+        required_fields = ['pointDepart', 'pointArrivee', 'duree', 'distance', 'cout', 'mode', 'vehiculeType']
+        missing_fields = [field for field in required_fields if not data.get(field)]
+        
+        if missing_fields:
+            return Response({
+                'success': False,
+                'error': f'Champs obligatoires manquants: {", ".join(missing_fields)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Préparer les données du trajet avec validation
+        trajet_data = {}
+        
+        # Champs textuels
+        text_fields = ['nom', 'utilisateurUsername', 'pointDepart', 'pointArrivee', 'mode', 'vehiculeType', 'niveauCirculation', 'zoneGeographique', 'etapesJson']
+        for field in text_fields:
+            if field in data and data[field]:
+                trajet_data[field] = str(data[field]).strip()
+        
+        # Champs numériques avec validation
+        try:
+            # Champs flottants
+            float_fields = ['duree', 'distance', 'cout', 'empreinteCarbone', 'scoreIA', 'fiabiliteScore']
+            for field in float_fields:
+                if field in data and data[field] is not None:
+                    value = float(data[field])
+                    if value < 0:
+                        return Response({
+                            'success': False,
+                            'error': f'Le champ {field} ne peut pas être négatif'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                    trajet_data[field] = value
+            
+            # Champs entiers
+            int_fields = ['scoreConfort']
+            for field in int_fields:
+                if field in data and data[field] is not None:
+                    value = int(data[field])
+                    if field == 'scoreConfort' and (value < 1 or value > 10):
+                        return Response({
+                            'success': False,
+                            'error': 'Le score de confort doit être entre 1 et 10'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                    trajet_data[field] = value
+                    
+        except (ValueError, TypeError) as e:
+            return Response({
+                'success': False,
+                'error': f'Erreur de format numérique: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validation du JSON des étapes
+        if 'etapesJson' in trajet_data:
+            try:
+                import json
+                json.loads(trajet_data['etapesJson'])
+            except json.JSONDecodeError:
+                return Response({
+                    'success': False,
+                    'error': 'Le format JSON des étapes est invalide'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Ajouter le trajet dans l'ontologie RDF
+        success, result = rdf_manager.add_trajet_to_rdf(trajet_data)
+        
+        if success:
+            return Response({
+                'success': True,
+                'message': 'Trajet ajouté avec succès dans l\'ontologie',
+                'trajet_uri': result,
+                'data': trajet_data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                'success': False,
+                'error': f'Erreur lors de l\'ajout dans l\'ontologie: {result}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+    except Exception as e:
+        logger.error(f"Erreur dans add_trip_to_ontology: {e}")
+        return Response({
+            'success': False,
+            'error': 'Erreur interne du serveur'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST', 'DELETE'])
+@permission_classes([AllowAny])
+def delete_trip_from_ontology(request):
+    """
+    API endpoint pour supprimer un trajet de l'ontologie RDF
+    POST /api/trips/delete/  (body JSON {"trajet_uri": "..."} )
+    or
+    DELETE /api/trips/delete/?trajet_uri=...
+    """
+    try:
+        # Accept both JSON body (POST) or query param (DELETE)
+        if request.method == 'POST':
+            data = request.data
+            trajet_uri = data.get('trajet_uri') or data.get('trajet_id')
+        else:
+            trajet_uri = request.GET.get('trajet_uri') or request.GET.get('trajet_id')
+
+        if not trajet_uri:
+            return Response({'success': False, 'error': 'Identifiant du trajet manquant'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Supporter le passage d'une URI complète ou d'un identifiant local (fragment après '#')
+        trajet_id = None
+        if '#' in trajet_uri:
+            trajet_id = trajet_uri.split('#')[-1]
+        else:
+            # Si l'URI contient des /, prendre la dernière partie
+            if '/' in trajet_uri:
+                trajet_id = trajet_uri.rstrip('/').split('/')[-1]
+            else:
+                trajet_id = trajet_uri
+
+        # Appeler le manager RDF pour supprimer
+        success, message = rdf_manager.delete_trajet(trajet_id)
+
+        if success:
+            return Response({'success': True, 'message': message}, status=status.HTTP_200_OK)
+        else:
+            return Response({'success': False, 'error': message}, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        logger.error(f"Erreur dans delete_trip_from_ontology: {e}")
+        return Response({'success': False, 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_transport_options(request):
+    """
+    API endpoint pour récupérer les options de transport depuis l'ontologie RDF
+    GET /api/transport/options/
+    """
+    try:
+        # Récupérer les modes de transport et types de véhicules depuis l'ontologie
+        transport_modes = rdf_manager.get_transport_modes_from_rdf()
+        vehicle_types = rdf_manager.get_vehicle_types_from_rdf()
+        
+        # Ajouter des valeurs par défaut si aucune donnée n'est trouvée dans l'ontologie
+        default_modes = [
+            "Voiture Personnelle", "Autolib (Voiture Partagée)", "Moto", 
+            "Vélo", "Métro", "Bus", "Vélo + Métro", "Marche"
+        ]
+        default_types = ["prive", "public", "partage", "multimodal"]
+        
+        # Fusionner avec les valeurs par défaut (sans doublons)
+        all_modes = sorted(list(set(transport_modes + default_modes)))
+        all_types = sorted(list(set(vehicle_types + default_types)))
+        
+        return Response({
+            'success': True,
+            'data': {
+                'transport_modes': all_modes,
+                'vehicle_types': all_types,
+                'sources': {
+                    'modes_from_ontology': len(transport_modes),
+                    'types_from_ontology': len(vehicle_types),
+                    'total_modes': len(all_modes),
+                    'total_types': len(all_types)
+                }
+            }
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération des options de transport: {e}")
+        return Response({
+            'success': False,
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -52,6 +52,9 @@
                                             {% for key in entities.object_list.0.keys %}
                                                 <th><i class="fas fa-tag"></i> {{ key|capfirst }}</th>
                                             {% endfor %}
+                                            {% if entity_type == 'trips' and is_admin %}
+                                                <th><i class="fas fa-cogs"></i> Actions</th>
+                                            {% endif %}
                                         {% endif %}
                                     </tr>
                                 </thead>
@@ -72,6 +75,15 @@
                                                     {% endif %}
                                                 </td>
                                             {% endfor %}
+                                            {% if entity_type == 'trips' and is_admin %}
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-danger" 
+                                                            onclick="deleteTrip('{{ entity.trajet }}', this)"
+                                                            title="Supprimer ce trajet">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </td>
+                                            {% endif %}
                                         </tr>
                                     {% endfor %}
                                 </tbody>
@@ -152,6 +164,36 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.entity-link {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.entity-link:hover {
+    background-color: #007bff !important;
+    color: white !important;
+}
+
+/* Toast notifications */
+.toast {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toast-body {
+    font-weight: 500;
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
     function exportEntities(format) {
@@ -204,6 +246,139 @@
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
+    }
+
+    function deleteTrip(trajetUri, btn) {
+        if (!trajetUri) {
+            showNotification('Identifiant du trajet invalide', 'error');
+            return;
+        }
+
+        if (!confirm('Confirmer la suppression de ce trajet ? Cette action est irréversible.')) {
+            return;
+        }
+
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        } catch (e) {
+            console.warn('Button not available:', e);
+        }
+
+        fetch('/api/trips/delete/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({ trajet_uri: trajetUri })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Trajet supprimé avec succès', 'success');
+                // Retirer la ligne du tableau
+                if (btn && btn.closest) {
+                    const row = btn.closest('tr');
+                    if (row) {
+                        row.remove();
+                        // Mettre à jour le compteur
+                        updateCount();
+                    }
+                }
+            } else {
+                showNotification(data.error || 'Erreur lors de la suppression', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur suppression trajet:', error);
+            showNotification('Erreur de connexion au serveur', 'error');
+        })
+        .finally(() => {
+            try { 
+                if (btn) {
+                    btn.disabled = false; 
+                    btn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                }
+            } catch (e) {
+                console.warn('Button restoration failed:', e);
+            }
+        });
+    }
+
+    function getCsrfToken() {
+        // Essayer de récupérer le token CSRF depuis un cookie
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrftoken') {
+                return value;
+            }
+        }
+        
+        // Si pas trouvé dans les cookies, essayer les meta tags
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        if (csrfMeta) {
+            return csrfMeta.getAttribute('content');
+        }
+        
+        // Dernière tentative: chercher un input hidden
+        const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        if (csrfInput) {
+            return csrfInput.value;
+        }
+        
+        console.warn('CSRF token not found');
+        return '';
+    }
+
+    function updateCount() {
+        const badge = document.querySelector('.badge.bg-secondary.fs-6');
+        if (badge) {
+            const currentCount = parseInt(badge.textContent.match(/\d+/)[0]);
+            const newCount = Math.max(0, currentCount - 1);
+            badge.textContent = `${newCount} élément(s)`;
+        }
+    }
+
+    function showNotification(message, type = 'info') {
+        // Créer une notification toast
+        const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+        
+        const toastId = 'toast-' + Date.now();
+        const bgClass = type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info';
+        const iconClass = type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle';
+        
+        const toastHTML = `
+            <div id="${toastId}" class="toast align-items-center text-white bg-${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas fa-${iconClass}"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `;
+        
+        toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+        
+        const toast = new bootstrap.Toast(document.getElementById(toastId));
+        toast.show();
+        
+        // Supprimer le toast après fermeture
+        document.getElementById(toastId).addEventListener('hidden.bs.toast', function() {
+            this.remove();
+        });
+    }
+
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '1055';
+        document.body.appendChild(container);
+        return container;
     }
 </script>
 {% endblock %}

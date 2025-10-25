@@ -35,4 +35,11 @@ urlpatterns = [
     # Predefined Queries
     path('queries/predefined/', api_views.get_predefined_queries, name='predefined_queries'),
     path('queries/predefined/<str:query_id>/execute/', api_views.execute_predefined_query, name='execute_predefined'),
+    
+    # Trip Management
+    path('trips/add/', api_views.add_trip_to_ontology, name='add_trip'),
+    path('trips/delete/', api_views.delete_trip_from_ontology, name='delete_trip'),
+    
+    # Transport Options
+    path('transport/options/', api_views.get_transport_options, name='transport_options'),
 ]

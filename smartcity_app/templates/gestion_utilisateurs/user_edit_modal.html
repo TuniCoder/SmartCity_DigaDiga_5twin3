@@ -1,0 +1,107 @@
+<div class="modal-header">
+    <h5 class="modal-title">
+        <i class="fas fa-edit me-2"></i>Modifier l'utilisateur
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<form id="editUserForm" method="post" action="{% url 'gestion_utilisateurs:modifier_utilisateur' user_edit.id %}">
+    <div class="modal-body">
+        {% csrf_token %}
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            Les modifications seront automatiquement synchronisées avec le fichier RDF.
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="editFirstName" class="form-label">Prénom</label>
+                <input type="text" class="form-control" id="editFirstName" name="first_name" 
+                       value="{{ user_edit.first_name }}">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="editLastName" class="form-label">Nom</label>
+                <input type="text" class="form-control" id="editLastName" name="last_name" 
+                       value="{{ user_edit.last_name }}">
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="editEmail" class="form-label">Email *</label>
+            <input type="email" class="form-control" id="editEmail" name="email" 
+                   value="{{ user_edit.email }}" required>
+        </div>
+        
+        {% if profil %}
+        <div class="mb-3">
+            <label for="editTelephone" class="form-label">Téléphone</label>
+            <input type="tel" class="form-control" id="editTelephone" name="telephone" 
+                   value="{{ profil.telephone }}">
+        </div>
+        {% else %}
+        <div class="mb-3">
+            <label for="editTelephone" class="form-label">Téléphone</label>
+            <input type="tel" class="form-control" id="editTelephone" name="telephone">
+        </div>
+        {% endif %}
+        
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="editIsActive" name="is_active" 
+                   {% if user_edit.is_active %}checked{% endif %}>
+            <label class="form-check-label" for="editIsActive">
+                Compte actif
+            </label>
+        </div>
+        
+        <div class="alert alert-warning">
+            <small>
+                <strong>Note :</strong> Pour modifier le rôle de l'utilisateur, utilisez le bouton de gestion des rôles dans la liste.
+            </small>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i>Enregistrer
+        </button>
+    </div>
+</form>
+
+<script>
+// Gérer la soumission du formulaire d'édition
+document.getElementById('editUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const userId = this.action.split('/').slice(-2, -1)[0];
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Fermer le modal
+            bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+            
+            // Afficher le message de succès
+            showToast('success', data.message);
+            
+            // Recharger la page pour voir les changements
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showToast('error', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('error', 'Erreur lors de la modification de l\'utilisateur');
+    });
+});
+</script>

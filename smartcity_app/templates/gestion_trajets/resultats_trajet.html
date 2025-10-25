@@ -141,7 +141,9 @@
         <div class="col-lg-8">
             {% if trajets_recommandes %}
                 {% for trajet in trajets_recommandes %}
-                <div class="card trajet-recommande mb-4 position-relative" data-trajet-id="{{ trajet.id }}">
+                <div class="card trajet-recommande mb-4 position-relative" 
+                     data-trajet-id="{% if trajet.id %}{{ trajet.id }}{% else %}{{ forloop.counter }}{% endif %}"
+                     data-trajet-rang="{{ trajet.rang|default:forloop.counter }}">
                     <!-- Badge de classement -->
                     <div class="trajet-badge">
                         {% if trajet.rang == 1 %}
@@ -151,7 +153,7 @@
                             </span>
                         {% else %}
                             <span class="badge bg-secondary fs-6">
-                                #{{ trajet.rang }}
+                                #{{ trajet.rang|default:forloop.counter }}
                             </span>
                         {% endif %}
                     </div>
@@ -168,20 +170,31 @@
                                     {{ trajet.score_ia|floatformat:1 }}
                                 </div>
                                 
-                                {% for vehicule in trajet.vehicules_utilises.all %}
-                                <div class="text-center mb-2">
-                                    <i class="{{ vehicule.icone }} fa-2x mb-1" style="color: {{ vehicule.couleur }};"></i>
-                                    <div class="small fw-semibold">{{ vehicule.nom }}</div>
-                                </div>
-                                {% endfor %}
+                                {% if trajet.vehicules_utilises.all %}
+                                    {% for vehicule in trajet.vehicules_utilises.all %}
+                                    <div class="text-center mb-2">
+                                        <i class="{{ vehicule.icone }} fa-2x mb-1" style="color: {{ vehicule.couleur }};"></i>
+                                        <div class="small fw-semibold">{{ vehicule.nom }}</div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center mb-2">
+                                        <i class="fas fa-route fa-2x mb-1 text-primary"></i>
+                                        <div class="small fw-semibold">{{ trajet.vehicule_nom|default:"Transport" }}</div>
+                                    </div>
+                                {% endif %}
                             </div>
 
                             <!-- Informations principales -->
                             <div class="col-md-6">
                                 <h5 class="mb-3">
-                                    {% for vehicule in trajet.vehicules_utilises.all %}
-                                        {{ vehicule.nom }}{% if not forloop.last %} + {% endif %}
-                                    {% endfor %}
+                                    {% if trajet.vehicules_utilises.all %}
+                                        {% for vehicule in trajet.vehicules_utilises.all %}
+                                            {{ vehicule.nom }}{% if not forloop.last %} + {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        {{ trajet.vehicule_nom|default:"Trajet recommandé" }}
+                                    {% endif %}
                                 </h5>
 
                                 <!-- Métriques principales -->
@@ -282,7 +295,8 @@
 
                                 <!-- Bouton de sélection -->
                                 <div class="d-grid mt-3">
-                                    <button class="btn btn-primary" onclick="selectionnerTrajet({{ trajet.id }})">
+                                    <button class="btn btn-primary" 
+                                            onclick="selectionnerTrajet('{% if trajet.id %}{{ trajet.id }}{% else %}{{ forloop.counter }}{% endif %}')">
                                         <i class="fas fa-check me-1"></i>
                                         Choisir ce trajet
                                     </button>
@@ -462,11 +476,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const trajetsData = [
         {% for trajet in trajets_recommandes %}
         {
-            label: '{% for vehicule in trajet.vehicules_utilises.all %}{{ vehicule.nom }}{% if not forloop.last %} + {% endif %}{% endfor %}',
-            duree: {{ trajet.duree_minutes }},
-            cout: {{ trajet.cout_total }},
-            score: {{ trajet.score_ia }},
-            carbone: {{ trajet.empreinte_carbone_g }}
+            label: '{% if trajet.vehicules_utilises.all %}{% for vehicule in trajet.vehicules_utilises.all %}{{ vehicule.nom }}{% if not forloop.last %} + {% endif %}{% endfor %}{% else %}{{ trajet.vehicule_nom|default:"Transport" }}{% endif %}',
+            duree: {{ trajet.duree_minutes|default:0 }},
+            cout: {{ trajet.cout_total|default:0 }},
+            score: {{ trajet.score_ia|default:0 }},
+            carbone: {{ trajet.empreinte_carbone_g|default:0 }}
         }{% if not forloop.last %},{% endif %}
         {% endfor %}
     ];
@@ -538,6 +552,13 @@ function selectionnerTrajet(trajetId) {
     
     // Sélectionner le trajet choisi
     const trajetCard = document.querySelector(`[data-trajet-id="${trajetId}"]`);
+    
+    if (!trajetCard) {
+        console.error('Trajet non trouvé:', trajetId);
+        alert('Erreur: Trajet introuvable. Veuillez rafraîchir la page.');
+        return;
+    }
+    
     trajetCard.classList.add('selected');
     
     // Afficher une confirmation

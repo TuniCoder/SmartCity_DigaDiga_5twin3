@@ -5,6 +5,7 @@ Domaine : 👥 Utilisateurs
 
 from django.urls import path
 from . import views
+from ..views_manager.views_main import registration_view
 
 app_name = 'gestion_utilisateurs'
 
@@ -12,6 +13,7 @@ urlpatterns = [
     # Authentification
     path('connexion/', views.connexion_view, name='connexion'),
     path('deconnexion/', views.deconnexion_view, name='deconnexion'),
+    path('inscription/', registration_view, name='inscription'),
     
     # Profil utilisateur (commun)
     path('profil/', views.profil_utilisateur_view, name='profil_utilisateur'),
@@ -30,6 +32,12 @@ urlpatterns = [
     path('admin/utilisateurs/', views.gestion_utilisateurs_admin_view, name='gestion_users_admin'),
     path('utilisateurs/', views.liste_utilisateurs, name='liste_utilisateurs'),
     path('utilisateurs/creer/', views.creer_utilisateur, name='creer_utilisateur'),
+    path('utilisateurs/voir/<int:user_id>/', views.voir_utilisateur, name='voir_utilisateur'),
+    path('utilisateurs/modifier/<int:user_id>/', views.modifier_utilisateur, name='modifier_utilisateur'),
+    path('utilisateurs/statut/<int:user_id>/', views.changer_statut_utilisateur, name='changer_statut_utilisateur'),
+    path('utilisateurs/supprimer/<int:user_id>/', views.supprimer_utilisateur, name='supprimer_utilisateur'),
+    path('modifier-role/<int:user_id>/', views.modifier_role_utilisateur, name='modifier_role_utilisateur'),
+    path('synchroniser-rdf/', views.synchroniser_utilisateurs_rdf, name='synchroniser_rdf'),
     path('admin/changer-role/<int:user_id>/', views.changer_role_utilisateur, name='changer_role'),
     path('admin/tableau-bord/', views.tableau_bord_utilisateurs_view, name='tableau_bord_utilisateurs'),
     

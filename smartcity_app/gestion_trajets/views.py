@@ -19,6 +19,7 @@ from ..gestion_trajets.models import (
     PreferenceUtilisateurIA
 )
 from ..ia_manager.trajet_ia import moteur_trajet_ia
+from ..ontology_manager.rdf_utils import rdf_manager
 
 @login_required
 def index_trajets_view(request):
@@ -193,8 +194,69 @@ def resultats_trajet_view(request, demande_id):
     
     demande = get_object_or_404(DemandeTrajetIntelligent, id=demande_id, utilisateur=request.user)
     
-    # Récupérer les trajets recommandés
-    trajets_recommandes = TrajetRecommande.objects.filter(demande=demande).order_by('rang')
+    # **NOUVEAUTÉ** : Récupérer les trajets depuis RDF
+    trajets_rdf = rdf_manager.list_trajets(
+        filtre_utilisateur=request.user.id,
+        filtre_demande=demande_id
+    )
+    
+    # Convertir les trajets RDF en format compatible avec le template
+    trajets_recommandes = []
+    for trajet_data in trajets_rdf:
+        # Parser les données JSON stockées dans RDF
+        try:
+            # ✅ CORRECTION: Les propriétés RDF utilisent des noms français avec accents
+            # Voir create_trajet() dans rdf_utils.py ligne 420-440 pour les mappings:
+            # durée, distance, coût, mode, empreinteCarbone, scoreConfort, etc.
+            trajet_obj = {
+                'uri': trajet_data.get('uri'),
+                'rang': int(trajet_data.get('rang', 0)),
+                'duree_minutes': float(trajet_data.get('durée', 0)),  # ✅ "durée" au lieu de "duree_minutes"
+                'distance_km': float(trajet_data.get('distance', 0)),  # ✅ "distance" au lieu de "distance_km"
+                'cout_total': float(trajet_data.get('coût', 0)),  # ✅ "coût" au lieu de "cout_total"
+                'empreinte_carbone_g': float(trajet_data.get('empreinteCarbone', 0)),
+                'score_confort': int(trajet_data.get('scoreConfort', 5)),
+                'niveau_circulation': trajet_data.get('niveauCirculation', 'moyen'),
+                'retard_estime': int(trajet_data.get('retardEstime', 0)),
+                'fiabilite_score': float(trajet_data.get('fiabiliteScore', 8.0)),
+                'score_ia': float(trajet_data.get('scoreIA', 0)),
+                'vehicule_nom': trajet_data.get('mode', 'Inconnu'),  # ✅ "mode" au lieu de "vehicule_nom"
+                'vehicule_type': trajet_data.get('vehiculeType', 'autre'),
+                'zone_geographique': trajet_data.get('zoneGeographique', 'Non déterminée'),
+                'distance_reelle_km': float(trajet_data.get('distanceReelle', 0)),
+            }
+            
+            # Parser les champs JSON
+            if 'etapes_json' in trajet_data:
+                try:
+                    trajet_obj['etapes'] = json.loads(trajet_data['etapes_json']) if isinstance(trajet_data['etapes_json'], str) else trajet_data['etapes_json']
+                except:
+                    trajet_obj['etapes'] = []
+            
+            if 'facteurs_decision' in trajet_data:
+                try:
+                    trajet_obj['facteurs_decision'] = json.loads(trajet_data['facteurs_decision']) if isinstance(trajet_data['facteurs_decision'], str) else trajet_data['facteurs_decision']
+                except:
+                    trajet_obj['facteurs_decision'] = []
+            
+            if 'coherence_geo' in trajet_data:
+                try:
+                    trajet_obj['coherence_geo'] = json.loads(trajet_data['coherence_geo']) if isinstance(trajet_data['coherence_geo'], str) else trajet_data['coherence_geo']
+                except:
+                    trajet_obj['coherence_geo'] = {}
+            
+            trajets_recommandes.append(trajet_obj)
+        except Exception as e:
+            print(f"Erreur lors du parsing du trajet RDF : {e}")
+            continue
+    
+    # Trier par rang
+    trajets_recommandes.sort(key=lambda x: x.get('rang', 999))
+    
+    # **FALLBACK** : Si pas de trajets dans RDF, utiliser SQLite (transition)
+    if not trajets_recommandes:
+        trajets_sqlite = TrajetRecommande.objects.filter(demande=demande).order_by('rang')
+        trajets_recommandes = list(trajets_sqlite)
     
     # Récupérer les alertes pertinentes
     alertes_pertinentes = AlerteTransportTempsReel.objects.filter(
@@ -209,6 +271,7 @@ def resultats_trajet_view(request, demande_id):
         'alertes_pertinentes': alertes_pertinentes,
         'resultats_ia': demande.resultats_json,
         'peut_reevaluer': True,
+        'source_donnees': 'RDF' if trajets_rdf else 'SQLite (fallback)',
     }
     
     return render(request, 'gestion_trajets/resultats_trajet.html', context)
@@ -255,7 +318,10 @@ def temps_reel_transport_view(request):
 def mes_trajets_view(request):
     """Historique des trajets de l'utilisateur avec filtres et statistiques"""
     
-    # Base query
+    # **NOUVEAUTÉ** : Récupérer les trajets depuis RDF
+    trajets_rdf = rdf_manager.get_trajets_by_user(request.user.id)
+    
+    # Récupérer aussi les demandes pour enrichir les informations
     demandes = DemandeTrajetIntelligent.objects.filter(
         utilisateur=request.user
     ).prefetch_related('trajets_ia', 'vehicules_preferes')
@@ -285,21 +351,33 @@ def mes_trajets_view(request):
     
     demandes = demandes.order_by('-date_creation')
     
-    # Calcul des statistiques
-    total_trajets = demandes.count()
+    # **NOUVEAUTÉ** : Calcul des statistiques depuis RDF
+    total_trajets = len(trajets_rdf)
     distance_totale = 0
     temps_total = 0
     cout_total = 0
     
-    for demande in demandes:
-        meilleur_trajet = demande.trajets_ia.first()
-        if meilleur_trajet:
-            distance_totale += meilleur_trajet.distance_km
-            temps_total += meilleur_trajet.duree_minutes
-            cout_total += meilleur_trajet.cout_total
+    for trajet in trajets_rdf:
+        try:
+            # ✅ CORRECTION: Utiliser les noms de propriétés RDF corrects
+            distance_totale += float(trajet.get('distance', 0))  # ✅ "distance" au lieu de "distance_km"
+            temps_total += float(trajet.get('durée', 0))  # ✅ "durée" au lieu de "duree_minutes"
+            cout_total += float(trajet.get('coût', 0))  # ✅ "coût" au lieu de "cout_total"
+        except (ValueError, TypeError):
+            continue
     
     # Conversion du temps en heures
-    temps_total_heures = round(temps_total / 60, 1)
+    temps_total_heures = round(temps_total / 60, 1) if temps_total > 0 else 0
+    
+    # **FALLBACK** : Si pas de trajets RDF, utiliser SQLite
+    if not trajets_rdf:
+        for demande in demandes:
+            meilleur_trajet = demande.trajets_ia.first()
+            if meilleur_trajet:
+                distance_totale += meilleur_trajet.distance_km
+                temps_total += meilleur_trajet.duree_minutes
+                cout_total += meilleur_trajet.cout_total
+        temps_total_heures = round(temps_total / 60, 1)
     
     # Pagination
     from django.core.paginator import Paginator
@@ -310,12 +388,13 @@ def mes_trajets_view(request):
     context = {
         'page_title': 'Mes Trajets - SmartCity',
         'demandes': page_obj,
-        'total_trajets': total_trajets,
-        'distance_totale': distance_totale,
+        'total_trajets': total_trajets if trajets_rdf else demandes.count(),
+        'distance_totale': round(distance_totale, 2),
         'temps_total': temps_total_heures,
-        'cout_total': cout_total,
+        'cout_total': round(cout_total, 2),
         'is_paginated': page_obj.has_other_pages(),
         'page_obj': page_obj,
+        'source_donnees': 'RDF' if trajets_rdf else 'SQLite (fallback)',
     }
     
     return render(request, 'gestion_trajets/mes_trajets.html', context)
@@ -405,27 +484,52 @@ def ajax_actualiser_temps_reel(request, demande_id):
         # Récupérer les nouvelles informations temps réel
         conditions_actuelles = moteur_trajet_ia._analyser_conditions_temps_reel(demande)
         
-        # Mettre à jour les trajets avec les nouvelles conditions
-        trajets = TrajetRecommande.objects.filter(demande=demande)
+        # **NOUVEAUTÉ** : Récupérer les trajets depuis RDF
+        trajets_rdf = rdf_manager.list_trajets(
+            filtre_utilisateur=request.user.id,
+            filtre_demande=demande_id
+        )
+        
         trajets_data = []
         
-        for trajet in trajets:
-            # Recalculer les retards et alertes
-            nouveau_retard = conditions_actuelles['retards_moyens'].get(trajet.vehicules_utilises.first().nom.lower(), 0)
-            
-            trajets_data.append({
-                'id': trajet.id,
-                'retard_estime': nouveau_retard,
-                'circulation': conditions_actuelles['circulation_generale'],
-                'alertes': conditions_actuelles['alertes_transport'],
-                'prochains_departs': moteur_trajet_ia._generer_prochains_horaires({})
-            })
+        # Utiliser RDF si disponible
+        if trajets_rdf:
+            for trajet in trajets_rdf:
+                # ✅ CORRECTION: Utiliser "mode" au lieu de "vehicule_nom"
+                vehicule_nom = trajet.get('mode', '').lower()
+                nouveau_retard = conditions_actuelles['retards_moyens'].get(vehicule_nom, 0)
+                
+                trajets_data.append({
+                    'uri': trajet.get('uri'),
+                    'rang': trajet.get('rang'),
+                    'vehicule_nom': trajet.get('mode'),  # ✅ "mode" au lieu de "vehicule_nom"
+                    'retard_estime': nouveau_retard,
+                    'circulation': conditions_actuelles['circulation_generale'],
+                    'alertes': conditions_actuelles['alertes_transport'],
+                    'prochains_departs': moteur_trajet_ia._generer_prochains_horaires({})
+                })
+        else:
+            # Fallback vers SQLite
+            trajets = TrajetRecommande.objects.filter(demande=demande)
+            for trajet in trajets:
+                vehicule = trajet.vehicules_utilises.first()
+                vehicule_nom = vehicule.nom.lower() if vehicule else ''
+                nouveau_retard = conditions_actuelles['retards_moyens'].get(vehicule_nom, 0)
+                
+                trajets_data.append({
+                    'id': trajet.id,
+                    'retard_estime': nouveau_retard,
+                    'circulation': conditions_actuelles['circulation_generale'],
+                    'alertes': conditions_actuelles['alertes_transport'],
+                    'prochains_departs': moteur_trajet_ia._generer_prochains_horaires({})
+                })
         
         return JsonResponse({
             'statut': 'success',
             'trajets': trajets_data,
             'conditions_generales': conditions_actuelles,
-            'timestamp': timezone.now().isoformat()
+            'timestamp': timezone.now().isoformat(),
+            'source': 'RDF' if trajets_rdf else 'SQLite'
         })
         
     except Exception as e:
@@ -444,10 +548,53 @@ def _grouper_vehicules_par_categorie(vehicules):
     return par_categorie
 
 def _creer_trajets_recommandes(demande, trajets_ia):
-    """Crée les objets TrajetRecommande à partir des résultats IA"""
+    """Crée les objets TrajetRecommande dans le fichier RDF à partir des résultats IA"""
     
     for i, trajet_data in enumerate(trajets_ia):
-        trajet = TrajetRecommande.objects.create(
+        # Préparer les données pour RDF
+        trajet_rdf_data = {
+            'utilisateur_id': demande.utilisateur.id,
+            'utilisateur_username': demande.utilisateur.username,
+            'demande_id': demande.id,
+            'lieu_depart': demande.lieu_depart,
+            'lieu_arrivee': demande.lieu_arrivee,
+            'rang': trajet_data['rang'],
+            'duree_minutes': trajet_data['duree_minutes'],
+            'distance_km': trajet_data['distance_km'],
+            'cout_total': trajet_data['cout_euros'],
+            'empreinte_carbone_g': trajet_data['empreinte_carbone_g'],
+            'score_confort': trajet_data['score_confort'],
+            'niveau_circulation': trajet_data.get('circulation_niveau', 'moyen'),
+            'retard_estime': trajet_data.get('retard_estime', 0),
+            'fiabilite_score': trajet_data.get('fiabilite', 8.0),
+            'score_ia': trajet_data['score_ia'],
+            'etapes_json': json.dumps(trajet_data.get('etapes', [])),
+            'facteurs_decision': json.dumps(trajet_data.get('facteurs_decision', [])),
+            'alertes_trafic': json.dumps(trajet_data.get('alertes_actives', [])),
+            'horaires_transport': json.dumps(trajet_data.get('horaires_temps_reel', {})),
+            'vehicule_nom': trajet_data.get('vehicule_nom', 'Inconnu'),
+            'vehicule_type': trajet_data.get('vehicule_type', 'autre'),
+        }
+        
+        # **NOUVEAUTÉ** : Ajouter les informations de cohérence géographique si disponibles
+        if 'zone_geographique' in trajet_data:
+            trajet_rdf_data['zone_geographique'] = trajet_data['zone_geographique']
+        if 'distance_reelle_km' in trajet_data:
+            trajet_rdf_data['distance_reelle_km'] = trajet_data['distance_reelle_km']
+        if 'coherence_geo' in trajet_data:
+            trajet_rdf_data['coherence_geo'] = json.dumps(trajet_data['coherence_geo'])
+        
+        # Sauvegarder dans RDF
+        success, trajet_uri = rdf_manager.create_trajet(trajet_rdf_data)
+        
+        if success:
+            print(f"✅ Trajet {i+1} sauvegardé dans RDF : {trajet_uri}")
+        else:
+            print(f"❌ Erreur lors de la sauvegarde du trajet {i+1} : {trajet_uri}")
+        
+        # **OPTIONNEL** : Garder aussi dans SQLite pour compatibilité (transition)
+        # Vous pouvez commenter ce bloc plus tard quand tout fonctionne
+        trajet_sqlite = TrajetRecommande.objects.create(
             demande=demande,
             rang=trajet_data['rang'],
             duree_minutes=trajet_data['duree_minutes'],
@@ -465,11 +612,11 @@ def _creer_trajets_recommandes(demande, trajets_ia):
             horaires_transport=trajet_data.get('horaires_temps_reel', {}),
         )
         
-        # Associer les véhicules
+        # Associer les véhicules (seulement pour SQLite)
         if 'vehicule_id' in trajet_data and trajet_data['vehicule_id'] is not None:
             try:
                 vehicule = TypeVehiculeIntelligent.objects.get(id=trajet_data['vehicule_id'])
-                trajet.vehicules_utilises.add(vehicule)
+                trajet_sqlite.vehicules_utilises.add(vehicule)
             except TypeVehiculeIntelligent.DoesNotExist:
                 pass
 

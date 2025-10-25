@@ -10,11 +10,14 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from django.core.paginator import Paginator
+from django.contrib.auth.models import User
+from django.db import transaction
 import json
+import re
 
 from ..ontology_manager.rdf_utils import rdf_manager
 from ..ia_manager.ai_api import ai_processor, SampleQueries
-from ..gestion_utilisateurs.models import ProfilUtilisateur
+from ..gestion_utilisateurs.models import ProfilUtilisateur, RoleUtilisateur
 
 logger = logging.getLogger(__name__)
 
@@ -265,6 +268,7 @@ def entities_view(request, entity_type):
             'entity_name': entity_name,
             'entities': page_obj,
             'total_count': len(entities),
+            'is_admin': est_administrateur(request.user),
         }
         
         return render(request, 'entities_list.html', context)
@@ -399,3 +403,120 @@ def entities_list_view(request):
             return redirect('gestion_utilisateurs:dashboard_admin')
         else:
             return redirect('gestion_utilisateurs:dashboard_user')
+
+
+def registration_view(request):
+    """Vue pour l'inscription des nouveaux utilisateurs"""
+    if request.method == 'POST':
+        try:
+            # Récupération des données du formulaire
+            nom = request.POST.get('nom', '').strip()
+            prenom = request.POST.get('prenom', '').strip()
+            username = request.POST.get('username', '').strip()
+            email = request.POST.get('email', '').strip()
+            telephone = request.POST.get('telephone', '').strip()
+            password1 = request.POST.get('password1', '')
+            password2 = request.POST.get('password2', '')
+            accept_terms = request.POST.get('accept_terms')
+            
+            # Validation côté serveur
+            errors = []
+            
+            # Vérifications de base
+            if not all([nom, prenom, username, email, password1, password2]):
+                errors.append("Tous les champs obligatoires doivent être remplis.")
+            
+            if not accept_terms:
+                errors.append("Vous devez accepter les conditions d'utilisation.")
+            
+            # Validation du nom d'utilisateur
+            if len(username) < 3 or len(username) > 30:
+                errors.append("Le nom d'utilisateur doit contenir entre 3 et 30 caractères.")
+            
+            if not re.match(r'^[a-zA-Z0-9_]+$', username):
+                errors.append("Le nom d'utilisateur ne peut contenir que des lettres, chiffres et underscore.")
+            
+            # Vérifier l'unicité du nom d'utilisateur
+            if User.objects.filter(username=username).exists():
+                errors.append("Ce nom d'utilisateur est déjà utilisé.")
+            
+            # Vérifier l'unicité de l'email
+            if User.objects.filter(email=email).exists():
+                errors.append("Cette adresse email est déjà utilisée.")
+            
+            # Validation du mot de passe
+            if len(password1) < 8:
+                errors.append("Le mot de passe doit contenir au moins 8 caractères.")
+            
+            if password1 != password2:
+                errors.append("Les mots de passe ne correspondent pas.")
+            
+            # Validation de l'email
+            if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+                errors.append("L'adresse email n'est pas valide.")
+            
+            if errors:
+                for error in errors:
+                    messages.error(request, error)
+                return render(request, 'gestion_utilisateurs/registration.html')
+            
+            # Création de l'utilisateur avec transaction
+            with transaction.atomic():
+                # Créer l'utilisateur Django
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password1,
+                    first_name=prenom,
+                    last_name=nom
+                )
+                
+                # Récupérer le rôle utilisateur par défaut
+                try:
+                    role_user = RoleUtilisateur.objects.get(type_role='user')
+                except RoleUtilisateur.DoesNotExist:
+                    logger.error("Rôle 'user' non trouvé. Exécutez init_roles.py")
+                    messages.error(request, "Erreur de configuration du système. Contactez l'administrateur.")
+                    return render(request, 'gestion_utilisateurs/registration.html')
+                
+                # Le profil utilisateur est créé automatiquement par le signal post_save
+                # Récupérons-le et mettons-le à jour avec les informations supplémentaires
+                profil = ProfilUtilisateur.objects.get(user=user)
+                profil.telephone = telephone
+                # Le rôle est déjà défini par le signal, mais on peut le forcer si nécessaire
+                if not profil.role:
+                    profil.role = role_user
+                profil.save()
+                
+                # Ajouter l'utilisateur au fichier RDF
+                try:
+                    rdf_manager.add_user_to_rdf(
+                        user_id=str(user.id),
+                        nom=nom,
+                        prenom=prenom,
+                        email=email,
+                        telephone=telephone,
+                        role='user'
+                    )
+                    logger.info(f"Utilisateur {username} ajouté au fichier RDF")
+                except Exception as rdf_error:
+                    logger.error(f"Erreur lors de l'ajout dans le RDF: {rdf_error}")
+                    # On continue même si l'ajout RDF échoue
+                
+                messages.success(
+                    request, 
+                    f"Compte créé avec succès ! Bienvenue {prenom} {nom}. Vous pouvez maintenant vous connecter."
+                )
+                
+                # Rediriger vers la page de connexion
+                return redirect('gestion_utilisateurs:connexion')
+                
+        except Exception as e:
+            logger.error(f"Erreur lors de l'inscription: {e}")
+            import traceback
+            logger.error(f"Traceback complet: {traceback.format_exc()}")
+            messages.error(request, "Une erreur est survenue lors de la création du compte. Veuillez réessayer.")
+            return render(request, 'gestion_utilisateurs/registration.html')
+    
+    # GET - Afficher le formulaire d'inscription
+    return render(request, 'gestion_utilisateurs/registration.html')

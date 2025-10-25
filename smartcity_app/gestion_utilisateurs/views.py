@@ -487,23 +487,39 @@ def dashboard_user(request):
 
 @login_required
 @user_passes_test(est_administrateur)
+@login_required 
+@user_passes_test(est_administrateur)
 def dashboard_admin(request):
     """Dashboard complet pour administrateurs"""
     # Calculer les statistiques
     total_users = User.objects.count()
     admin_users_count = ProfilUtilisateur.objects.filter(role__type_role='admin').count()
-    normal_users_count = total_users - admin_users_count
+    normal_users_count = ProfilUtilisateur.objects.filter(role__type_role='user').count()
     
     stats = {
         'total_users': total_users,
         'active_users': User.objects.filter(is_active=True).count(),
         'admin_users': admin_users_count,
-        'normal_users': normal_users_count,
+        'normal_users': normal_users_count,  # Utiliser le bon nom de variable
         'rdf_entities': 438,
     }
     
-    # Utilisateurs récents (derniers 5)
-    recent_users = User.objects.select_related('profilutilisateur__role').order_by('-date_joined')[:5]
+    # Utilisateurs récents (derniers 5) - avec gestion des profils manquants
+    recent_users = []
+    for user in User.objects.order_by('-date_joined')[:5]:
+        try:
+            # Vérifier que le profil existe
+            profil = user.profilutilisateur
+            recent_users.append(user)
+        except ProfilUtilisateur.DoesNotExist:
+            # Créer un profil par défaut si manquant
+            try:
+                role_user = RoleUtilisateur.objects.get(type_role='user')
+                ProfilUtilisateur.objects.create(user=user, role=role_user)
+                recent_users.append(user)
+            except Exception:
+                # Si on ne peut pas créer le profil, ignorer cet utilisateur
+                continue
     
     context = {
         'stats': stats,
@@ -613,3 +629,334 @@ def creer_utilisateur(request):
             messages.error(request, f"Erreur lors de la création : {str(e)}")
     
     return redirect('gestion_utilisateurs:liste_utilisateurs')
+
+
+@login_required
+@user_passes_test(est_administrateur)
+@login_required 
+@user_passes_test(est_administrateur)
+def modifier_role_utilisateur(request, user_id):
+    """Modifier le rôle d'un utilisateur avec synchronisation RDF"""
+    if request.method == 'POST':
+        try:
+            from ..ontology_manager.rdf_utils import rdf_manager
+            
+            user = get_object_or_404(User, id=user_id)
+            nouveau_role = request.POST.get('nouveau_role')
+            
+            if nouveau_role not in ['user', 'admin']:
+                error_msg = "Rôle invalide."
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'message': error_msg})
+                messages.error(request, error_msg)
+                return redirect('gestion_utilisateurs:liste_utilisateurs')
+            
+            # Mettre à jour le profil Django
+            profil, created = ProfilUtilisateur.objects.get_or_create(user=user)
+            
+            # Récupérer l'instance de RoleUtilisateur
+            try:
+                nouveau_role_obj = RoleUtilisateur.objects.get(type_role=nouveau_role)
+            except RoleUtilisateur.DoesNotExist:
+                error_msg = f"Rôle '{nouveau_role}' non trouvé dans la base de données."
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'message': error_msg})
+                messages.error(request, error_msg)
+                return redirect('gestion_utilisateurs:liste_utilisateurs')
+            
+            ancien_role = profil.role.type_role if profil.role else 'user'
+            profil.role = nouveau_role_obj
+            
+            profil.save()
+            
+            # Synchroniser avec le RDF
+            rdf_success = True
+            try:
+                if not rdf_manager.sync_user_to_rdf(user):
+                    rdf_success = False
+            except Exception as rdf_error:
+                rdf_success = False
+            
+            # Préparer le message de succès
+            if rdf_success:
+                success_msg = f"Rôle de {user.username} modifié vers '{nouveau_role}' avec succès (Django + RDF)!"
+            else:
+                success_msg = f"Rôle modifié dans Django mais erreur de synchronisation RDF pour {user.username}"
+            
+            # Enregistrer l'activité
+            try:
+                HistoriqueActivite.objects.create(
+                    profil=profil,
+                    type_activite='modification_profil',
+                    description=f'Changement de rôle par admin: {ancien_role} → {nouveau_role}',
+                    donnees_contexte={
+                        'action': 'changement_role_admin',
+                        'ancien_role': str(ancien_role),
+                        'nouveau_role': nouveau_role,
+                        'modifie_par': request.user.username
+                    }
+                )
+            except Exception as hist_error:
+                # Ne pas faire échouer la modification pour l'historique
+                pass
+            
+            # Réponse selon le type de requête
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True, 
+                    'message': success_msg,
+                    'nouveau_role': nouveau_role,
+                    'rdf_success': rdf_success
+                })
+            else:
+                if rdf_success:
+                    messages.success(request, success_msg)
+                else:
+                    messages.warning(request, success_msg)
+                return redirect('gestion_utilisateurs:liste_utilisateurs')
+                
+        except Exception as e:
+            error_msg = f"Erreur lors de la modification du rôle: {str(e)}"
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': error_msg})
+            messages.error(request, error_msg)
+            return redirect('gestion_utilisateurs:liste_utilisateurs')
+    
+    # GET request - redirect to list
+    return redirect('gestion_utilisateurs:liste_utilisateurs')
+
+
+@login_required 
+@user_passes_test(est_administrateur)
+def synchroniser_utilisateurs_rdf(request):
+    """Synchroniser tous les utilisateurs vers le RDF"""
+    if request.method == 'POST':
+        try:
+            from ..ontology_manager.rdf_utils import rdf_manager
+            
+            users = User.objects.all()
+            success_count = 0
+            error_count = 0
+            
+            for user in users:
+                try:
+                    if rdf_manager.sync_user_to_rdf(user):
+                        success_count += 1
+                    else:
+                        error_count += 1
+                except Exception as e:
+                    error_count += 1
+            
+            if error_count == 0:
+                messages.success(
+                    request, 
+                    f"Synchronisation réussie ! {success_count} utilisateurs synchronisés vers le RDF."
+                )
+            else:
+                messages.warning(
+                    request, 
+                    f"Synchronisation partielle : {success_count} réussies, {error_count} erreurs."
+                )
+                
+        except Exception as e:
+            messages.error(request, f"Erreur lors de la synchronisation : {str(e)}")
+    
+    return redirect('gestion_utilisateurs:liste_utilisateurs')
+
+
+@login_required
+@user_passes_test(est_administrateur)
+def voir_utilisateur(request, user_id):
+    """Voir les détails d'un utilisateur - Admin uniquement"""
+    user = get_object_or_404(User, id=user_id)
+    try:
+        profil = ProfilUtilisateur.objects.get(user=user)
+    except ProfilUtilisateur.DoesNotExist:
+        profil = None
+    
+    # Récupérer les informations RDF si disponibles
+    try:
+        from ..ontology_manager.rdf_utils import rdf_manager
+        rdf_data = rdf_manager.get_user_from_rdf(str(user_id))
+    except Exception:
+        rdf_data = {}
+    
+    context = {
+        'user_detail': user,
+        'profil': profil,
+        'rdf_data': rdf_data,
+    }
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from django.template.loader import render_to_string
+        html = render_to_string('gestion_utilisateurs/user_detail_modal.html', context, request)
+        return JsonResponse({'html': html})
+    
+    return JsonResponse({'error': 'Requête non autorisée'}, status=400)
+
+
+@login_required
+@user_passes_test(est_administrateur)
+def modifier_utilisateur(request, user_id):
+    """Modifier un utilisateur - Admin uniquement"""
+    user = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        try:
+            # Mettre à jour les informations de base
+            user.first_name = request.POST.get('first_name', '').strip()
+            user.last_name = request.POST.get('last_name', '').strip()
+            user.email = request.POST.get('email', '').strip()
+            user.is_active = request.POST.get('is_active') == 'on'
+            user.save()
+            
+            # Mettre à jour le profil
+            profil, created = ProfilUtilisateur.objects.get_or_create(user=user)
+            profil.telephone = request.POST.get('telephone', '').strip()
+            profil.save()
+            
+            # Synchroniser avec RDF
+            try:
+                from ..ontology_manager.rdf_utils import rdf_manager
+                rdf_manager.sync_user_to_rdf(user)
+            except Exception as e:
+                messages.warning(request, f"Utilisateur modifié mais erreur de synchronisation RDF: {str(e)}")
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Utilisateur {user.username} modifié avec succès!'
+                })
+            else:
+                messages.success(request, f'Utilisateur {user.username} modifié avec succès!')
+                return redirect('gestion_utilisateurs:liste_utilisateurs')
+                
+        except Exception as e:
+            error_msg = f"Erreur lors de la modification: {str(e)}"
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': error_msg})
+            else:
+                messages.error(request, error_msg)
+                return redirect('gestion_utilisateurs:liste_utilisateurs')
+    
+    # GET - Récupérer les données pour le modal
+    try:
+        profil = ProfilUtilisateur.objects.get(user=user)
+    except ProfilUtilisateur.DoesNotExist:
+        profil = None
+    
+    context = {
+        'user_edit': user,
+        'profil': profil,
+    }
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from django.template.loader import render_to_string
+        html = render_to_string('gestion_utilisateurs/user_edit_modal.html', context, request)
+        return JsonResponse({'html': html})
+    
+    return JsonResponse({'error': 'Requête non autorisée'}, status=400)
+
+
+@login_required
+@user_passes_test(est_administrateur)
+def changer_statut_utilisateur(request, user_id):
+    """Activer/Désactiver un utilisateur - Admin uniquement"""
+    if request.method == 'POST':
+        try:
+            user = get_object_or_404(User, id=user_id)
+            
+            # Ne pas permettre de désactiver son propre compte
+            if user == request.user:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Vous ne pouvez pas désactiver votre propre compte!'
+                    })
+                else:
+                    messages.error(request, 'Vous ne pouvez pas désactiver votre propre compte!')
+                    return redirect('gestion_utilisateurs:liste_utilisateurs')
+            
+            # Inverser le statut
+            nouveau_statut = not user.is_active
+            user.is_active = nouveau_statut
+            user.save()
+            
+            statut_text = "activé" if nouveau_statut else "désactivé"
+            message = f'Utilisateur {user.username} {statut_text} avec succès!'
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': message,
+                    'new_status': nouveau_statut,
+                    'status_text': 'Actif' if nouveau_statut else 'Inactif',
+                    'status_class': 'success' if nouveau_statut else 'warning'
+                })
+            else:
+                messages.success(request, message)
+                return redirect('gestion_utilisateurs:liste_utilisateurs')
+                
+        except Exception as e:
+            error_msg = f"Erreur lors du changement de statut: {str(e)}"
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': error_msg})
+            else:
+                messages.error(request, error_msg)
+                return redirect('gestion_utilisateurs:liste_utilisateurs')
+    
+    return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
+
+
+@login_required
+@user_passes_test(est_administrateur)
+def supprimer_utilisateur(request, user_id):
+    """Supprimer un utilisateur - Admin uniquement"""
+    if request.method == 'POST':
+        try:
+            user = get_object_or_404(User, id=user_id)
+            
+            # Ne pas permettre de supprimer son propre compte
+            if user == request.user:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Vous ne pouvez pas supprimer votre propre compte!'
+                    })
+                else:
+                    messages.error(request, 'Vous ne pouvez pas supprimer votre propre compte!')
+                    return redirect('gestion_utilisateurs:liste_utilisateurs')
+            
+            username = user.username
+            
+            # Supprimer du RDF si possible
+            try:
+                from ..ontology_manager.rdf_utils import rdf_manager
+                rdf_manager.delete_user_from_rdf(str(user_id))
+            except Exception as e:
+                # Continue même si la suppression RDF échoue
+                pass
+            
+            # Supprimer l'utilisateur (cascade supprimera le profil)
+            user.delete()
+            
+            message = f'Utilisateur {username} supprimé avec succès!'
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': message
+                })
+            else:
+                messages.success(request, message)
+                return redirect('gestion_utilisateurs:liste_utilisateurs')
+                
+        except Exception as e:
+            error_msg = f"Erreur lors de la suppression: {str(e)}"
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': error_msg})
+            else:
+                messages.error(request, error_msg)
+                return redirect('gestion_utilisateurs:liste_utilisateurs')
+    
+    return JsonResponse({'error': 'Méthode non autorisée'}, status=405)

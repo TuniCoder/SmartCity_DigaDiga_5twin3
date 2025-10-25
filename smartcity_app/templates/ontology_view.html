@@ -84,11 +84,22 @@
                             <i class="fas fa-pie-chart"></i> Répartition des Entités
                         </div>
                         <div class="card-body">
-                            {% if statistics.entities_by_type %}
-                                <canvas id="entitiesChart" width="300" height="200"></canvas>
-                            {% else %}
-                                <p class="text-muted text-center">Aucune donnée disponible</p>
-                            {% endif %}
+                            <div class="row">
+                                {% if statistics.entities_by_type %}
+                                    <div class="col-md-6">
+                                        <h6 class="text-center">Répartition par Type</h6>
+                                        <canvas id="entitiesChart" width="300" height="200"></canvas>
+                                    </div>
+                                {% else %}
+                                    <div class="col-md-6">
+                                        <p class="text-muted text-center">Aucune donnée de répartition disponible</p>
+                                    </div>
+                                {% endif %}
+                                <div class="col-md-6">
+                                    <h6 class="text-center">Résumé Ontologie</h6>
+                                    <canvas id="ontologySummaryChart" width="300" height="200"></canvas>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -116,11 +127,7 @@
                                         <i class="fas fa-download"></i> Télécharger RDF
                                     </button>
                                 </div>
-                                <div class="col-md-3 mb-2">
-                                    <button class="btn btn-success w-100" onclick="visualizeGraph()">
-                                        <i class="fas fa-share-alt"></i> Visualiser le Graphe
-                                    </button>
-                                </div>
+                              
                             </div>
                         </div>
                     </div>
@@ -344,8 +351,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     // Graphique des entités
-    {% if statistics.entities_by_type %}
     $(document).ready(function() {
+        {% if statistics.entities_by_type %}
         const ctx = document.getElementById('entitiesChart').getContext('2d');
         new Chart(ctx, {
             type: 'doughnut',
@@ -376,8 +383,42 @@
                 }
             }
         });
+        {% endif %}
+        
+        // Summary bar chart for ontology totals - Always display
+        try {
+            const summaryCtx = document.getElementById('ontologySummaryChart').getContext('2d');
+            const summaryData = {
+                labels: ['Triplets', 'Classes', 'Propriétés', 'Individus'],
+                datasets: [{
+                    label: 'Totaux',
+                    data: [
+                        {{ statistics.total_triples|default:0 }},
+                        {{ total_classes|default:0 }},
+                        {{ total_properties|default:0 }},
+                        {{ total_individuals|default:0 }}
+                    ],
+                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e']
+                }]
+            };
+
+            new Chart(summaryCtx, {
+                type: 'bar',
+                data: summaryData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        } catch (e) {
+            console.warn('Summary chart error or element not present:', e);
+        }
     });
-    {% endif %}
 
     // Fonction pour afficher les détails d'une entité
     function showEntityDetails(uri, label) {
@@ -431,10 +472,7 @@
         window.location.href = '{% static "ontology/mobility_ontology_clean.rdf" %}';
     }
 
-    // Fonction pour visualiser le graphe (placeholder)
-    function visualizeGraph() {
-        alert('Fonctionnalité de visualisation de graphe à implémenter avec D3.js ou vis.js');
-    }
+   
 
     // Gérer les onglets avec l'URL
     $(document).ready(function() {
