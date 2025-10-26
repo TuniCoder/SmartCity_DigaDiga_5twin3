@@ -14,6 +14,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django.contrib.auth.models import User
 import logging
 
 logger = logging.getLogger(__name__)
@@ -301,3 +302,49 @@ def sync_vehicle_to_rdf_on_delete(sender, instance, **kwargs):
         instance.delete_from_rdf()
     except Exception as e:
         logger.error(f"Erreur lors de la suppression automatique du véhicule {instance.id} du RDF: {e}")
+
+
+class ChatMessage(models.Model):
+    """Modèle pour stocker l'historique des conversations avec l'IA"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_messages')
+    message = models.TextField(verbose_name="Message utilisateur")
+    response = models.TextField(verbose_name="Réponse IA")
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
+    message_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('question', 'Question'),
+            ('maintenance', 'Maintenance'),
+            ('diagnostic', 'Diagnostic'),
+            ('general', 'Général'),
+        ],
+        default='question',
+        verbose_name="Type de message"
+    )
+    
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = "Message de chat"
+        verbose_name_plural = "Messages de chat"
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.timestamp.strftime('%d/%m/%Y %H:%M')}"
+
+
+class AIAssistant(models.Model):
+    """Modèle pour la configuration de l'assistant IA"""
+    name = models.CharField(max_length=100, default="Assistant Véhicules", verbose_name="Nom de l'assistant")
+    system_prompt = models.TextField(
+        default="Tu es un assistant spécialisé dans la gestion de véhicules et la maintenance automobile. Tu peux aider avec les diagnostics, les conseils de maintenance, les réparations et toutes questions liées aux véhicules.",
+        verbose_name="Prompt système"
+    )
+    is_active = models.BooleanField(default=True, verbose_name="Actif")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Assistant IA"
+        verbose_name_plural = "Assistants IA"
+    
+    def __str__(self):
+        return self.name

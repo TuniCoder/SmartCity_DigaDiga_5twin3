@@ -17,7 +17,7 @@ import json
 import logging
 import time
 
-from .models import Vehicule, TypeVehicule, MaintenanceVehicule, UtilisationVehicule
+from .models import Vehicule, TypeVehicule, MaintenanceVehicule, UtilisationVehicule, ChatMessage, AIAssistant
 from ..ontology_manager.vehicle_rdf_manager import vehicle_rdf_manager
 
 logger = logging.getLogger(__name__)
@@ -845,3 +845,166 @@ def api_sync_from_rdf(request):
     })
     
     return JsonResponse({'status': 'error', 'message': 'Méthode non autorisée'})
+
+
+@login_required
+def ai_assistant(request):
+    """Page de l'assistant IA pour les véhicules"""
+    try:
+        # Récupérer l'historique des messages de l'utilisateur
+        chat_messages = ChatMessage.objects.filter(user=request.user)[:20]
+        
+        # Récupérer ou créer l'assistant IA
+        assistant, created = AIAssistant.objects.get_or_create(
+            is_active=True,
+            defaults={
+                'name': 'Assistant Véhicules SmartCity',
+                'system_prompt': 'Tu es un assistant spécialisé dans la gestion de véhicules et la maintenance automobile. Tu peux aider avec les diagnostics, les conseils de maintenance, les réparations et toutes questions liées aux véhicules. Réponds en français de manière claire et professionnelle.'
+            }
+        )
+        
+        context = {
+            'page_title': 'Assistant IA - SmartCity',
+            'chat_messages': chat_messages,
+            'assistant': assistant,
+        }
+        return render(request, 'gestion_vehicules/ai_assistant.html', context)
+        
+    except Exception as e:
+        logger.error(f"Erreur dans ai_assistant: {e}")
+        messages.error(request, f"Erreur lors du chargement de l'assistant IA: {e}")
+        return render(request, 'gestion_vehicules/ai_assistant.html', {
+            'page_title': 'Assistant IA - SmartCity',
+            'chat_messages': [],
+            'assistant': None,
+        })
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_chat_with_ai(request):
+    """API pour chatter avec l'assistant IA"""
+    try:
+        from django.conf import settings
+        import openai
+        
+        # Configuration OpenAI
+        openai.api_key = settings.OPENAI_API_KEY
+        
+        # Récupérer le message de l'utilisateur
+        data = json.loads(request.body)
+        user_message = data.get('message', '').strip()
+        message_type = data.get('type', 'question')
+        
+        if not user_message:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Le message ne peut pas être vide'
+            })
+        
+        # Récupérer l'assistant IA
+        try:
+            assistant = AIAssistant.objects.get(is_active=True)
+            system_prompt = assistant.system_prompt
+        except AIAssistant.DoesNotExist:
+            system_prompt = "Tu es un assistant spécialisé dans la gestion de véhicules et la maintenance automobile."
+        
+        # Récupérer l'historique récent pour le contexte
+        recent_messages = ChatMessage.objects.filter(user=request.user)[:5]
+        
+        # Construire le contexte de conversation
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        for msg in reversed(recent_messages):
+            messages.append({"role": "user", "content": msg.message})
+            messages.append({"role": "assistant", "content": msg.response})
+        
+        messages.append({"role": "user", "content": user_message})
+        
+        # Appel à l'API OpenAI
+        response = openai.ChatCompletion.create(
+            model=settings.OPENAI_MODEL,
+            messages=messages,
+            max_tokens=500,
+            temperature=0.7
+        )
+        
+        ai_response = response.choices[0].message.content.strip()
+        
+        # Sauvegarder la conversation
+        chat_message = ChatMessage.objects.create(
+            user=request.user,
+            message=user_message,
+            response=ai_response,
+            message_type=message_type
+        )
+        
+        return JsonResponse({
+            'status': 'success',
+            'response': ai_response,
+            'message_id': chat_message.id,
+            'timestamp': chat_message.timestamp.isoformat()
+        })
+        
+    except openai.error.OpenAIError as e:
+        logger.error(f"Erreur OpenAI: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Erreur de l\'assistant IA: {str(e)}'
+        })
+    except Exception as e:
+        logger.error(f"Erreur dans api_chat_with_ai: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Erreur lors de la communication avec l\'IA: {str(e)}'
+        })
+
+
+@login_required
+@require_http_methods(["GET"])
+def api_chat_history(request):
+    """API pour récupérer l'historique des conversations"""
+    try:
+        messages = ChatMessage.objects.filter(user=request.user)[:50]
+        
+        messages_data = []
+        for msg in messages:
+            messages_data.append({
+                'id': msg.id,
+                'message': msg.message,
+                'response': msg.response,
+                'timestamp': msg.timestamp.isoformat(),
+                'type': msg.message_type
+            })
+        
+        return JsonResponse({
+            'status': 'success',
+            'messages': messages_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur dans api_chat_history: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Erreur lors de la récupération de l\'historique: {str(e)}'
+        })
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def api_clear_chat_history(request):
+    """API pour effacer l'historique des conversations"""
+    try:
+        ChatMessage.objects.filter(user=request.user).delete()
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Historique effacé avec succès'
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur dans api_clear_chat_history: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Erreur lors de l\'effacement de l\'historique: {str(e)}'
+    })
