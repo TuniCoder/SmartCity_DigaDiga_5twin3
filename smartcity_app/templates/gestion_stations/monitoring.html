@@ -1,0 +1,627 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Monitoring Stations - SmartCity{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    .monitoring-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .header-section {
+        background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .controls-section {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .filter-group label {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .filter-group select,
+    .filter-group input {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    
+    .refresh-btn {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.3s ease;
+    }
+    
+    .refresh-btn:hover {
+        background: #218838;
+    }
+    
+    .stations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .station-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .station-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .station-header {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        padding: 20px;
+        position: relative;
+    }
+    
+    .status-indicator {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #28a745;
+        animation: pulse 2s infinite;
+    }
+    
+    .status-indicator.warning {
+        background: #ffc107;
+    }
+    
+    .status-indicator.error {
+        background: #dc3545;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    .station-name {
+        font-size: 1.3em;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    
+    .station-location {
+        font-size: 0.9em;
+        opacity: 0.9;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .monitoring-content {
+        padding: 25px;
+    }
+    
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .metric-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #007bff;
+    }
+    
+    .metric-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        color: white;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2em;
+    }
+    
+    .metric-info {
+        flex: 1;
+    }
+    
+    .metric-label {
+        font-size: 0.85em;
+        color: #666;
+        margin-bottom: 2px;
+    }
+    
+    .metric-value {
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .status-section {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+    
+    .status-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    
+    .status-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 0.8em;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .badge-normal {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .badge-warning {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .badge-error {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .last-update {
+        text-align: center;
+        padding: 10px;
+        font-size: 0.85em;
+        color: #666;
+        background: #f1f3f4;
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+    
+    .actions-section {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .btn-action {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        font-size: 0.85em;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-details {
+        background: #007bff;
+        color: white;
+    }
+    
+    .btn-details:hover {
+        background: #0056b3;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-alert {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .btn-alert:hover {
+        background: #c82333;
+    }
+    
+    .overview-section {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .overview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .overview-card {
+        text-align: center;
+        padding: 25px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+    }
+    
+    .overview-number {
+        font-size: 2.5em;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .overview-label {
+        font-size: 1em;
+        opacity: 0.9;
+    }
+    
+    @media (max-width: 768px) {
+        .stations-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .controls-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .metrics-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .status-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .actions-section {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="monitoring-container">
+    <div class="header-section">
+        <h1><i class="fas fa-chart-line"></i> Monitoring des Stations</h1>
+        <p>Surveillance en temps réel de l'état et des performances des stations</p>
+    </div>
+    
+    <div class="controls-section">
+        <div class="filter-group">
+            <label for="statusFilter">Filtrer par statut:</label>
+            <select id="statusFilter">
+                <option value="all">Tous</option>
+                <option value="normal">Normal</option>
+                <option value="warning">Attention</option>
+                <option value="error">Problème</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="typeFilter">Type de station:</label>
+            <select id="typeFilter">
+                <option value="all">Tous</option>
+                <option value="bus">Bus</option>
+                <option value="metro">Métro</option>
+                <option value="tram">Tram</option>
+                <option value="parking">Parking</option>
+            </select>
+        </div>
+        
+        <button class="refresh-btn" onclick="refreshMonitoring()">
+            <i class="fas fa-sync-alt"></i> Actualiser
+        </button>
+    </div>
+    
+    <div class="overview-section">
+        <h3><i class="fas fa-tachometer-alt"></i> Vue d'ensemble</h3>
+        <div class="overview-grid">
+            <div class="overview-card">
+                <div class="overview-number">{{ stations|length }}</div>
+                <div class="overview-label">Stations Surveillées</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-number">92%</div>
+                <div class="overview-label">Disponibilité Moyenne</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-number">3.2k</div>
+                <div class="overview-label">Passages/Heure</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-number">2</div>
+                <div class="overview-label">Alertes Actives</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stations-grid" id="stationsGrid">
+        {% for station in stations %}
+        <div class="station-card" data-status="normal" data-type="{{ station.type_station|default:'standard'|lower }}">
+            <div class="station-header">
+                <div class="status-indicator"></div>
+                <div class="station-name">{{ station.nom }}</div>
+                <div class="station-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    {{ station.adresse|default:"Adresse non spécifiée"|truncatechars:30 }}
+                </div>
+            </div>
+            
+            <div class="monitoring-content">
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="metric-info">
+                            <div class="metric-label">Affluence</div>
+                            <div class="metric-value">{{ station.monitoring.affluence_actuelle }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <div class="metric-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="metric-info">
+                            <div class="metric-label">Occupation</div>
+                            <div class="metric-value">{{ station.monitoring.taux_occupation }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <div class="metric-icon">
+                            <i class="fas fa-thermometer-half"></i>
+                        </div>
+                        <div class="metric-info">
+                            <div class="metric-label">Température</div>
+                            <div class="metric-value">{{ station.monitoring.temperature }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <div class="metric-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="metric-info">
+                            <div class="metric-label">Équipements</div>
+                            <div class="metric-value">{{ station.monitoring.statut_equipements }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="status-section">
+                    <h5><i class="fas fa-info-circle"></i> État des Systèmes</h5>
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <span>Éclairage</span>
+                            <span class="status-badge badge-normal">Normal</span>
+                        </div>
+                        <div class="status-item">
+                            <span>Ventilation</span>
+                            <span class="status-badge badge-normal">Normal</span>
+                        </div>
+                        <div class="status-item">
+                            <span>Sécurité</span>
+                            <span class="status-badge badge-normal">Actif</span>
+                        </div>
+                        <div class="status-item">
+                            <span>Communication</span>
+                            <span class="status-badge badge-normal">En Ligne</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="last-update">
+                    <i class="fas fa-clock"></i>
+                    Dernière mise à jour: il y a {{ station.monitoring.derniere_mise_a_jour }}
+                </div>
+                
+                <div class="actions-section">
+                    {% if station.id %}
+                        <a href="{% url 'gestion_stations:details' station.id %}" class="btn-action btn-details">
+                            <i class="fas fa-eye"></i> Détails
+                        </a>
+                    {% else %}
+                        <span class="btn-action btn-details" style="opacity: 0.5; cursor: not-allowed;" title="ID de station non disponible">
+                            <i class="fas fa-eye"></i> Détails
+                        </span>
+                    {% endif %}
+                    <button class="btn-action btn-alert" onclick="createAlert('{{ station.nom|escapejs }}')">
+                        <i class="fas fa-exclamation-triangle"></i> Signaler
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: #666;">
+            <i class="fas fa-chart-line" style="font-size: 4em; margin-bottom: 20px; opacity: 0.3;"></i>
+            <h3>Aucune station à surveiller</h3>
+            <p>Aucune station n'est disponible pour le monitoring.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal pour créer une alerte -->
+<div class="modal fade" id="alertModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Signaler un Problème</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Station</label>
+                        <input type="text" class="form-control" id="alertStation" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Type de problème</label>
+                        <select class="form-control">
+                            <option>Équipement défaillant</option>
+                            <option>Problème de sécurité</option>
+                            <option>Maintenance requise</option>
+                            <option>Accès bloqué</option>
+                            <option>Autre</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Priorité</label>
+                        <select class="form-control">
+                            <option value="low">Faible</option>
+                            <option value="medium" selected>Moyenne</option>
+                            <option value="high">Élevée</option>
+                            <option value="critical">Critique</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" rows="4" placeholder="Décrivez le problème..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger">Signaler</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function refreshMonitoring() {
+    // Animation de l'icône de rafraîchissement
+    const refreshIcon = document.querySelector('.refresh-btn i');
+    refreshIcon.style.animation = 'spin 1s linear infinite';
+    
+    // Simuler le rechargement des données
+    setTimeout(() => {
+        refreshIcon.style.animation = '';
+        // Ici, on pourrait faire un appel AJAX pour récupérer les nouvelles données
+        console.log('Données de monitoring mises à jour');
+    }, 1000);
+}
+
+function createAlert(stationName) {
+    document.getElementById('alertStation').value = stationName;
+    const modal = new bootstrap.Modal(document.getElementById('alertModal'));
+    modal.show();
+}
+
+// Filtrage des stations
+document.getElementById('statusFilter').addEventListener('change', filterStations);
+document.getElementById('typeFilter').addEventListener('change', filterStations);
+
+function filterStations() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const typeFilter = document.getElementById('typeFilter').value;
+    const stations = document.querySelectorAll('.station-card');
+    
+    stations.forEach(station => {
+        const status = station.dataset.status;
+        const type = station.dataset.type;
+        
+        let showStation = true;
+        
+        if (statusFilter !== 'all' && status !== statusFilter) {
+            showStation = false;
+        }
+        
+        if (typeFilter !== 'all' && type !== typeFilter) {
+            showStation = false;
+        }
+        
+        station.style.display = showStation ? 'block' : 'none';
+    });
+}
+
+// Mise à jour automatique toutes les 30 secondes
+setInterval(function() {
+    // Simuler des changements de statut
+    const indicators = document.querySelectorAll('.status-indicator');
+    indicators.forEach(indicator => {
+        // Changer aléatoirement quelques indicateurs
+        if (Math.random() < 0.1) { // 10% de chance
+            const statuses = ['', 'warning', 'error'];
+            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+            indicator.className = `status-indicator ${randomStatus}`;
+        }
+    });
+    
+    console.log('Mise à jour automatique du monitoring...');
+}, 30000);
+
+// CSS pour l'animation de rotation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

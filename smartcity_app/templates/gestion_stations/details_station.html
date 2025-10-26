@@ -20,7 +20,7 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">{{ station.nom }}</h5>
                     <div>
-                        <a href="{% url 'gestion_stations:modifier' station.id %}" class="btn btn-sm btn-primary">
+                        <a href="{% url 'gestion_stations:modifier' station.numeric_id %}" class="btn btn-sm btn-primary">
                             <i class="bi bi-pencil"></i> Modifier
                         </a>
                     </div>

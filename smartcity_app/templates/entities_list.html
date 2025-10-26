@@ -8,7 +8,7 @@
 <div class="container mt-4">
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1>
                     {% if entity_type == 'users' %}
                         <i class="fas fa-users text-primary"></i>
@@ -23,7 +23,18 @@
                     {% endif %}
                     {{ entity_name }}
                 </h1>
-                <span class="badge bg-secondary fs-6">{{ total_count }} élément(s)</span>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-secondary fs-6">{{ total_count }} élément(s)</span>
+                    {% if entity_type == 'stations' and user.is_staff %}
+                        <a href="{% url 'gestion_stations:ajouter' %}" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Ajouter une station
+                        </a>
+                    {% elif entity_type == 'trips' %}
+                        <a href="{% url 'gestion_trajets:planificateur_ia' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Ajouter un trajet
+                        </a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>

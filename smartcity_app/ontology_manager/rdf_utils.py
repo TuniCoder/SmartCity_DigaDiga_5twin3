@@ -224,15 +224,16 @@ class RDFManager:
     def get_stations_data(self) -> List[Dict]:
         """Récupère les données des stations"""
         query = """
-        SELECT ?station ?nomStation ?latitude ?longitude ?adresse ?capacite ?typeStation
+        SELECT ?station ?nomStation ?latitude ?longitude ?adresse ?capacité ?typeStation ?heuresOuverture
         WHERE {
             ?station rdf:type mobility:Station .
             OPTIONAL { ?station mobility:nomStation ?nomStation }
             OPTIONAL { ?station mobility:latitude ?latitude }
             OPTIONAL { ?station mobility:longitude ?longitude }
             OPTIONAL { ?station mobility:adresse ?adresse }
-            OPTIONAL { ?station mobility:capacité ?capacite }
+            OPTIONAL { ?station mobility:capacité ?capacité }
             OPTIONAL { ?station mobility:typeStation ?typeStation }
+            OPTIONAL { ?station mobility:heuresOuverture ?heuresOuverture }
         }
         ORDER BY ?nomStation
         """
@@ -1046,7 +1047,7 @@ class RDFManager:
         Récupère la liste de toutes les stations disponibles dans l'ontologie
         """
         query = """
-        SELECT ?station ?nom ?type ?latitude ?longitude ?adresse ?capacite ?status
+        SELECT ?station ?nom ?type ?latitude ?longitude ?adresse ?capacité ?status
         WHERE {
             ?station rdf:type mobility:Station .
             OPTIONAL { ?station mobility:nomStation ?nom }
@@ -1054,7 +1055,7 @@ class RDFManager:
             OPTIONAL { ?station mobility:latitude ?latitude }
             OPTIONAL { ?station mobility:longitude ?longitude }
             OPTIONAL { ?station mobility:adresse ?adresse }
-            OPTIONAL { ?station mobility:capacité ?capacite }
+            OPTIONAL { ?station mobility:capacité ?capacité }
             OPTIONAL { ?station mobility:statut ?status }
         }
         ORDER BY ?nom
@@ -1072,7 +1073,7 @@ class RDFManager:
                 - latitude: Latitude
                 - longitude: Longitude
                 - adresse: Adresse complète
-                - capacite: Capacité maximale
+                - capacité: Capacité maximale
                 - heures_ouverture: Heures d'ouverture
         """
         try:
@@ -1098,7 +1099,7 @@ class RDFManager:
                 'latitude': (self.mobility_ns.latitude, 'float'),
                 'longitude': (self.mobility_ns.longitude, 'float'),
                 'adresse': (self.mobility_ns.adresse, 'string'),
-                'capacite': (self.mobility_ns.capacité, 'int'),
+                'capacité': (self.mobility_ns.capacité, 'int'),
                 'heures_ouverture': (self.mobility_ns.heuresOuverture, 'string')
             }
             
@@ -1138,7 +1139,7 @@ class RDFManager:
             accessibility: Si True, ne retourne que les stations accessibles
         """
         query = """
-        SELECT ?station ?nom ?type ?latitude ?longitude ?adresse ?capacite
+        SELECT ?station ?nom ?type ?latitude ?longitude ?adresse ?capacité
         WHERE {
             ?station rdf:type mobility:Station .
             OPTIONAL { ?station mobility:nomStation ?nom }
@@ -1146,7 +1147,7 @@ class RDFManager:
             OPTIONAL { ?station mobility:latitude ?latitude }
             OPTIONAL { ?station mobility:longitude ?longitude }
             OPTIONAL { ?station mobility:adresse ?adresse }
-            OPTIONAL { ?station mobility:capacité ?capacite }
+            OPTIONAL { ?station mobility:capacité ?capacité }
         """
         
         if station_type != "all":
@@ -1197,9 +1198,11 @@ class RDFManager:
         try:
             user_uri = self.mobility_ns[f"Utilisateur{user_id}"]
             
-            # Vérifier si l'utilisateur existe
+            # Vérifier si l'utilisateur existe, sinon le créer
             if (user_uri, self.rdf_ns.type, self.mobility_ns.Utilisateur) not in self.graph:
-                return False
+                logger.info(f"Création de l'utilisateur {user_id} dans le RDF")
+                self.graph.add((user_uri, self.rdf_ns.type, self.mobility_ns.Utilisateur))
+                self.graph.add((user_uri, self.mobility_ns.idUtilisateur, Literal(user_id)))
             
             # Supprimer les anciennes préférences
             self.graph.remove((user_uri, self.mobility_ns.preferencesStation, None))
@@ -1210,6 +1213,7 @@ class RDFManager:
             self.graph.add((user_uri, self.mobility_ns.preferencesStation, 
                            Literal(prefs_json, datatype="http://www.w3.org/2001/XMLSchema#string")))
             
+            logger.info(f"Préférences sauvegardées pour l'utilisateur {user_id}: {preferences}")
             return self.save_ontology()
                 
         except Exception as e:
@@ -1230,14 +1234,110 @@ class RDFManager:
             
             # Retourner des préférences par défaut si non trouvées
             return {
-                'station_type': 'all',
-                'max_distance': 5.0,
-                'accessibility': False
+                'type_station': 'all',
+                'distance_max': 5.0,
+                'accessibilite': False,
+                'equipements': [],
+                'notification': False,
+                'latitude': 36.8065,
+                'longitude': 10.1815
             }
                 
         except Exception as e:
             logger.error(f"Erreur lors de la récupération des préférences: {e}")
             return {}
+
+    def get_station_by_id(self, station_id: str) -> Optional[Dict]:
+        """
+        Récupère une station spécifique par son ID
+        
+        Args:
+            station_id: Identifiant de la station
+        
+        Returns:
+            Dictionnaire avec les données de la station ou None
+        """
+        try:
+            station_uri = self.mobility_ns[station_id]
+            
+            # Vérifier que la station existe
+            if (station_uri, self.rdf_ns.type, self.mobility_ns.Station) not in self.graph:
+                return None
+            
+            station_data = {'id': station_id, 'uri': str(station_uri)}
+            
+            # Récupérer toutes les propriétés
+            for s, p, o in self.graph.triples((station_uri, None, None)):
+                predicate_name = str(p).split('#')[-1]
+                station_data[predicate_name] = str(o)
+            
+            return station_data
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération de la station: {e}")
+            return None
+
+    def update_station(self, station_id: str, station_data: Dict) -> Tuple[bool, str]:
+        """
+        Met à jour une station existante dans l'ontologie
+        
+        Args:
+            station_id: Identifiant de la station à modifier
+            station_data: Nouvelles données de la station
+        
+        Returns:
+            Tuple (success: bool, message: str)
+        """
+        try:
+            from rdflib import XSD
+            
+            station_uri = self.mobility_ns[station_id]
+            
+            # Vérifier que la station existe
+            if (station_uri, self.rdf_ns.type, self.mobility_ns.Station) not in self.graph:
+                return False, f"La station {station_id} n'existe pas"
+            
+            # Supprimer les anciennes valeurs et ajouter les nouvelles
+            property_mappings = {
+                'nom': (self.mobility_ns.nomStation, XSD.string),
+                'type': (self.mobility_ns.typeStation, XSD.string),
+                'latitude': (self.mobility_ns.latitude, XSD.float),
+                'longitude': (self.mobility_ns.longitude, XSD.float),
+                'adresse': (self.mobility_ns.adresse, XSD.string),
+                'capacité': (self.mobility_ns.capacité, XSD.integer),
+                'heures_ouverture': (self.mobility_ns.heuresOuverture, XSD.string),
+                'statut': (self.mobility_ns.statut, XSD.string),
+                'accessibilite': (self.mobility_ns.accessibilité, XSD.boolean)
+            }
+            
+            for key, (predicate, datatype) in property_mappings.items():
+                if key in station_data:
+                    # Supprimer l'ancienne valeur
+                    self.graph.remove((station_uri, predicate, None))
+                    
+                    # Ajouter la nouvelle valeur
+                    value = station_data[key]
+                    if datatype == XSD.float:
+                        value = float(value)
+                    elif datatype == XSD.integer:
+                        value = int(value)
+                    elif datatype == XSD.boolean:
+                        value = bool(value)
+                    else:
+                        value = str(value)
+                    
+                    self.graph.add((station_uri, predicate, Literal(value, datatype=datatype)))
+            
+            # Sauvegarder
+            if self.save_ontology():
+                logger.info(f"Station mise à jour: {station_id}")
+                return True, "Station mise à jour avec succès"
+            else:
+                return False, "Erreur lors de la sauvegarde"
+                
+        except Exception as e:
+            logger.error(f"Erreur lors de la mise à jour de la station: {e}")
+            return False, str(e)
 
 # Instance globale du gestionnaire RDF
 rdf_manager = RDFManager()
