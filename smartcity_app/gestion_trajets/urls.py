@@ -26,7 +26,14 @@ urlpatterns = [
     path('mes-trajets/', views.mes_trajets_view, name='mes_trajets'),
     path('preferences/', views.preferences_trajet_view, name='preferences_trajet'),
     
+    # Gestion des demandes de trajets
+    path('supprimer/<int:demande_id>/', views.supprimer_demande_trajet_view, name='supprimer_demande_trajet'),
+    
     # AJAX endpoints
     path('ajax/recherche-lieux/', views.ajax_recherche_lieux, name='ajax_recherche_lieux'),
     path('ajax/actualiser/<int:demande_id>/', views.ajax_actualiser_temps_reel, name='ajax_actualiser_temps_reel'),
+    
+    # **NOUVEAUX ENDPOINTS** : Services avancés avec Leaflet et routing
+    path('ajax/calculer-itineraire/', views.ajax_calculer_itineraire, name='ajax_calculer_itineraire'),
+    path('ajax/recherche-intelligente/', views.ajax_recherche_trajets_intelligente, name='ajax_recherche_trajets_intelligente'),
 ]

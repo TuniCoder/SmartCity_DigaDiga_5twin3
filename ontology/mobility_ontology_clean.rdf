@@ -5,163 +5,6 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
 >
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021100444_755_2">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:label xml:lang="fr">tunis → sousse</rdfs:label>
-    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
-    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
-    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">11</mobility:demandeId>
-    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
-    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sousse</mobility:pointArrivée>
-    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</mobility:rang>
-    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">86.0</mobility:durée>
-    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distance>
-    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">42.69</mobility:coût>
-    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">13952.4</mobility:empreinteCarbone>
-    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">9</mobility:scoreConfort>
-    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">fort</mobility:niveauCirculation>
-    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
-    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
-    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.78</mobility:scoreIA>
-    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Voiture Personnelle</mobility:mode>
-    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">prive</mobility:vehiculeType>
-    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Inter-villes Tunisie</mobility:zoneGeographique>
-    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distanceReelle>
-    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Voiture Personnelle"]</mobility:etapesJson>
-    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 1.4", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
-    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
-    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
-    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "nationale", "explication": "\u2705 Voiture Personnelle adapt\u00e9 pour 116.27km (nationale)"}</mobility:coherenceGeo>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Utilisateur1">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
-    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1</mobility:utilisateurId>
-    <mobility:nom rdf:datatype="http://www.w3.org/2001/XMLSchema#string">System</mobility:nom>
-    <mobility:prenom rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Admin</mobility:prenom>
-    <mobility:email rdf:datatype="http://www.w3.org/2001/XMLSchema#string">admin@smartcity.com</mobility:email>
-    <mobility:role rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Administrateur</mobility:role>
-    <mobility:dateInscription rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-25T12:01:04.075969</mobility:dateInscription>
-    <mobility:statut rdf:datatype="http://www.w3.org/2001/XMLSchema#string">actif</mobility:statut>
-    <mobility:preferencesTrajet rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"mode_prefere": "auto", "distance_max": 50}</mobility:preferencesTrajet>
-    <mobility:dateModification rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-25T12:28:39.094352</mobility:dateModification>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#RouteUniversité">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Route"/>
-    <mobility:passeParStation rdf:resource="http://example.org/mobility-ontology/2025/09#StationCentre"/>
-    <mobility:nomRoute rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Centre vers Université</mobility:nomRoute>
-    <mobility:distanceRoute rdf:datatype="http://www.w3.org/2001/XMLSchema#float">3.5</mobility:distanceRoute>
-    <mobility:tempsEstimé rdf:datatype="http://www.w3.org/2001/XMLSchema#int">15</mobility:tempsEstimé>
-    <mobility:typeRoute rdf:datatype="http://www.w3.org/2001/XMLSchema#string">urbaine</mobility:typeRoute>
-    <rdfs:label xml:lang="fr">Route Centre-Université</rdfs:label>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Velo01">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Vélo"/>
-    <mobility:disponibleÀ rdf:resource="http://example.org/mobility-ontology/2025/09#StationCentre"/>
-    <mobility:marque rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CityBike</mobility:marque>
-    <mobility:modèle rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Urban Pro</mobility:modèle>
-    <mobility:couleur rdf:datatype="http://www.w3.org/2001/XMLSchema#string">bleu</mobility:couleur>
-    <mobility:statut rdf:datatype="http://www.w3.org/2001/XMLSchema#string">disponible</mobility:statut>
-    <mobility:niveauBatterie rdf:datatype="http://www.w3.org/2001/XMLSchema#float">85.5</mobility:niveauBatterie>
-    <rdfs:label xml:lang="fr">Vélo 01</rdfs:label>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021103444_244_2">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:label xml:lang="fr">tunis → sousse</rdfs:label>
-    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
-    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
-    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">14</mobility:demandeId>
-    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
-    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sousse</mobility:pointArrivée>
-    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</mobility:rang>
-    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">96.0</mobility:durée>
-    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distance>
-    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">29.07</mobility:coût>
-    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">5813.5</mobility:empreinteCarbone>
-    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">6</mobility:scoreConfort>
-    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">fort</mobility:niveauCirculation>
-    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
-    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
-    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.22</mobility:scoreIA>
-    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Autolib (Voiture Partagée)</mobility:mode>
-    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">partage</mobility:vehiculeType>
-    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Inter-villes Tunisie</mobility:zoneGeographique>
-    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distanceReelle>
-    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Autolib (Voiture Partag\u00e9e)"]</mobility:etapesJson>
-    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 0.4", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
-    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
-    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
-    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "nationale", "explication": "\u2705 Autolib (Voiture Partag\u00e9e) adapt\u00e9 pour 116.27km (nationale)"}</mobility:coherenceGeo>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#typeTransport">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">type de transport</rdfs:label>
-    <rdfs:comment xml:lang="fr">Type de transport public (bus, métro, tramway)</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#TransportPublic"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#disponibleÀ">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-    <rdfs:label xml:lang="fr">disponible à</rdfs:label>
-    <rdfs:comment xml:lang="fr">Relation entre un vélo et la station où il est disponible</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Vélo"/>
-    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021095126_125_3">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:label xml:lang="fr">paris → marceille</rdfs:label>
-    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
-    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
-    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">10</mobility:demandeId>
-    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">paris</mobility:pointDépart>
-    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">marceille</mobility:pointArrivée>
-    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</mobility:rang>
-    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">39.0</mobility:durée>
-    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">13.7</mobility:distance>
-    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">2.5</mobility:coût>
-    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">342.5</mobility:empreinteCarbone>
-    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">5</mobility:scoreConfort>
-    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">moyen</mobility:niveauCirculation>
-    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
-    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
-    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">5.88</mobility:scoreIA>
-    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Métro</mobility:mode>
-    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">public</mobility:vehiculeType>
-    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Non déterminée</mobility:zoneGeographique>
-    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">13.70118285039905</mobility:distanceReelle>
-    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Marche vers l'arr\u00eat (3min)", "M\u00e9tro jusqu'\u00e0 destination", "Marche finale (2min)"]</mobility:etapesJson>
-    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 6.1", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
-    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
-    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"prochains_passages": ["5min", "13min", "21min"]}</mobility:horairesTransport>
-    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "Coordonn\u00e9es non disponibles - v\u00e9rification impossible", "zone": "inconnue", "explication": "\u26a0\ufe0f Recommandation sans v\u00e9rification g\u00e9ographique"}</mobility:coherenceGeo>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021101748_378_2">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:label xml:lang="fr">tunis → sfax</rdfs:label>
-    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
-    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
-    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">13</mobility:demandeId>
-    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
-    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sfax</mobility:pointArrivée>
-    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</mobility:rang>
-    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">174.0</mobility:durée>
-    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">235.12</mobility:distance>
-    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">37.27</mobility:coût>
-    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">21160.8</mobility:empreinteCarbone>
-    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">9</mobility:scoreConfort>
-    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">moyen</mobility:niveauCirculation>
-    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
-    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
-    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</mobility:scoreIA>
-    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Moto</mobility:mode>
-    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">prive</mobility:vehiculeType>
-    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Inter-villes Tunisie</mobility:zoneGeographique>
-    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">235.12</mobility:distanceReelle>
-    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Moto"]</mobility:etapesJson>
-    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 0.0", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
-    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
-    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
-    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "nationale", "explication": "\u2705 Moto adapt\u00e9 pour 235.12km (nationale)"}</mobility:coherenceGeo>
-  </rdf:Description>
   <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021095126_348_1">
     <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
     <rdfs:label xml:lang="fr">paris → marceille</rdfs:label>
@@ -190,611 +33,11 @@
     <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
     <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "Coordonn\u00e9es non disponibles - v\u00e9rification impossible", "zone": "inconnue", "explication": "\u26a0\ufe0f Recommandation sans v\u00e9rification g\u00e9ographique"}</mobility:coherenceGeo>
   </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#nomRoute">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">nom de route</rdfs:label>
-    <rdfs:comment xml:lang="fr">Nom ou identifiant de la route</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Route"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#concerne">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-    <rdfs:label xml:lang="fr">concerne</rdfs:label>
-    <rdfs:comment xml:lang="fr">Relation entre une réservation et le véhicule concerné</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Réservation"/>
-    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021101551_958_2">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:label xml:lang="fr">tunis → safax</rdfs:label>
-    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
-    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
-    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">12</mobility:demandeId>
-    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
-    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">safax</mobility:pointArrivée>
-    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</mobility:rang>
-    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">29.0</mobility:durée>
-    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">14.94</mobility:distance>
-    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">7.23</mobility:coût>
-    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1792.3</mobility:empreinteCarbone>
-    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">9</mobility:scoreConfort>
-    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">faible</mobility:niveauCirculation>
-    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
-    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
-    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">6.68</mobility:scoreIA>
-    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Voiture Personnelle</mobility:mode>
-    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">prive</mobility:vehiculeType>
-    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Non déterminée</mobility:zoneGeographique>
-    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">14.936004777862337</mobility:distanceReelle>
-    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Voiture Personnelle"]</mobility:etapesJson>
-    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 7.1", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
-    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
-    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
-    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "Coordonn\u00e9es non disponibles - v\u00e9rification impossible", "zone": "inconnue", "explication": "\u26a0\ufe0f Recommandation sans v\u00e9rification g\u00e9ographique"}</mobility:coherenceGeo>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#rôle">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">rôle</rdfs:label>
-    <rdfs:comment xml:lang="fr">Rôle de l'administrateur dans le système</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Administrateur"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#prixRéservation">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">prix de réservation</rdfs:label>
-    <rdfs:comment xml:lang="fr">Prix de la réservation en dinars tunisiens</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Réservation"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#fréquence">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">fréquence</rdfs:label>
-    <rdfs:comment xml:lang="fr">Fréquence de passage en minutes</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#TransportPublic"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#effectuéPar">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-    <rdfs:label xml:lang="fr">effectué par</rdfs:label>
-    <rdfs:comment xml:lang="fr">Relation entre un trajet et l'utilisateur qui l'effectue</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
-    <owl:inverseOf rdf:resource="http://example.org/mobility-ontology/2025/09#planifie"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021100443_597_1">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:label xml:lang="fr">tunis → sousse</rdfs:label>
-    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
-    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
-    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">11</mobility:demandeId>
-    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
-    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sousse</mobility:pointArrivée>
-    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</mobility:rang>
-    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">86.0</mobility:durée>
-    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distance>
-    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">19.44</mobility:coût>
-    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">10464.3</mobility:empreinteCarbone>
-    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">9</mobility:scoreConfort>
-    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">fort</mobility:niveauCirculation>
-    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
-    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
-    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.78</mobility:scoreIA>
-    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Moto</mobility:mode>
-    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">prive</mobility:vehiculeType>
-    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Inter-villes Tunisie</mobility:zoneGeographique>
-    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distanceReelle>
-    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Moto"]</mobility:etapesJson>
-    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 1.4", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
-    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
-    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
-    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "nationale", "explication": "\u2705 Moto adapt\u00e9 pour 116.27km (nationale)"}</mobility:coherenceGeo>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#passeParStation">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-    <rdfs:label xml:lang="fr">passe par station</rdfs:label>
-    <rdfs:comment xml:lang="fr">Relation entre une route et les stations qu'elle traverse</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Route"/>
-    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021103444_232_1">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:label xml:lang="fr">tunis → sousse</rdfs:label>
-    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
-    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
-    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">14</mobility:demandeId>
-    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
-    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sousse</mobility:pointArrivée>
-    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</mobility:rang>
-    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">86.0</mobility:durée>
-    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distance>
-    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">42.69</mobility:coût>
-    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">13952.4</mobility:empreinteCarbone>
-    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">9</mobility:scoreConfort>
-    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">fort</mobility:niveauCirculation>
-    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
-    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
-    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.78</mobility:scoreIA>
-    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Voiture Personnelle</mobility:mode>
-    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">prive</mobility:vehiculeType>
-    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Inter-villes Tunisie</mobility:zoneGeographique>
-    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distanceReelle>
-    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Voiture Personnelle"]</mobility:etapesJson>
-    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 1.4", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
-    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
-    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
-    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "nationale", "explication": "\u2705 Voiture Personnelle adapt\u00e9 pour 116.27km (nationale)"}</mobility:coherenceGeo>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#modèle">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">modèle</rdfs:label>
-    <rdfs:comment xml:lang="fr">Modèle du véhicule</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021095126_814_2">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:label xml:lang="fr">paris → marceille</rdfs:label>
-    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
-    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
-    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">10</mobility:demandeId>
-    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">paris</mobility:pointDépart>
-    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">marceille</mobility:pointArrivée>
-    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</mobility:rang>
-    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">25.0</mobility:durée>
-    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">13.70118285039905</mobility:distance>
-    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">2.258982417175903</mobility:coût>
-    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">47.316276302011595</mobility:empreinteCarbone>
-    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">6</mobility:scoreConfort>
-    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">moyen</mobility:niveauCirculation>
-    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
-    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.5</mobility:fiabiliteScore>
-    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">6.0</mobility:scoreIA>
-    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Vélo + Métro</mobility:mode>
-    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">multimodal</mobility:vehiculeType>
-    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["5min \u00e0 v\u00e9lo", "M\u00e9tro ligne 1", "3min \u00e0 pied"]</mobility:etapesJson>
-    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 7.5"]</mobility:facteursDecision>
-    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
-    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#utilise">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-    <rdfs:label xml:lang="fr">utilise</rdfs:label>
-    <rdfs:comment xml:lang="fr">Relation entre un utilisateur et un véhicule qu'il utilise</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
-    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Véhicule">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-    <rdfs:label xml:lang="fr">Véhicule</rdfs:label>
-    <rdfs:comment xml:lang="fr">Moyen de transport</rdfs:comment>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#idRéservation">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">identifiant réservation</rdfs:label>
-    <rdfs:comment xml:lang="fr">Identifiant unique de la réservation</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Réservation"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Bus12">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#TransportPublic"/>
-    <mobility:ligne rdf:datatype="http://www.w3.org/2001/XMLSchema#string">12</mobility:ligne>
-    <mobility:fréquence rdf:datatype="http://www.w3.org/2001/XMLSchema#int">10</mobility:fréquence>
-    <mobility:typeTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">bus</mobility:typeTransport>
-    <mobility:tarif rdf:datatype="http://www.w3.org/2001/XMLSchema#float">0.8</mobility:tarif>
-    <rdfs:label xml:lang="fr">Bus Ligne 12</rdfs:label>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#niveauAccès">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">niveau d'accès</rdfs:label>
-    <rdfs:comment xml:lang="fr">Niveau d'accès de l'administrateur (1-5)</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Administrateur"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021101748_885_1">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:label xml:lang="fr">tunis → sfax</rdfs:label>
-    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
-    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
-    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">13</mobility:demandeId>
-    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
-    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sfax</mobility:pointArrivée>
-    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</mobility:rang>
-    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">195.0</mobility:durée>
-    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">235.12</mobility:distance>
-    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">58.78</mobility:coût>
-    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">11756.0</mobility:empreinteCarbone>
-    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">6</mobility:scoreConfort>
-    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">moyen</mobility:niveauCirculation>
-    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
-    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
-    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</mobility:scoreIA>
-    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Autolib (Voiture Partagée)</mobility:mode>
-    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">partage</mobility:vehiculeType>
-    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Inter-villes Tunisie</mobility:zoneGeographique>
-    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">235.12</mobility:distanceReelle>
-    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Autolib (Voiture Partag\u00e9e)"]</mobility:etapesJson>
-    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 0.0", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
-    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
-    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
-    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "nationale", "explication": "\u2705 Autolib (Voiture Partag\u00e9e) adapt\u00e9 pour 235.12km (nationale)"}</mobility:coherenceGeo>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#nomArrêt">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">nom d'arrêt</rdfs:label>
-    <rdfs:comment xml:lang="fr">Nom de l'arrêt de transport public</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Arrêt"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#pointArrivée">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">point d'arrivée</rdfs:label>
-    <rdfs:comment xml:lang="fr">Adresse ou nom du point d'arrivée du trajet</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#longueurPiste">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">longueur de piste</rdfs:label>
-    <rdfs:comment xml:lang="fr">Longueur de la piste cyclable en kilomètres</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#PisteCyclable"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Voiture">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-    <rdfs:label xml:lang="fr">Voiture</rdfs:label>
-    <rdfs:comment xml:lang="fr">Véhicule automobile à quatre roues</rdfs:comment>
-    <rdfs:subClassOf rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#statut">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">statut</rdfs:label>
-    <rdfs:comment xml:lang="fr">Statut du véhicule (disponible, en cours d'utilisation, en maintenance)</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#réserve">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-    <rdfs:label xml:lang="fr">réserve</rdfs:label>
-    <rdfs:comment xml:lang="fr">Relation entre un utilisateur et une réservation qu'il effectue</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
-    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Réservation"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Voiture01">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Voiture"/>
-    <mobility:garéeÀ rdf:resource="http://example.org/mobility-ontology/2025/09#StationCentre"/>
-    <mobility:immatriculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">123-TUN-456</mobility:immatriculation>
-    <mobility:typeVéhicule rdf:datatype="http://www.w3.org/2001/XMLSchema#string">électrique</mobility:typeVéhicule>
-    <mobility:marque rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Tesla</mobility:marque>
-    <mobility:modèle rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Model 3</mobility:modèle>
-    <mobility:couleur rdf:datatype="http://www.w3.org/2001/XMLSchema#string">blanc</mobility:couleur>
-    <mobility:statut rdf:datatype="http://www.w3.org/2001/XMLSchema#string">disponible</mobility:statut>
-    <mobility:niveauBatterie rdf:datatype="http://www.w3.org/2001/XMLSchema#float">92.0</mobility:niveauBatterie>
-    <rdfs:label xml:lang="fr">Voiture 01</rdfs:label>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#nomPiste">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">nom de piste</rdfs:label>
-    <rdfs:comment xml:lang="fr">Nom ou identifiant de la piste cyclable</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#PisteCyclable"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Utilisateur3">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
-    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">3</mobility:utilisateurId>
-    <mobility:nom rdf:datatype="http://www.w3.org/2001/XMLSchema#string">mrabet</mobility:nom>
-    <mobility:prenom rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sofienne</mobility:prenom>
-    <mobility:email rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sofienne.mrabet@esprit.tn</mobility:email>
-    <mobility:role rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Utilisateur</mobility:role>
-    <mobility:dateInscription rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-25T12:01:04.190077</mobility:dateInscription>
-    <mobility:statut rdf:datatype="http://www.w3.org/2001/XMLSchema#string">actif</mobility:statut>
-    <mobility:preferencesTrajet rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"mode_prefere": "auto", "distance_max": 50}</mobility:preferencesTrajet>
-    <mobility:dateModification rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-25T12:28:39.158189</mobility:dateModification>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#PisteAvBourguiba">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#PisteCyclable"/>
-    <mobility:nomPiste rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Piste Avenue Bourguiba</mobility:nomPiste>
-    <mobility:longueurPiste rdf:datatype="http://www.w3.org/2001/XMLSchema#float">2.8</mobility:longueurPiste>
-    <mobility:typePiste rdf:datatype="http://www.w3.org/2001/XMLSchema#string">séparée</mobility:typePiste>
-    <mobility:étatPiste rdf:datatype="http://www.w3.org/2001/XMLSchema#string">bon</mobility:étatPiste>
-    <rdfs:label xml:lang="fr">Piste Cyclable Avenue Bourguiba</rdfs:label>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#accessibilité">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">accessibilité</rdfs:label>
-    <rdfs:comment xml:lang="fr">Niveau d'accessibilité pour personnes à mobilité réduite</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Arrêt"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#typeStation">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">type de station</rdfs:label>
-    <rdfs:comment xml:lang="fr">Type de station (vélos, voitures, mixte)</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#latitude">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">latitude</rdfs:label>
-    <rdfs:comment xml:lang="fr">Coordonnée latitude de la station</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Administrateur">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-    <rdfs:label xml:lang="fr">Administrateur</rdfs:label>
-    <rdfs:comment xml:lang="fr">Gestionnaire de la plateforme de mobilité</rdfs:comment>
-    <rdfs:subClassOf rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#dateInscription">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">date d'inscription</rdfs:label>
-    <rdfs:comment xml:lang="fr">Date d'inscription de l'utilisateur au système</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#date"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Utilisateur">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-    <rdfs:label xml:lang="fr">Utilisateur</rdfs:label>
-    <rdfs:comment xml:lang="fr">Personne qui utilise les services de mobilité</rdfs:comment>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Route">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-    <rdfs:label xml:lang="fr">Route</rdfs:label>
-    <rdfs:comment xml:lang="fr">Itinéraire ou chemin entre deux points</rdfs:comment>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#longitude">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">longitude</rdfs:label>
-    <rdfs:comment xml:lang="fr">Coordonnée longitude de la station</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#tempsEstimé">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">temps estimé</rdfs:label>
-    <rdfs:comment xml:lang="fr">Temps estimé pour parcourir la route en minutes</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Route"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#ligne">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">ligne</rdfs:label>
-    <rdfs:comment xml:lang="fr">Numéro ou nom de la ligne de transport</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#TransportPublic"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#typeUtilisateur">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">type d'utilisateur</rdfs:label>
-    <rdfs:comment xml:lang="fr">Type ou catégorie d'utilisateur</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
   <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Vélo">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
     <rdfs:label xml:lang="fr">Vélo</rdfs:label>
     <rdfs:comment xml:lang="fr">Véhicule à deux roues actionné par pédales</rdfs:comment>
     <rdfs:subClassOf rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021103810_594_1">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:label xml:lang="fr">tunis → monastir</rdfs:label>
-    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
-    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
-    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">17</mobility:demandeId>
-    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
-    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">monastir</mobility:pointArrivée>
-    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</mobility:rang>
-    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">94.0</mobility:durée>
-    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">128.06</mobility:distance>
-    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">46.82</mobility:coût>
-    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">15367.2</mobility:empreinteCarbone>
-    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">9</mobility:scoreConfort>
-    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">moyen</mobility:niveauCirculation>
-    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
-    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
-    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.34</mobility:scoreIA>
-    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Voiture Personnelle</mobility:mode>
-    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">prive</mobility:vehiculeType>
-    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Inter-villes Tunisie</mobility:zoneGeographique>
-    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">128.06</mobility:distanceReelle>
-    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Voiture Personnelle"]</mobility:etapesJson>
-    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 0.6", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
-    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
-    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
-    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "nationale", "explication": "\u2705 Voiture Personnelle adapt\u00e9 pour 128.06km (nationale)"}</mobility:coherenceGeo>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021101551_337_3">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:label xml:lang="fr">tunis → safax</rdfs:label>
-    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
-    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
-    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">12</mobility:demandeId>
-    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
-    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">safax</mobility:pointArrivée>
-    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</mobility:rang>
-    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">32.0</mobility:durée>
-    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">14.94</mobility:distance>
-    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">3.73</mobility:coût>
-    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">746.8</mobility:empreinteCarbone>
-    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">6</mobility:scoreConfort>
-    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">faible</mobility:niveauCirculation>
-    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
-    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
-    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">6.44</mobility:scoreIA>
-    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Autolib (Voiture Partagée)</mobility:mode>
-    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">partage</mobility:vehiculeType>
-    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Non déterminée</mobility:zoneGeographique>
-    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">14.936004777862337</mobility:distanceReelle>
-    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Autolib (Voiture Partag\u00e9e)"]</mobility:etapesJson>
-    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 6.8", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
-    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
-    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
-    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "Coordonn\u00e9es non disponibles - v\u00e9rification impossible", "zone": "inconnue", "explication": "\u26a0\ufe0f Recommandation sans v\u00e9rification g\u00e9ographique"}</mobility:coherenceGeo>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#AdminMohamed">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Administrateur"/>
-    <mobility:nom rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Mohamed</mobility:nom>
-    <mobility:email rdf:datatype="http://www.w3.org/2001/XMLSchema#string">mohamed.admin@smartcity.tn</mobility:email>
-    <mobility:typeUtilisateur rdf:datatype="http://www.w3.org/2001/XMLSchema#string">administrateur</mobility:typeUtilisateur>
-    <mobility:âge rdf:datatype="http://www.w3.org/2001/XMLSchema#int">35</mobility:âge>
-    <mobility:téléphone rdf:datatype="http://www.w3.org/2001/XMLSchema#string">+216 22 987 654</mobility:téléphone>
-    <mobility:dateInscription rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2023-06-01</mobility:dateInscription>
-    <mobility:rôle rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Gestionnaire de flotte</mobility:rôle>
-    <mobility:niveauAccès rdf:datatype="http://www.w3.org/2001/XMLSchema#int">4</mobility:niveauAccès>
-    <rdfs:label xml:lang="fr">Admin Mohamed</rdfs:label>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#nom">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">nom</rdfs:label>
-    <rdfs:comment xml:lang="fr">Nom de l'utilisateur</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#adresse">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">adresse</rdfs:label>
-    <rdfs:comment xml:lang="fr">Adresse complète de la station</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021101551_897_1">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:label xml:lang="fr">tunis → safax</rdfs:label>
-    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
-    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
-    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">12</mobility:demandeId>
-    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
-    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">safax</mobility:pointArrivée>
-    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</mobility:rang>
-    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">25.0</mobility:durée>
-    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">14.94</mobility:distance>
-    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">4.24</mobility:coût>
-    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1344.2</mobility:empreinteCarbone>
-    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">9</mobility:scoreConfort>
-    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">faible</mobility:niveauCirculation>
-    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
-    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
-    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">7.0</mobility:scoreIA>
-    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Moto</mobility:mode>
-    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">prive</mobility:vehiculeType>
-    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Non déterminée</mobility:zoneGeographique>
-    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">14.936004777862337</mobility:distanceReelle>
-    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Moto"]</mobility:etapesJson>
-    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 7.5", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
-    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
-    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
-    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "Coordonn\u00e9es non disponibles - v\u00e9rification impossible", "zone": "inconnue", "explication": "\u26a0\ufe0f Recommandation sans v\u00e9rification g\u00e9ographique"}</mobility:coherenceGeo>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#TrajetAlice">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <mobility:effectuéPar rdf:resource="http://example.org/mobility-ontology/2025/09#Alice"/>
-    <mobility:suitRoute rdf:resource="http://example.org/mobility-ontology/2025/09#RouteUniversité"/>
-    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">3.5</mobility:distance>
-    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">15.0</mobility:durée>
-    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">vélo</mobility:mode>
-    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Station Centre</mobility:pointDépart>
-    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Université de Tunis</mobility:pointArrivée>
-    <mobility:heureDebut rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-07T08:30:00</mobility:heureDebut>
-    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">2.5</mobility:coût>
-    <rdfs:label xml:lang="fr">Trajet d'Alice</rdfs:label>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#email">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">email</rdfs:label>
-    <rdfs:comment xml:lang="fr">Adresse email de l'utilisateur</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Réservation">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-    <rdfs:label xml:lang="fr">Réservation</rdfs:label>
-    <rdfs:comment xml:lang="fr">Réservation d'un véhicule ou service de transport</rdfs:comment>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#immatriculation">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">immatriculation</rdfs:label>
-    <rdfs:comment xml:lang="fr">Numéro d'immatriculation du véhicule</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#PisteCyclable">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-    <rdfs:label xml:lang="fr">Piste Cyclable</rdfs:label>
-    <rdfs:comment xml:lang="fr">Infrastructure dédiée aux cyclistes</rdfs:comment>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#gère">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-    <rdfs:label xml:lang="fr">gère</rdfs:label>
-    <rdfs:comment xml:lang="fr">Relation entre un administrateur et les entités qu'il gère</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Administrateur"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#tarif">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">tarif</rdfs:label>
-    <rdfs:comment xml:lang="fr">Tarif du transport en dinars tunisiens</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#TransportPublic"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#distance">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">distance</rdfs:label>
-    <rdfs:comment xml:lang="fr">Distance du trajet en kilomètres</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#longitudeArrêt">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">longitude arrêt</rdfs:label>
-    <rdfs:comment xml:lang="fr">Coordonnée longitude de l'arrêt</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Arrêt"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#TransportPublic">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-    <rdfs:label xml:lang="fr">Transport Public</rdfs:label>
-    <rdfs:comment xml:lang="fr">Service de transport collectif</rdfs:comment>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#pointDépart">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">point de départ</rdfs:label>
-    <rdfs:comment xml:lang="fr">Adresse ou nom du point de départ du trajet</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#durée">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">durée</rdfs:label>
-    <rdfs:comment xml:lang="fr">Durée du trajet en minutes</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#ArrêtUniversité">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Arrêt"/>
-    <mobility:nomArrêt rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Arrêt Université</mobility:nomArrêt>
-    <mobility:latitudeArrêt rdf:datatype="http://www.w3.org/2001/XMLSchema#float">36.82456</mobility:latitudeArrêt>
-    <mobility:longitudeArrêt rdf:datatype="http://www.w3.org/2001/XMLSchema#float">10.1789</mobility:longitudeArrêt>
-    <mobility:accessibilité rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</mobility:accessibilité>
-    <rdfs:label xml:lang="fr">Arrêt Université</rdfs:label>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#StationCentre">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
-    <mobility:nomStation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Station Centre</mobility:nomStation>
-    <mobility:latitude rdf:datatype="http://www.w3.org/2001/XMLSchema#float">36.81897</mobility:latitude>
-    <mobility:longitude rdf:datatype="http://www.w3.org/2001/XMLSchema#float">10.16579</mobility:longitude>
-    <mobility:adresse rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Avenue Habib Bourguiba, Tunis Centre</mobility:adresse>
-    <mobility:capacité rdf:datatype="http://www.w3.org/2001/XMLSchema#int">50</mobility:capacité>
-    <mobility:heuresOuverture rdf:datatype="http://www.w3.org/2001/XMLSchema#string">24h/24</mobility:heuresOuverture>
-    <mobility:typeStation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">mixte</mobility:typeStation>
-    <rdfs:label xml:lang="fr">Station Centre</rdfs:label>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#typeRoute">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">type de route</rdfs:label>
-    <rdfs:comment xml:lang="fr">Type de route (urbaine, autoroute, piste cyclable)</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Route"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
   </rdf:Description>
   <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021101748_362_3">
     <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
@@ -824,6 +67,462 @@
     <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
     <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "nationale", "explication": "\u2705 Voiture Personnelle adapt\u00e9 pour 235.12km (nationale)"}</mobility:coherenceGeo>
   </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251026184723_541_1">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:label xml:lang="fr">Riadh El Andalous, Ariana Supérieure, Délégation Ariana Ville, Gouvernorat Ariana, 2083, Tunisie → Municipalité de l'Ariana, Rue du 18 Janvier 1952, Ettaamir I, Ariana Ville, Délégation Ariana Ville, Gouvernorat Ariana, 2080, Tunisie</rdfs:label>
+    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
+    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
+    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">19</mobility:demandeId>
+    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Riadh El Andalous, Ariana Supérieure, Délégation Ariana Ville, Gouvernorat Ariana, 2083, Tunisie</mobility:pointDépart>
+    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Municipalité de l'Ariana, Rue du 18 Janvier 1952, Ettaamir I, Ariana Ville, Délégation Ariana Ville, Gouvernorat Ariana, 2080, Tunisie</mobility:pointArrivée>
+    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</mobility:rang>
+    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">37.0</mobility:durée>
+    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">9.36</mobility:distance>
+    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.5</mobility:coût>
+    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">748.8</mobility:empreinteCarbone>
+    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">7</mobility:scoreConfort>
+    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">fort</mobility:niveauCirculation>
+    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
+    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">7.4</mobility:fiabiliteScore>
+    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.65</mobility:scoreIA>
+    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Bus</mobility:mode>
+    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">public</mobility:vehiculeType>
+    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Banlieue proche</mobility:zoneGeographique>
+    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">9.36</mobility:distanceReelle>
+    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Marche vers l'arr\u00eat (3min)", "Bus jusqu'\u00e0 destination", "Marche finale (2min)"]</mobility:etapesJson>
+    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["\u00c9conomie: 8.5", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
+    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
+    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"prochains_passages": ["5min", "17min", "29min"]}</mobility:horairesTransport>
+    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "banlieue_proche", "explication": "\u2705 Bus adapt\u00e9 pour 9.36km (banlieue_proche)"}</mobility:coherenceGeo>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021095126_814_2">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:label xml:lang="fr">paris → marceille</rdfs:label>
+    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
+    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
+    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">10</mobility:demandeId>
+    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">paris</mobility:pointDépart>
+    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">marceille</mobility:pointArrivée>
+    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</mobility:rang>
+    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">25.0</mobility:durée>
+    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">13.70118285039905</mobility:distance>
+    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">2.258982417175903</mobility:coût>
+    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">47.316276302011595</mobility:empreinteCarbone>
+    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">6</mobility:scoreConfort>
+    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">moyen</mobility:niveauCirculation>
+    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
+    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.5</mobility:fiabiliteScore>
+    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">6.0</mobility:scoreIA>
+    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Vélo + Métro</mobility:mode>
+    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">multimodal</mobility:vehiculeType>
+    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["5min \u00e0 v\u00e9lo", "M\u00e9tro ligne 1", "3min \u00e0 pied"]</mobility:etapesJson>
+    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 7.5"]</mobility:facteursDecision>
+    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
+    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#TrajetAlice">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <mobility:effectuéPar rdf:resource="http://example.org/mobility-ontology/2025/09#Alice"/>
+    <mobility:suitRoute rdf:resource="http://example.org/mobility-ontology/2025/09#RouteUniversité"/>
+    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">3.5</mobility:distance>
+    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">15.0</mobility:durée>
+    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">vélo</mobility:mode>
+    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Station Centre</mobility:pointDépart>
+    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Université de Tunis</mobility:pointArrivée>
+    <mobility:heureDebut rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-07T08:30:00</mobility:heureDebut>
+    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">2.5</mobility:coût>
+    <rdfs:label xml:lang="fr">Trajet d'Alice</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021101748_885_1">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:label xml:lang="fr">tunis → sfax</rdfs:label>
+    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
+    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
+    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">13</mobility:demandeId>
+    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
+    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sfax</mobility:pointArrivée>
+    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</mobility:rang>
+    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">195.0</mobility:durée>
+    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">235.12</mobility:distance>
+    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">58.78</mobility:coût>
+    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">11756.0</mobility:empreinteCarbone>
+    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">6</mobility:scoreConfort>
+    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">moyen</mobility:niveauCirculation>
+    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
+    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
+    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</mobility:scoreIA>
+    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Autolib (Voiture Partagée)</mobility:mode>
+    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">partage</mobility:vehiculeType>
+    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Inter-villes Tunisie</mobility:zoneGeographique>
+    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">235.12</mobility:distanceReelle>
+    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Autolib (Voiture Partag\u00e9e)"]</mobility:etapesJson>
+    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 0.0", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
+    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
+    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
+    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "nationale", "explication": "\u2705 Autolib (Voiture Partag\u00e9e) adapt\u00e9 pour 235.12km (nationale)"}</mobility:coherenceGeo>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021103444_244_2">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:label xml:lang="fr">tunis → sousse</rdfs:label>
+    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
+    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
+    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">14</mobility:demandeId>
+    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
+    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sousse</mobility:pointArrivée>
+    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</mobility:rang>
+    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">96.0</mobility:durée>
+    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distance>
+    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">29.07</mobility:coût>
+    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">5813.5</mobility:empreinteCarbone>
+    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">6</mobility:scoreConfort>
+    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">fort</mobility:niveauCirculation>
+    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
+    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
+    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.22</mobility:scoreIA>
+    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Autolib (Voiture Partagée)</mobility:mode>
+    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">partage</mobility:vehiculeType>
+    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Inter-villes Tunisie</mobility:zoneGeographique>
+    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distanceReelle>
+    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Autolib (Voiture Partag\u00e9e)"]</mobility:etapesJson>
+    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 0.4", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
+    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
+    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
+    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "nationale", "explication": "\u2705 Autolib (Voiture Partag\u00e9e) adapt\u00e9 pour 116.27km (nationale)"}</mobility:coherenceGeo>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#concerne">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="fr">concerne</rdfs:label>
+    <rdfs:comment xml:lang="fr">Relation entre une réservation et le véhicule concerné</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Réservation"/>
+    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#PisteCyclable">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Piste Cyclable</rdfs:label>
+    <rdfs:comment xml:lang="fr">Infrastructure dédiée aux cyclistes</rdfs:comment>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#utilise">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="fr">utilise</rdfs:label>
+    <rdfs:comment xml:lang="fr">Relation entre un utilisateur et un véhicule qu'il utilise</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
+    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021101748_378_2">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:label xml:lang="fr">tunis → sfax</rdfs:label>
+    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
+    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
+    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">13</mobility:demandeId>
+    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
+    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sfax</mobility:pointArrivée>
+    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</mobility:rang>
+    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">174.0</mobility:durée>
+    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">235.12</mobility:distance>
+    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">37.27</mobility:coût>
+    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">21160.8</mobility:empreinteCarbone>
+    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">9</mobility:scoreConfort>
+    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">moyen</mobility:niveauCirculation>
+    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
+    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
+    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</mobility:scoreIA>
+    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Moto</mobility:mode>
+    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">prive</mobility:vehiculeType>
+    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Inter-villes Tunisie</mobility:zoneGeographique>
+    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">235.12</mobility:distanceReelle>
+    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Moto"]</mobility:etapesJson>
+    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 0.0", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
+    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
+    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
+    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "nationale", "explication": "\u2705 Moto adapt\u00e9 pour 235.12km (nationale)"}</mobility:coherenceGeo>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021103810_594_1">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:label xml:lang="fr">tunis → monastir</rdfs:label>
+    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
+    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
+    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">17</mobility:demandeId>
+    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
+    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">monastir</mobility:pointArrivée>
+    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</mobility:rang>
+    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">94.0</mobility:durée>
+    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">128.06</mobility:distance>
+    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">46.82</mobility:coût>
+    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">15367.2</mobility:empreinteCarbone>
+    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">9</mobility:scoreConfort>
+    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">moyen</mobility:niveauCirculation>
+    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
+    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
+    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.34</mobility:scoreIA>
+    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Voiture Personnelle</mobility:mode>
+    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">prive</mobility:vehiculeType>
+    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Inter-villes Tunisie</mobility:zoneGeographique>
+    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">128.06</mobility:distanceReelle>
+    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Voiture Personnelle"]</mobility:etapesJson>
+    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 0.6", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
+    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
+    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
+    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "nationale", "explication": "\u2705 Voiture Personnelle adapt\u00e9 pour 128.06km (nationale)"}</mobility:coherenceGeo>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#passeParStation">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="fr">passe par station</rdfs:label>
+    <rdfs:comment xml:lang="fr">Relation entre une route et les stations qu'elle traverse</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Route"/>
+    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#typePiste">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">type de piste</rdfs:label>
+    <rdfs:comment xml:lang="fr">Type de piste cyclable (séparée, partagée, bande cyclable)</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#PisteCyclable"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#coût">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">coût</rdfs:label>
+    <rdfs:comment xml:lang="fr">Coût du trajet en dinars tunisiens</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Arrêt">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Arrêt</rdfs:label>
+    <rdfs:comment xml:lang="fr">Point d'arrêt du transport public</rdfs:comment>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#longitude">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">longitude</rdfs:label>
+    <rdfs:comment xml:lang="fr">Coordonnée longitude de la station</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#niveauAccès">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">niveau d'accès</rdfs:label>
+    <rdfs:comment xml:lang="fr">Niveau d'accès de l'administrateur (1-5)</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Administrateur"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#typeUtilisateur">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">type d'utilisateur</rdfs:label>
+    <rdfs:comment xml:lang="fr">Type ou catégorie d'utilisateur</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021103444_232_1">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:label xml:lang="fr">tunis → sousse</rdfs:label>
+    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
+    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
+    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">14</mobility:demandeId>
+    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
+    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sousse</mobility:pointArrivée>
+    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</mobility:rang>
+    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">86.0</mobility:durée>
+    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distance>
+    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">42.69</mobility:coût>
+    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">13952.4</mobility:empreinteCarbone>
+    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">9</mobility:scoreConfort>
+    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">fort</mobility:niveauCirculation>
+    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
+    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
+    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.78</mobility:scoreIA>
+    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Voiture Personnelle</mobility:mode>
+    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">prive</mobility:vehiculeType>
+    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Inter-villes Tunisie</mobility:zoneGeographique>
+    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distanceReelle>
+    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Voiture Personnelle"]</mobility:etapesJson>
+    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 1.4", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
+    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
+    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
+    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "nationale", "explication": "\u2705 Voiture Personnelle adapt\u00e9 pour 116.27km (nationale)"}</mobility:coherenceGeo>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251026184723_735_2">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:label xml:lang="fr">Riadh El Andalous, Ariana Supérieure, Délégation Ariana Ville, Gouvernorat Ariana, 2083, Tunisie → Municipalité de l'Ariana, Rue du 18 Janvier 1952, Ettaamir I, Ariana Ville, Délégation Ariana Ville, Gouvernorat Ariana, 2080, Tunisie</rdfs:label>
+    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
+    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
+    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">19</mobility:demandeId>
+    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Riadh El Andalous, Ariana Supérieure, Délégation Ariana Ville, Gouvernorat Ariana, 2083, Tunisie</mobility:pointDépart>
+    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Municipalité de l'Ariana, Rue du 18 Janvier 1952, Ettaamir I, Ariana Ville, Délégation Ariana Ville, Gouvernorat Ariana, 2080, Tunisie</mobility:pointArrivée>
+    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</mobility:rang>
+    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:durée>
+    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">9.36</mobility:distance>
+    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">3.4</mobility:coût>
+    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">842.4</mobility:empreinteCarbone>
+    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">9</mobility:scoreConfort>
+    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">fort</mobility:niveauCirculation>
+    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
+    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
+    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">6.94</mobility:scoreIA>
+    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Moto</mobility:mode>
+    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">prive</mobility:vehiculeType>
+    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Banlieue proche</mobility:zoneGeographique>
+    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">9.36</mobility:distanceReelle>
+    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Moto"]</mobility:etapesJson>
+    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["\u00c9conomie: 6.6", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
+    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
+    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
+    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "banlieue_proche", "explication": "\u2705 Moto adapt\u00e9 pour 9.36km (banlieue_proche)"}</mobility:coherenceGeo>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Administrateur">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Administrateur</rdfs:label>
+    <rdfs:comment xml:lang="fr">Gestionnaire de la plateforme de mobilité</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#longueurPiste">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">longueur de piste</rdfs:label>
+    <rdfs:comment xml:lang="fr">Longueur de la piste cyclable en kilomètres</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#PisteCyclable"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Velo01">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Vélo"/>
+    <mobility:disponibleÀ rdf:resource="http://example.org/mobility-ontology/2025/09#StationCentre"/>
+    <mobility:marque rdf:datatype="http://www.w3.org/2001/XMLSchema#string">CityBike</mobility:marque>
+    <mobility:modèle rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Urban Pro</mobility:modèle>
+    <mobility:couleur rdf:datatype="http://www.w3.org/2001/XMLSchema#string">bleu</mobility:couleur>
+    <mobility:statut rdf:datatype="http://www.w3.org/2001/XMLSchema#string">disponible</mobility:statut>
+    <mobility:niveauBatterie rdf:datatype="http://www.w3.org/2001/XMLSchema#float">85.5</mobility:niveauBatterie>
+    <rdfs:label xml:lang="fr">Vélo 01</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021100444_755_2">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:label xml:lang="fr">tunis → sousse</rdfs:label>
+    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
+    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
+    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">11</mobility:demandeId>
+    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
+    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sousse</mobility:pointArrivée>
+    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</mobility:rang>
+    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">86.0</mobility:durée>
+    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distance>
+    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">42.69</mobility:coût>
+    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">13952.4</mobility:empreinteCarbone>
+    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">9</mobility:scoreConfort>
+    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">fort</mobility:niveauCirculation>
+    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
+    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
+    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.78</mobility:scoreIA>
+    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Voiture Personnelle</mobility:mode>
+    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">prive</mobility:vehiculeType>
+    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Inter-villes Tunisie</mobility:zoneGeographique>
+    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distanceReelle>
+    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Voiture Personnelle"]</mobility:etapesJson>
+    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 1.4", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
+    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
+    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
+    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "nationale", "explication": "\u2705 Voiture Personnelle adapt\u00e9 pour 116.27km (nationale)"}</mobility:coherenceGeo>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#idRéservation">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">identifiant réservation</rdfs:label>
+    <rdfs:comment xml:lang="fr">Identifiant unique de la réservation</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Réservation"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#StationCentre">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
+    <mobility:nomStation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Station Centre</mobility:nomStation>
+    <mobility:latitude rdf:datatype="http://www.w3.org/2001/XMLSchema#float">36.81897</mobility:latitude>
+    <mobility:longitude rdf:datatype="http://www.w3.org/2001/XMLSchema#float">10.16579</mobility:longitude>
+    <mobility:adresse rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Avenue Habib Bourguiba, Tunis Centre</mobility:adresse>
+    <mobility:capacité rdf:datatype="http://www.w3.org/2001/XMLSchema#int">50</mobility:capacité>
+    <mobility:heuresOuverture rdf:datatype="http://www.w3.org/2001/XMLSchema#string">24h/24</mobility:heuresOuverture>
+    <mobility:typeStation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">mixte</mobility:typeStation>
+    <rdfs:label xml:lang="fr">Station Centre</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#pointArrivée">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">point d'arrivée</rdfs:label>
+    <rdfs:comment xml:lang="fr">Adresse ou nom du point d'arrivée du trajet</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#distance">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">distance</rdfs:label>
+    <rdfs:comment xml:lang="fr">Distance du trajet en kilomètres</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#statut">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">statut</rdfs:label>
+    <rdfs:comment xml:lang="fr">Statut du véhicule (disponible, en cours d'utilisation, en maintenance)</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#âge">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">âge</rdfs:label>
+    <rdfs:comment xml:lang="fr">Âge de l'utilisateur en années</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Utilisateur2">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
+    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
+    <mobility:nom rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Normal</mobility:nom>
+    <mobility:prenom rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Utilisateur</mobility:prenom>
+    <mobility:email rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user@smartcity.com</mobility:email>
+    <mobility:role rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Utilisateur</mobility:role>
+    <mobility:dateInscription rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-25T12:01:04.138357</mobility:dateInscription>
+    <mobility:statut rdf:datatype="http://www.w3.org/2001/XMLSchema#string">actif</mobility:statut>
+    <mobility:preferencesTrajet rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"mode_prefere": "auto", "distance_max": 50}</mobility:preferencesTrajet>
+    <mobility:dateModification rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-25T12:28:39.127821</mobility:dateModification>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251026184723_194_3">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:label xml:lang="fr">Riadh El Andalous, Ariana Supérieure, Délégation Ariana Ville, Gouvernorat Ariana, 2083, Tunisie → Municipalité de l'Ariana, Rue du 18 Janvier 1952, Ettaamir I, Ariana Ville, Délégation Ariana Ville, Gouvernorat Ariana, 2080, Tunisie</rdfs:label>
+    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
+    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
+    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">19</mobility:demandeId>
+    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Riadh El Andalous, Ariana Supérieure, Délégation Ariana Ville, Gouvernorat Ariana, 2083, Tunisie</mobility:pointDépart>
+    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Municipalité de l'Ariana, Rue du 18 Janvier 1952, Ettaamir I, Ariana Ville, Délégation Ariana Ville, Gouvernorat Ariana, 2080, Tunisie</mobility:pointArrivée>
+    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</mobility:rang>
+    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:durée>
+    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">9.36</mobility:distance>
+    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">5.28</mobility:coût>
+    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1123.2</mobility:empreinteCarbone>
+    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">9</mobility:scoreConfort>
+    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">fort</mobility:niveauCirculation>
+    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
+    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
+    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">5.25</mobility:scoreIA>
+    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Voiture Personnelle</mobility:mode>
+    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">prive</mobility:vehiculeType>
+    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Banlieue proche</mobility:zoneGeographique>
+    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">9.36</mobility:distanceReelle>
+    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Voiture Personnelle"]</mobility:etapesJson>
+    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["\u00c9conomie: 4.7", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
+    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
+    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
+    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "banlieue_proche", "explication": "\u2705 Voiture Personnelle adapt\u00e9 pour 9.36km (banlieue_proche)"}</mobility:coherenceGeo>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Voiture01">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Voiture"/>
+    <mobility:garéeÀ rdf:resource="http://example.org/mobility-ontology/2025/09#StationCentre"/>
+    <mobility:immatriculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">123-TUN-456</mobility:immatriculation>
+    <mobility:typeVéhicule rdf:datatype="http://www.w3.org/2001/XMLSchema#string">électrique</mobility:typeVéhicule>
+    <mobility:marque rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Tesla</mobility:marque>
+    <mobility:modèle rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Model 3</mobility:modèle>
+    <mobility:couleur rdf:datatype="http://www.w3.org/2001/XMLSchema#string">blanc</mobility:couleur>
+    <mobility:statut rdf:datatype="http://www.w3.org/2001/XMLSchema#string">disponible</mobility:statut>
+    <mobility:niveauBatterie rdf:datatype="http://www.w3.org/2001/XMLSchema#float">92.0</mobility:niveauBatterie>
+    <rdfs:label xml:lang="fr">Voiture 01</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#typeRoute">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">type de route</rdfs:label>
+    <rdfs:comment xml:lang="fr">Type de route (urbaine, autoroute, piste cyclable)</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Route"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
   <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#étatPiste">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
     <rdfs:label xml:lang="fr">état de piste</rdfs:label>
@@ -831,17 +530,146 @@
     <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#PisteCyclable"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
   </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#dessert">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-    <rdfs:label xml:lang="fr">dessert</rdfs:label>
-    <rdfs:comment xml:lang="fr">Relation entre un transport public et les arrêts qu'il dessert</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#TransportPublic"/>
-    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Arrêt"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Arrêt">
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Voiture">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-    <rdfs:label xml:lang="fr">Arrêt</rdfs:label>
-    <rdfs:comment xml:lang="fr">Point d'arrêt du transport public</rdfs:comment>
+    <rdfs:label xml:lang="fr">Voiture</rdfs:label>
+    <rdfs:comment xml:lang="fr">Véhicule automobile à quatre roues</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#suitRoute">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="fr">suit route</rdfs:label>
+    <rdfs:comment xml:lang="fr">Relation entre un trajet et la route qu'il suit</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Route"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#dateInscription">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">date d'inscription</rdfs:label>
+    <rdfs:comment xml:lang="fr">Date d'inscription de l'utilisateur au système</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#date"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#typeTransport">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">type de transport</rdfs:label>
+    <rdfs:comment xml:lang="fr">Type de transport public (bus, métro, tramway)</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#TransportPublic"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021095126_125_3">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:label xml:lang="fr">paris → marceille</rdfs:label>
+    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
+    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
+    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">10</mobility:demandeId>
+    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">paris</mobility:pointDépart>
+    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">marceille</mobility:pointArrivée>
+    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</mobility:rang>
+    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">39.0</mobility:durée>
+    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">13.7</mobility:distance>
+    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">2.5</mobility:coût>
+    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">342.5</mobility:empreinteCarbone>
+    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">5</mobility:scoreConfort>
+    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">moyen</mobility:niveauCirculation>
+    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
+    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
+    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">5.88</mobility:scoreIA>
+    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Métro</mobility:mode>
+    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">public</mobility:vehiculeType>
+    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Non déterminée</mobility:zoneGeographique>
+    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">13.70118285039905</mobility:distanceReelle>
+    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Marche vers l'arr\u00eat (3min)", "M\u00e9tro jusqu'\u00e0 destination", "Marche finale (2min)"]</mobility:etapesJson>
+    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 6.1", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
+    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
+    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"prochains_passages": ["5min", "13min", "21min"]}</mobility:horairesTransport>
+    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "Coordonn\u00e9es non disponibles - v\u00e9rification impossible", "zone": "inconnue", "explication": "\u26a0\ufe0f Recommandation sans v\u00e9rification g\u00e9ographique"}</mobility:coherenceGeo>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#heuresOuverture">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">heures d'ouverture</rdfs:label>
+    <rdfs:comment xml:lang="fr">Heures d'ouverture de la station</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#mode">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">mode</rdfs:label>
+    <rdfs:comment xml:lang="fr">Mode de transport utilisé pour le trajet</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#RouteUniversité">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Route"/>
+    <mobility:passeParStation rdf:resource="http://example.org/mobility-ontology/2025/09#StationCentre"/>
+    <mobility:nomRoute rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Centre vers Université</mobility:nomRoute>
+    <mobility:distanceRoute rdf:datatype="http://www.w3.org/2001/XMLSchema#float">3.5</mobility:distanceRoute>
+    <mobility:tempsEstimé rdf:datatype="http://www.w3.org/2001/XMLSchema#int">15</mobility:tempsEstimé>
+    <mobility:typeRoute rdf:datatype="http://www.w3.org/2001/XMLSchema#string">urbaine</mobility:typeRoute>
+    <rdfs:label xml:lang="fr">Route Centre-Université</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#niveauBatterie">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">niveau de batterie</rdfs:label>
+    <rdfs:comment xml:lang="fr">Niveau de batterie pour les véhicules électriques (en pourcentage)</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#longitudeArrêt">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">longitude arrêt</rdfs:label>
+    <rdfs:comment xml:lang="fr">Coordonnée longitude de l'arrêt</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Arrêt"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#couleur">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">couleur</rdfs:label>
+    <rdfs:comment xml:lang="fr">Couleur du véhicule</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#dateRéservation">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">date de réservation</rdfs:label>
+    <rdfs:comment xml:lang="fr">Date et heure de la réservation</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Réservation"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021100443_597_1">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:label xml:lang="fr">tunis → sousse</rdfs:label>
+    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
+    <mobility:utilisateurUsername rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user</mobility:utilisateurUsername>
+    <mobility:demandeId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">11</mobility:demandeId>
+    <mobility:pointDépart rdf:datatype="http://www.w3.org/2001/XMLSchema#string">tunis</mobility:pointDépart>
+    <mobility:pointArrivée rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sousse</mobility:pointArrivée>
+    <mobility:rang rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</mobility:rang>
+    <mobility:durée rdf:datatype="http://www.w3.org/2001/XMLSchema#float">86.0</mobility:durée>
+    <mobility:distance rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distance>
+    <mobility:coût rdf:datatype="http://www.w3.org/2001/XMLSchema#float">19.44</mobility:coût>
+    <mobility:empreinteCarbone rdf:datatype="http://www.w3.org/2001/XMLSchema#float">10464.3</mobility:empreinteCarbone>
+    <mobility:scoreConfort rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">9</mobility:scoreConfort>
+    <mobility:niveauCirculation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">fort</mobility:niveauCirculation>
+    <mobility:retardEstime rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</mobility:retardEstime>
+    <mobility:fiabiliteScore rdf:datatype="http://www.w3.org/2001/XMLSchema#float">8.0</mobility:fiabiliteScore>
+    <mobility:scoreIA rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.78</mobility:scoreIA>
+    <mobility:mode rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Moto</mobility:mode>
+    <mobility:vehiculeType rdf:datatype="http://www.w3.org/2001/XMLSchema#string">prive</mobility:vehiculeType>
+    <mobility:zoneGeographique rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Inter-villes Tunisie</mobility:zoneGeographique>
+    <mobility:distanceReelle rdf:datatype="http://www.w3.org/2001/XMLSchema#float">116.27</mobility:distanceReelle>
+    <mobility:etapesJson rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Trajet direct en Moto"]</mobility:etapesJson>
+    <mobility:facteursDecision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">["Rapidit\u00e9: 1.4", "V\u00e9hicule pr\u00e9f\u00e9r\u00e9: +1"]</mobility:facteursDecision>
+    <mobility:alertesTrafic rdf:datatype="http://www.w3.org/2001/XMLSchema#string">[]</mobility:alertesTrafic>
+    <mobility:horairesTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{}</mobility:horairesTransport>
+    <mobility:coherenceGeo rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"est_adapte": true, "raison": "V\u00e9hicule adapt\u00e9", "zone": "nationale", "explication": "\u2705 Moto adapt\u00e9 pour 116.27km (nationale)"}</mobility:coherenceGeo>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#nomStation">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">nom de station</rdfs:label>
+    <rdfs:comment xml:lang="fr">Nom de la station</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
   </rdf:Description>
   <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#heureDebut">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
@@ -850,12 +678,70 @@
     <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
   </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#dateRéservation">
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#nomRoute">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">date de réservation</rdfs:label>
-    <rdfs:comment xml:lang="fr">Date et heure de la réservation</rdfs:comment>
+    <rdfs:label xml:lang="fr">nom de route</rdfs:label>
+    <rdfs:comment xml:lang="fr">Nom ou identifiant de la route</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Route"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Bus12">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#TransportPublic"/>
+    <mobility:ligne rdf:datatype="http://www.w3.org/2001/XMLSchema#string">12</mobility:ligne>
+    <mobility:fréquence rdf:datatype="http://www.w3.org/2001/XMLSchema#int">10</mobility:fréquence>
+    <mobility:typeTransport rdf:datatype="http://www.w3.org/2001/XMLSchema#string">bus</mobility:typeTransport>
+    <mobility:tarif rdf:datatype="http://www.w3.org/2001/XMLSchema#float">0.8</mobility:tarif>
+    <rdfs:label xml:lang="fr">Bus Ligne 12</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#statutRéservation">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">statut de réservation</rdfs:label>
+    <rdfs:comment xml:lang="fr">Statut de la réservation (active, terminée, annulée)</rdfs:comment>
     <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Réservation"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#garéeÀ">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="fr">garée à</rdfs:label>
+    <rdfs:comment xml:lang="fr">Relation entre une voiture et la station où elle est garée</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Voiture"/>
+    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#AdminMohamed">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Administrateur"/>
+    <mobility:nom rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Mohamed</mobility:nom>
+    <mobility:email rdf:datatype="http://www.w3.org/2001/XMLSchema#string">mohamed.admin@smartcity.tn</mobility:email>
+    <mobility:typeUtilisateur rdf:datatype="http://www.w3.org/2001/XMLSchema#string">administrateur</mobility:typeUtilisateur>
+    <mobility:âge rdf:datatype="http://www.w3.org/2001/XMLSchema#int">35</mobility:âge>
+    <mobility:téléphone rdf:datatype="http://www.w3.org/2001/XMLSchema#string">+216 22 987 654</mobility:téléphone>
+    <mobility:dateInscription rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2023-06-01</mobility:dateInscription>
+    <mobility:rôle rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Gestionnaire de flotte</mobility:rôle>
+    <mobility:niveauAccès rdf:datatype="http://www.w3.org/2001/XMLSchema#int">4</mobility:niveauAccès>
+    <rdfs:label xml:lang="fr">Admin Mohamed</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#disponibleÀ">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="fr">disponible à</rdfs:label>
+    <rdfs:comment xml:lang="fr">Relation entre un vélo et la station où il est disponible</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Vélo"/>
+    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Station">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Station</rdfs:label>
+    <rdfs:comment xml:lang="fr">Point d'arrêt ou de stationnement</rdfs:comment>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Utilisateur3">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
+    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">3</mobility:utilisateurId>
+    <mobility:nom rdf:datatype="http://www.w3.org/2001/XMLSchema#string">mrabet</mobility:nom>
+    <mobility:prenom rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sofienne</mobility:prenom>
+    <mobility:email rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sofienne.mrabet@esprit.tn</mobility:email>
+    <mobility:role rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Utilisateur</mobility:role>
+    <mobility:dateInscription rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-25T12:01:04.190077</mobility:dateInscription>
+    <mobility:statut rdf:datatype="http://www.w3.org/2001/XMLSchema#string">actif</mobility:statut>
+    <mobility:preferencesTrajet rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"mode_prefere": "auto", "distance_max": 50}</mobility:preferencesTrajet>
+    <mobility:dateModification rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-25T12:28:39.158189</mobility:dateModification>
   </rdf:Description>
   <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Alice">
     <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
@@ -874,12 +760,48 @@
     <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
     <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
   </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#duréeRéservation">
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#dessert">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="fr">dessert</rdfs:label>
+    <rdfs:comment xml:lang="fr">Relation entre un transport public et les arrêts qu'il dessert</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#TransportPublic"/>
+    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Arrêt"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#modèle">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">durée de réservation</rdfs:label>
-    <rdfs:comment xml:lang="fr">Durée prévue de la réservation en minutes</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Réservation"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+    <rdfs:label xml:lang="fr">modèle</rdfs:label>
+    <rdfs:comment xml:lang="fr">Modèle du véhicule</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#pointDépart">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">point de départ</rdfs:label>
+    <rdfs:comment xml:lang="fr">Adresse ou nom du point de départ du trajet</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#durée">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">durée</rdfs:label>
+    <rdfs:comment xml:lang="fr">Durée du trajet en minutes</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#PisteAvBourguiba">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#PisteCyclable"/>
+    <mobility:nomPiste rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Piste Avenue Bourguiba</mobility:nomPiste>
+    <mobility:longueurPiste rdf:datatype="http://www.w3.org/2001/XMLSchema#float">2.8</mobility:longueurPiste>
+    <mobility:typePiste rdf:datatype="http://www.w3.org/2001/XMLSchema#string">séparée</mobility:typePiste>
+    <mobility:étatPiste rdf:datatype="http://www.w3.org/2001/XMLSchema#string">bon</mobility:étatPiste>
+    <rdfs:label xml:lang="fr">Piste Cyclable Avenue Bourguiba</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#accessibilité">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">accessibilité</rdfs:label>
+    <rdfs:comment xml:lang="fr">Niveau d'accessibilité pour personnes à mobilité réduite</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Arrêt"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
   </rdf:Description>
   <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#distanceRoute">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
@@ -888,40 +810,70 @@
     <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Route"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
   </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#mode">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">mode</rdfs:label>
-    <rdfs:comment xml:lang="fr">Mode de transport utilisé pour le trajet</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#coût">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">coût</rdfs:label>
-    <rdfs:comment xml:lang="fr">Coût du trajet en dinars tunisiens</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#suitRoute">
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#gère">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-    <rdfs:label xml:lang="fr">suit route</rdfs:label>
-    <rdfs:comment xml:lang="fr">Relation entre un trajet et la route qu'il suit</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Route"/>
+    <rdfs:label xml:lang="fr">gère</rdfs:label>
+    <rdfs:comment xml:lang="fr">Relation entre un administrateur et les entités qu'il gère</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Administrateur"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
   </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#statutRéservation">
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Route">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Route</rdfs:label>
+    <rdfs:comment xml:lang="fr">Itinéraire ou chemin entre deux points</rdfs:comment>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#réserve">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="fr">réserve</rdfs:label>
+    <rdfs:comment xml:lang="fr">Relation entre un utilisateur et une réservation qu'il effectue</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
+    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Réservation"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#capacité">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">statut de réservation</rdfs:label>
-    <rdfs:comment xml:lang="fr">Statut de la réservation (active, terminée, annulée)</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Réservation"/>
+    <rdfs:label xml:lang="fr">capacité</rdfs:label>
+    <rdfs:comment xml:lang="fr">Nombre maximum de véhicules que peut accueillir la station</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#ligne">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">ligne</rdfs:label>
+    <rdfs:comment xml:lang="fr">Numéro ou nom de la ligne de transport</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#TransportPublic"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
   </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#niveauBatterie">
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#effectuéPar">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="fr">effectué par</rdfs:label>
+    <rdfs:comment xml:lang="fr">Relation entre un trajet et l'utilisateur qui l'effectue</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
+    <owl:inverseOf rdf:resource="http://example.org/mobility-ontology/2025/09#planifie"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#latitude">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">niveau de batterie</rdfs:label>
-    <rdfs:comment xml:lang="fr">Niveau de batterie pour les véhicules électriques (en pourcentage)</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+    <rdfs:label xml:lang="fr">latitude</rdfs:label>
+    <rdfs:comment xml:lang="fr">Coordonnée latitude de la station</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Utilisateur1">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
+    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">1</mobility:utilisateurId>
+    <mobility:nom rdf:datatype="http://www.w3.org/2001/XMLSchema#string">System</mobility:nom>
+    <mobility:prenom rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Admin</mobility:prenom>
+    <mobility:email rdf:datatype="http://www.w3.org/2001/XMLSchema#string">admin@smartcity.com</mobility:email>
+    <mobility:role rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Administrateur</mobility:role>
+    <mobility:dateInscription rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-25T12:01:04.075969</mobility:dateInscription>
+    <mobility:statut rdf:datatype="http://www.w3.org/2001/XMLSchema#string">actif</mobility:statut>
+    <mobility:preferencesTrajet rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"mode_prefere": "auto", "distance_max": 50}</mobility:preferencesTrajet>
+    <mobility:dateModification rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-25T12:28:39.094352</mobility:dateModification>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Ontology"/>
+    <rdfs:label xml:lang="fr">Ontologie de Mobilité Urbaine Intelligente</rdfs:label>
+    <rdfs:comment xml:lang="fr">Une ontologie pour modéliser les systèmes de mobilité urbaine intelligente</rdfs:comment>
   </rdf:Description>
   <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#ReservationAlice01">
     <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Réservation"/>
@@ -934,55 +886,63 @@
     <mobility:prixRéservation rdf:datatype="http://www.w3.org/2001/XMLSchema#float">5.0</mobility:prixRéservation>
     <rdfs:label xml:lang="fr">Réservation Alice 01</rdfs:label>
   </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#capacité">
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#duréeRéservation">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">capacité</rdfs:label>
-    <rdfs:comment xml:lang="fr">Nombre maximum de véhicules que peut accueillir la station</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
+    <rdfs:label xml:lang="fr">durée de réservation</rdfs:label>
+    <rdfs:comment xml:lang="fr">Durée prévue de la réservation en minutes</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Réservation"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Véhicule">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Véhicule</rdfs:label>
+    <rdfs:comment xml:lang="fr">Moyen de transport</rdfs:comment>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#typeStation">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">type de station</rdfs:label>
+    <rdfs:comment xml:lang="fr">Type de station (vélos, voitures, mixte)</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Réservation">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Réservation</rdfs:label>
+    <rdfs:comment xml:lang="fr">Réservation d'un véhicule ou service de transport</rdfs:comment>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#ArrêtUniversité">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Arrêt"/>
+    <mobility:nomArrêt rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Arrêt Université</mobility:nomArrêt>
+    <mobility:latitudeArrêt rdf:datatype="http://www.w3.org/2001/XMLSchema#float">36.82456</mobility:latitudeArrêt>
+    <mobility:longitudeArrêt rdf:datatype="http://www.w3.org/2001/XMLSchema#float">10.1789</mobility:longitudeArrêt>
+    <mobility:accessibilité rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</mobility:accessibilité>
+    <rdfs:label xml:lang="fr">Arrêt Université</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#nomArrêt">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">nom d'arrêt</rdfs:label>
+    <rdfs:comment xml:lang="fr">Nom de l'arrêt de transport public</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Arrêt"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
   </rdf:Description>
   <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
     <rdfs:label xml:lang="fr">Trajet</rdfs:label>
     <rdfs:comment xml:lang="fr">Parcours effectué d'un point A vers un point B</rdfs:comment>
   </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Utilisateur2">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
-    <mobility:utilisateurId rdf:datatype="http://www.w3.org/2001/XMLSchema#string">2</mobility:utilisateurId>
-    <mobility:nom rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Normal</mobility:nom>
-    <mobility:prenom rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Utilisateur</mobility:prenom>
-    <mobility:email rdf:datatype="http://www.w3.org/2001/XMLSchema#string">user@smartcity.com</mobility:email>
-    <mobility:role rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Utilisateur</mobility:role>
-    <mobility:dateInscription rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-25T12:01:04.138357</mobility:dateInscription>
-    <mobility:statut rdf:datatype="http://www.w3.org/2001/XMLSchema#string">actif</mobility:statut>
-    <mobility:preferencesTrajet rdf:datatype="http://www.w3.org/2001/XMLSchema#string">{"mode_prefere": "auto", "distance_max": 50}</mobility:preferencesTrajet>
-    <mobility:dateModification rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-25T12:28:39.127821</mobility:dateModification>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Ontology"/>
-    <rdfs:label xml:lang="fr">Ontologie de Mobilité Urbaine Intelligente</rdfs:label>
-    <rdfs:comment xml:lang="fr">Une ontologie pour modéliser les systèmes de mobilité urbaine intelligente</rdfs:comment>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#typePiste">
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#fréquence">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">type de piste</rdfs:label>
-    <rdfs:comment xml:lang="fr">Type de piste cyclable (séparée, partagée, bande cyclable)</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#PisteCyclable"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:label xml:lang="fr">fréquence</rdfs:label>
+    <rdfs:comment xml:lang="fr">Fréquence de passage en minutes</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#TransportPublic"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
   </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#nomStation">
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#email">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">nom de station</rdfs:label>
-    <rdfs:comment xml:lang="fr">Nom de la station</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
+    <rdfs:label xml:lang="fr">email</rdfs:label>
+    <rdfs:comment xml:lang="fr">Adresse email de l'utilisateur</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#garéeÀ">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-    <rdfs:label xml:lang="fr">garée à</rdfs:label>
-    <rdfs:comment xml:lang="fr">Relation entre une voiture et la station où elle est garée</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Voiture"/>
-    <rdfs:range rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
   </rdf:Description>
   <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#téléphone">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
@@ -991,48 +951,32 @@
     <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
   </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Station">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-    <rdfs:label xml:lang="fr">Station</rdfs:label>
-    <rdfs:comment xml:lang="fr">Point d'arrêt ou de stationnement</rdfs:comment>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#couleur">
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#rôle">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">couleur</rdfs:label>
-    <rdfs:comment xml:lang="fr">Couleur du véhicule</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+    <rdfs:label xml:lang="fr">rôle</rdfs:label>
+    <rdfs:comment xml:lang="fr">Rôle de l'administrateur dans le système</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Administrateur"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
   </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#âge">
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#tarif">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">âge</rdfs:label>
-    <rdfs:comment xml:lang="fr">Âge de l'utilisateur en années</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#latitudeArrêt">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">latitude arrêt</rdfs:label>
-    <rdfs:comment xml:lang="fr">Coordonnée latitude de l'arrêt</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Arrêt"/>
+    <rdfs:label xml:lang="fr">tarif</rdfs:label>
+    <rdfs:comment xml:lang="fr">Tarif du transport en dinars tunisiens</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#TransportPublic"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
   </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#typeVéhicule">
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#prixRéservation">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">type de véhicule</rdfs:label>
-    <rdfs:comment xml:lang="fr">Type ou catégorie du véhicule</rdfs:comment>
+    <rdfs:label xml:lang="fr">prix de réservation</rdfs:label>
+    <rdfs:comment xml:lang="fr">Prix de la réservation en dinars tunisiens</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Réservation"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#immatriculation">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">immatriculation</rdfs:label>
+    <rdfs:comment xml:lang="fr">Numéro d'immatriculation du véhicule</rdfs:comment>
     <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021094345">
-    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
-    <rdfs:label xml:lang="fr">Départ → Arrivée</rdfs:label>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#heuresOuverture">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-    <rdfs:label xml:lang="fr">heures d'ouverture</rdfs:label>
-    <rdfs:comment xml:lang="fr">Heures d'ouverture de la station</rdfs:comment>
-    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
   </rdf:Description>
   <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#marque">
@@ -1041,5 +985,61 @@
     <rdfs:comment xml:lang="fr">Marque du véhicule</rdfs:comment>
     <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#typeVéhicule">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">type de véhicule</rdfs:label>
+    <rdfs:comment xml:lang="fr">Type ou catégorie du véhicule</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#tempsEstimé">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">temps estimé</rdfs:label>
+    <rdfs:comment xml:lang="fr">Temps estimé pour parcourir la route en minutes</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Route"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Utilisateur">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Utilisateur</rdfs:label>
+    <rdfs:comment xml:lang="fr">Personne qui utilise les services de mobilité</rdfs:comment>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#TransportPublic">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Transport Public</rdfs:label>
+    <rdfs:comment xml:lang="fr">Service de transport collectif</rdfs:comment>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#adresse">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">adresse</rdfs:label>
+    <rdfs:comment xml:lang="fr">Adresse complète de la station</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Station"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#nom">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">nom</rdfs:label>
+    <rdfs:comment xml:lang="fr">Nom de l'utilisateur</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Utilisateur"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#latitudeArrêt">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">latitude arrêt</rdfs:label>
+    <rdfs:comment xml:lang="fr">Coordonnée latitude de l'arrêt</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Arrêt"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#nomPiste">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">nom de piste</rdfs:label>
+    <rdfs:comment xml:lang="fr">Nom ou identifiant de la piste cyclable</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#PisteCyclable"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trajet_20251021094345">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
+    <rdfs:label xml:lang="fr">Départ → Arrivée</rdfs:label>
   </rdf:Description>
 </rdf:RDF>

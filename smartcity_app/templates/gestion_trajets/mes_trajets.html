@@ -46,6 +46,20 @@
         border-radius: 8px;
         margin-bottom: 1.5rem;
     }
+    .btn-group .btn {
+        border-radius: 0.375rem;
+        margin-right: 0.25rem;
+    }
+    .btn-group .btn:last-child {
+        margin-right: 0;
+    }
+    .delete-confirmation {
+        background: rgba(220, 53, 69, 0.1);
+        border: 1px solid #dc3545;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
 </style>
 {% endblock %}
 
@@ -259,12 +273,20 @@
                             </div>
                             
                             <div class="card-footer">
-                                <div class="d-flex justify-content-between">
-                                    <a href="{% url 'gestion_trajets:resultats_trajet' demande.id %}" 
-                                       class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-eye"></i> Voir détails
-                                    </a>
-                                    <small class="text-muted align-self-center">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="btn-group">
+                                        <a href="{% url 'gestion_trajets:resultats_trajet' demande.id %}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-eye"></i> Voir détails
+                                        </a>
+                                        <button type="button" 
+                                                class="btn btn-outline-danger btn-sm" 
+                                                onclick="confirmerSuppression({{ demande.id }}, '{{ demande.lieu_depart|truncatechars:20 }} → {{ demande.lieu_arrivee|truncatechars:20 }}')"
+                                                title="Supprimer ce trajet">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">
                                         {{ demande.trajets_ia.count }} option{{ demande.trajets_ia.count|pluralize }}
                                     </small>
                                 </div>
@@ -322,6 +344,41 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="modalSuppression" tabindex="-1" aria-labelledby="modalSuppressionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalSuppressionLabel">
+                    <i class="bi bi-exclamation-triangle"></i> Confirmer la suppression
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Attention !</strong> Cette action est irréversible.
+                </div>
+                <p>Êtes-vous sûr de vouloir supprimer ce trajet ?</p>
+                <div class="bg-light p-3 rounded">
+                    <strong>Trajet :</strong> <span id="trajetASupprimer"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Annuler
+                </button>
+                <form id="formSuppression" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Supprimer définitivement
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -339,6 +396,32 @@ $(document).ready(function() {
 
     // Tooltip pour les badges de statut
     $('[data-bs-toggle="tooltip"]').tooltip();
+});
+
+// Fonction de confirmation de suppression
+function confirmerSuppression(demandeId, trajetDescription) {
+    // Mettre à jour le contenu du modal
+    document.getElementById('trajetASupprimer').textContent = trajetDescription;
+    
+    // Mettre à jour l'action du formulaire avec l'URL Django
+    const form = document.getElementById('formSuppression');
+    form.action = "{% url 'gestion_trajets:supprimer_demande_trajet' 0 %}".replace('0', demandeId);
+    
+    // Afficher le modal
+    const modal = new bootstrap.Modal(document.getElementById('modalSuppression'));
+    modal.show();
+}
+
+// Gestion de la soumission du formulaire de suppression
+document.getElementById('formSuppression').addEventListener('submit', function(e) {
+    // Ajouter un indicateur de chargement
+    const boutonSupprimer = this.querySelector('button[type="submit"]');
+    
+    boutonSupprimer.innerHTML = '<i class="bi bi-hourglass-split"></i> Suppression...';
+    boutonSupprimer.disabled = true;
+    
+    // Note: Le formulaire sera soumis normalement
+    // Vous pouvez ajouter ici une logique AJAX si nécessaire
 });
 </script>
 {% endblock %}

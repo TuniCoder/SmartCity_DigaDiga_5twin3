@@ -1040,6 +1040,245 @@ class RDFManager:
             logger.error(f"Erreur lors de la suppression de l'utilisateur {user_id} du RDF: {e}")
             return False
 
+    # ==========================================
+    # MÉTHODES AVANCÉES POUR TRAJETS (NOUVEAUTÉ)
+    # ==========================================
+    
+    def search_trajets_similaires(self, lieu_depart: str, lieu_arrivee: str, priorite: str = 'rapidite', utilisateur_id: int = None) -> List[Dict]:
+        """
+        Recherche des trajets similaires dans l'ontologie RDF
+        
+        Args:
+            lieu_depart: Lieu de départ recherché
+            lieu_arrivee: Lieu d'arrivée recherché  
+            priorite: Priorité de recherche ('rapidite', 'economie', 'ecologie')
+            utilisateur_id: ID de l'utilisateur (optionnel)
+        
+        Returns:
+            List[Dict]: Liste des trajets trouvés avec score de pertinence
+        """
+        try:
+            # Construire la requête SPARQL pour rechercher des trajets similaires
+            query = f"""
+            PREFIX mobility: <{self.mobility_ns}>
+            PREFIX rdf: <{self.rdf_ns}>
+            PREFIX rdfs: <{self.rdfs_ns}>
+            
+            SELECT ?trajet ?pointDepart ?pointArrivee ?duree ?distance ?cout ?mode ?scoreIA
+                   ?empreinteCarbone ?rang ?utilisateurId
+            WHERE {{
+                ?trajet rdf:type mobility:Trajet .
+                ?trajet mobility:pointDépart ?pointDepart .
+                ?trajet mobility:pointArrivée ?pointArrivee .
+                
+                OPTIONAL {{ ?trajet mobility:durée ?duree }}
+                OPTIONAL {{ ?trajet mobility:distance ?distance }}
+                OPTIONAL {{ ?trajet mobility:coût ?cout }}
+                OPTIONAL {{ ?trajet mobility:mode ?mode }}
+                OPTIONAL {{ ?trajet mobility:scoreIA ?scoreIA }}
+                OPTIONAL {{ ?trajet mobility:empreinteCarbone ?empreinteCarbone }}
+                OPTIONAL {{ ?trajet mobility:rang ?rang }}
+                OPTIONAL {{ ?trajet mobility:utilisateurId ?utilisateurId }}
+                
+                # Filtrage par similarité de lieux (recherche approximative)
+                FILTER(CONTAINS(LCASE(STR(?pointDepart)), LCASE("{lieu_depart.lower()}")) ||
+                       CONTAINS(LCASE("{lieu_depart.lower()}"), LCASE(STR(?pointDepart))))
+                       
+                FILTER(CONTAINS(LCASE(STR(?pointArrivee)), LCASE("{lieu_arrivee.lower()}")) ||
+                       CONTAINS(LCASE("{lieu_arrivee.lower()}"), LCASE(STR(?pointArrivee))))
+            }}
+            ORDER BY DESC(?scoreIA) ?duree
+            LIMIT 10
+            """
+            
+            results = self.execute_sparql_query(query)
+            trajets_similaires = []
+            
+            for result in results:
+                # Calculer un score de pertinence basé sur la priorité
+                score_pertinence = 0.5  # Score de base
+                
+                try:
+                    duree = float(result.get('duree', 0))
+                    cout = float(result.get('cout', 0))
+                    empreinte = float(result.get('empreinteCarbone', 0))
+                    score_ia = float(result.get('scoreIA', 5.0))
+                    
+                    # Ajuster le score selon la priorité
+                    if priorite == 'rapidite' and duree > 0:
+                        score_pertinence += max(0, (60 - duree) / 60) * 0.4
+                    elif priorite == 'economie' and cout > 0:
+                        score_pertinence += max(0, (20 - cout) / 20) * 0.4
+                    elif priorite == 'ecologie' and empreinte > 0:
+                        score_pertinence += max(0, (500 - empreinte) / 500) * 0.4
+                    
+                    # Bonus pour score IA élevé
+                    score_pertinence += (score_ia / 10) * 0.1
+                    
+                    # Bonus si même utilisateur
+                    if utilisateur_id and result.get('utilisateurId') == str(utilisateur_id):
+                        score_pertinence += 0.2
+                        
+                except (ValueError, TypeError):
+                    pass
+                
+                trajet_data = {
+                    'uri': str(result['trajet']),
+                    'pointDépart': str(result.get('pointDepart', '')),
+                    'pointArrivée': str(result.get('pointArrivee', '')),
+                    'durée': float(result.get('duree', 0)),
+                    'distance': float(result.get('distance', 0)),
+                    'coût': float(result.get('cout', 0)),
+                    'mode': str(result.get('mode', '')),
+                    'scoreIA': float(result.get('scoreIA', 5.0)),
+                    'empreinteCarbone': float(result.get('empreinteCarbone', 0)),
+                    'rang': int(result.get('rang', 0)),
+                    'score_pertinence': min(1.0, score_pertinence)  # Limiter à 1.0
+                }
+                
+                trajets_similaires.append(trajet_data)
+            
+            # Trier par score de pertinence
+            trajets_similaires.sort(key=lambda x: x['score_pertinence'], reverse=True)
+            
+            logger.info(f"Trouvé {len(trajets_similaires)} trajets similaires pour {lieu_depart} → {lieu_arrivee}")
+            return trajets_similaires
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la recherche de trajets similaires: {e}")
+            return []
+
+    def update_trajet_itineraire(self, trajet_id: str, itineraire_data: Dict) -> Tuple[bool, str]:
+        """
+        Met à jour un trajet avec les détails de l'itinéraire calculé
+        
+        Args:
+            trajet_id: ID du trajet à mettre à jour
+            itineraire_data: Données de l'itinéraire (coordonnées, instructions, etc.)
+        
+        Returns:
+            Tuple (success: bool, message: str)
+        """
+        try:
+            from rdflib import XSD
+            
+            # Construire l'URI du trajet
+            if trajet_id.startswith('Trajet_'):
+                trajet_uri = self.mobility_ns[trajet_id]
+            else:
+                trajet_uri = self.mobility_ns[f"Trajet_{trajet_id}"]
+            
+            # Vérifier que le trajet existe
+            if (trajet_uri, self.rdf_ns.type, self.mobility_ns.Trajet) not in self.graph:
+                return False, f"Le trajet {trajet_id} n'existe pas"
+            
+            # Supprimer les anciennes données d'itinéraire s'il y en a
+            proprietes_itineraire = [
+                self.mobility_ns.routeCoordinates,
+                self.mobility_ns.distanceCalculee,
+                self.mobility_ns.dureeCalculee,
+                self.mobility_ns.instructionsJson,
+                self.mobility_ns.sourceRouting,
+                self.mobility_ns.dateCalcul
+            ]
+            
+            for prop in proprietes_itineraire:
+                self.graph.remove((trajet_uri, prop, None))
+            
+            # Ajouter les nouvelles données
+            property_mappings = {
+                'route_coordinates': (self.mobility_ns.routeCoordinates, XSD.string),
+                'distance_calculee': (self.mobility_ns.distanceCalculee, XSD.float),
+                'duree_calculee': (self.mobility_ns.dureeCalculee, XSD.float),
+                'instructions_json': (self.mobility_ns.instructionsJson, XSD.string),
+                'source_routing': (self.mobility_ns.sourceRouting, XSD.string),
+                'date_calcul': (self.mobility_ns.dateCalcul, XSD.dateTime),
+            }
+            
+            for key, (predicate, datatype) in property_mappings.items():
+                if key in itineraire_data and itineraire_data[key] is not None:
+                    value = itineraire_data[key]
+                    
+                    # Conversion de type si nécessaire
+                    if datatype == XSD.float:
+                        value = float(value)
+                    elif datatype == XSD.string:
+                        value = str(value)
+                    
+                    self.graph.add((trajet_uri, predicate, Literal(value, datatype=datatype)))
+            
+            # Sauvegarder
+            if self.save_ontology():
+                logger.info(f"✅ Itinéraire mis à jour pour trajet {trajet_id}")
+                return True, "Itinéraire mis à jour avec succès"
+            else:
+                return False, "Erreur lors de la sauvegarde"
+                
+        except Exception as e:
+            logger.error(f"❌ Erreur lors de la mise à jour de l'itinéraire: {e}")
+            return False, str(e)
+
+    def get_trajets_by_user(self, user_id: int) -> List[Dict]:
+        """
+        Récupère tous les trajets d'un utilisateur depuis RDF
+        
+        Args:
+            user_id: ID de l'utilisateur
+        
+        Returns:
+            List[Dict]: Liste des trajets de l'utilisateur
+        """
+        try:
+            query = f"""
+            PREFIX mobility: <{self.mobility_ns}>
+            PREFIX rdf: <{self.rdf_ns}>
+            
+            SELECT ?trajet ?pointDepart ?pointArrivee ?duree ?distance ?cout ?mode
+                   ?empreinteCarbone ?scoreIA ?rang ?dateCalcul
+            WHERE {{
+                ?trajet rdf:type mobility:Trajet .
+                ?trajet mobility:utilisateurId "{user_id}" .
+                
+                OPTIONAL {{ ?trajet mobility:pointDépart ?pointDepart }}
+                OPTIONAL {{ ?trajet mobility:pointArrivée ?pointArrivee }}
+                OPTIONAL {{ ?trajet mobility:durée ?duree }}
+                OPTIONAL {{ ?trajet mobility:distance ?distance }}
+                OPTIONAL {{ ?trajet mobility:coût ?cout }}
+                OPTIONAL {{ ?trajet mobility:mode ?mode }}
+                OPTIONAL {{ ?trajet mobility:empreinteCarbone ?empreinteCarbone }}
+                OPTIONAL {{ ?trajet mobility:scoreIA ?scoreIA }}
+                OPTIONAL {{ ?trajet mobility:rang ?rang }}
+                OPTIONAL {{ ?trajet mobility:dateCalcul ?dateCalcul }}
+            }}
+            ORDER BY DESC(?dateCalcul) ?rang
+            """
+            
+            results = self.execute_sparql_query(query)
+            trajets_utilisateur = []
+            
+            for result in results:
+                trajet_data = {
+                    'uri': str(result['trajet']),
+                    'pointDépart': str(result.get('pointDepart', '')),
+                    'pointArrivée': str(result.get('pointArrivee', '')),
+                    'durée': float(result.get('duree', 0)),
+                    'distance': float(result.get('distance', 0)),
+                    'coût': float(result.get('cout', 0)),
+                    'mode': str(result.get('mode', '')),
+                    'empreinteCarbone': float(result.get('empreinteCarbone', 0)),
+                    'scoreIA': float(result.get('scoreIA', 0)),
+                    'rang': int(result.get('rang', 0)),
+                    'dateCalcul': str(result.get('dateCalcul', ''))
+                }
+                trajets_utilisateur.append(trajet_data)
+            
+            logger.info(f"Récupéré {len(trajets_utilisateur)} trajets pour l'utilisateur {user_id}")
+            return trajets_utilisateur
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des trajets utilisateur {user_id}: {e}")
+            return []
+
 
 # Instance globale du gestionnaire RDF
 rdf_manager = RDFManager()

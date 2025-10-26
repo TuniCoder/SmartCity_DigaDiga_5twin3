@@ -4,6 +4,7 @@
 {% block page_title %}{{ page_title }}{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 <style>
 .trajet-card {
     transition: all 0.3s ease;
@@ -61,6 +62,62 @@
     0% { opacity: 1; }
     50% { opacity: 0.7; }
     100% { opacity: 1; }
+}
+
+/* Styles pour la carte */
+#mapContainer {
+    height: 400px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+#map {
+    height: 100%;
+    border-radius: 6px;
+}
+
+.map-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    background: white;
+    border-radius: 5px;
+    padding: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.map-controls button {
+    margin: 2px;
+}
+
+.marker-popup {
+    text-align: center;
+    font-size: 14px;
+}
+
+.coordinate-display {
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 12px;
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    z-index: 1000;
+}
+
+.map-instructions {
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 14px;
 }
 </style>
 {% endblock %}
@@ -152,6 +209,41 @@
                                     <input type="hidden" name="lat_arrivee" id="lat_arrivee">
                                     <input type="hidden" name="lng_arrivee" id="lng_arrivee">
                                     <div id="suggestions_arrivee" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Carte interactive pour sélection des lieux -->
+                        <div class="mb-4">
+                            <h6 class="fw-semibold mb-3">
+                                <i class="fas fa-map me-1"></i>
+                                Sélection sur carte (optionnel)
+                            </h6>
+                            
+                            <div class="map-instructions">
+                                <i class="fas fa-info-circle me-2 text-primary"></i>
+                                <strong>Instructions :</strong> Cliquez sur la carte pour placer les marqueurs de départ (vert) et d'arrivée (rouge). 
+                                Vous pouvez aussi saisir les adresses dans les champs ci-dessus.
+                            </div>
+                            
+                            <div id="mapContainer">
+                                <div id="map"></div>
+                                <div class="map-controls">
+                                    <button type="button" class="btn btn-sm btn-outline-success" id="setDepartBtn" title="Cliquer pour placer le départ">
+                                        <i class="fas fa-map-marker-alt"></i> Départ
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" id="setArriveeBtn" title="Cliquer pour placer l'arrivée">
+                                        <i class="fas fa-map-marker-alt"></i> Arrivée
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="clearMarkersBtn" title="Effacer tous les marqueurs">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="myLocationBtn" title="Ma position">
+                                        <i class="fas fa-crosshairs"></i>
+                                    </button>
+                                </div>
+                                <div class="coordinate-display" id="coordinateDisplay">
+                                    Cliquez sur la carte pour voir les coordonnées
                                 </div>
                             </div>
                         </div>
@@ -249,7 +341,7 @@
                                             <div class="card border">
                                                 <div class="card-body py-2 px-3">
                                                     <div class="d-flex align-items-center">
-                                                        <i class="{{ vehicule.icone }} fa-lg me-3" style="color: {{ vehicule.couleur }};"></i>
+                                                        <i class="fas fa-car fa-lg me-3 text-primary"></i>
                                                         <div class="flex-grow-1">
                                                             <div class="fw-semibold">{{ vehicule.nom }}</div>
                                                             <small class="text-muted">
@@ -418,19 +510,191 @@
     </div>
 </div>
 
-<!-- Script pour l'autocomplétion et interactions -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
+// Variables globales pour la carte
+let map;
+let departMarker = null;
+let arriveeMarker = null;
+let currentMarkerMode = null;
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Autocomplétion des lieux
+    initializeMap();
     setupAutocompleteLieux('lieu_depart', 'suggestions_depart');
     setupAutocompleteLieux('lieu_arrivee', 'suggestions_arrivee');
-    
-    // Sélection des véhicules
     setupVehiculeSelection();
-    
-    // Validation du formulaire
     setupFormValidation();
+    setupMapControls();
 });
+
+function initializeMap() {
+    const defaultLat = 33.8869;
+    const defaultLng = 9.5375;
+    
+    map = L.map('map').setView([defaultLat, defaultLng], 10);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+    }).addTo(map);
+    
+    map.on('click', function(e) {
+        if (currentMarkerMode) {
+            placeMarker(e.latlng, currentMarkerMode);
+        }
+        updateCoordinateDisplay(e.latlng);
+    });
+    
+    map.on('mousemove', function(e) {
+        updateCoordinateDisplay(e.latlng);
+    });
+}
+
+function setupMapControls() {
+    document.getElementById('setDepartBtn').addEventListener('click', function() {
+        currentMarkerMode = 'depart';
+        this.classList.add('active');
+        document.getElementById('setArriveeBtn').classList.remove('active');
+        map.getContainer().style.cursor = 'crosshair';
+        document.getElementById('coordinateDisplay').textContent = 'Cliquez sur la carte pour placer le point de départ';
+    });
+    
+    document.getElementById('setArriveeBtn').addEventListener('click', function() {
+        currentMarkerMode = 'arrivee';
+        this.classList.add('active');
+        document.getElementById('setDepartBtn').classList.remove('active');
+        map.getContainer().style.cursor = 'crosshair';
+        document.getElementById('coordinateDisplay').textContent = 'Cliquez sur la carte pour placer le point d\'arrivée';
+    });
+    
+    document.getElementById('clearMarkersBtn').addEventListener('click', function() {
+        clearAllMarkers();
+        currentMarkerMode = null;
+        map.getContainer().style.cursor = '';
+        document.getElementById('setDepartBtn').classList.remove('active');
+        document.getElementById('setArriveeBtn').classList.remove('active');
+        document.getElementById('lat_depart').value = '';
+        document.getElementById('lng_depart').value = '';
+        document.getElementById('lat_arrivee').value = '';
+        document.getElementById('lng_arrivee').value = '';
+    });
+    
+    document.getElementById('myLocationBtn').addEventListener('click', function() {
+        if (navigator.geolocation) {
+            const btn = this;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+            
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                map.setView([lat, lng], 15);
+                if (currentMarkerMode) {
+                    placeMarker(L.latLng(lat, lng), currentMarkerMode);
+                }
+                btn.innerHTML = '<i class="fas fa-crosshairs"></i>';
+                btn.disabled = false;
+            }, function(error) {
+                alert('Impossible d\'obtenir votre position : ' + error.message);
+                btn.innerHTML = '<i class="fas fa-crosshairs"></i>';
+                btn.disabled = false;
+            });
+        } else {
+            alert('La géolocalisation n\'est pas supportée par ce navigateur.');
+        }
+    });
+}
+
+function placeMarker(latlng, type) {
+    const lat = latlng.lat;
+    const lng = latlng.lng;
+    
+    if (type === 'depart') {
+        if (departMarker) {
+            map.removeLayer(departMarker);
+        }
+        
+        departMarker = L.marker([lat, lng], {
+            icon: L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            })
+        }).addTo(map);
+        
+        departMarker.bindPopup('Point de départ<br>Lat: ' + lat.toFixed(6) + '<br>Lng: ' + lng.toFixed(6));
+        document.getElementById('lat_depart').value = lat.toFixed(6);
+        document.getElementById('lng_depart').value = lng.toFixed(6);
+        reverseGeocode(lat, lng, 'lieu_depart');
+        
+    } else if (type === 'arrivee') {
+        if (arriveeMarker) {
+            map.removeLayer(arriveeMarker);
+        }
+        
+        arriveeMarker = L.marker([lat, lng], {
+            icon: L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            })
+        }).addTo(map);
+        
+        arriveeMarker.bindPopup('Point d\'arrivée<br>Lat: ' + lat.toFixed(6) + '<br>Lng: ' + lng.toFixed(6));
+        document.getElementById('lat_arrivee').value = lat.toFixed(6);
+        document.getElementById('lng_arrivee').value = lng.toFixed(6);
+        reverseGeocode(lat, lng, 'lieu_arrivee');
+    }
+    
+    currentMarkerMode = null;
+    map.getContainer().style.cursor = '';
+    document.getElementById('setDepartBtn').classList.remove('active');
+    document.getElementById('setArriveeBtn').classList.remove('active');
+}
+
+function clearAllMarkers() {
+    if (departMarker) {
+        map.removeLayer(departMarker);
+        departMarker = null;
+    }
+    if (arriveeMarker) {
+        map.removeLayer(arriveeMarker);
+        arriveeMarker = null;
+    }
+}
+
+function updateCoordinateDisplay(latlng) {
+    const display = document.getElementById('coordinateDisplay');
+    if (currentMarkerMode) {
+        display.textContent = 'Cliquez pour placer ' + (currentMarkerMode === 'depart' ? 'le départ' : 'l\'arrivée') + ' - Lat: ' + latlng.lat.toFixed(6) + ', Lng: ' + latlng.lng.toFixed(6);
+    } else {
+        display.textContent = 'Lat: ' + latlng.lat.toFixed(6) + ', Lng: ' + latlng.lng.toFixed(6);
+    }
+}
+
+function reverseGeocode(lat, lng, targetFieldId) {
+    const url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&zoom=18&addressdetails=1';
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.display_name) {
+                const field = document.getElementById(targetFieldId);
+                if (field && !field.value.trim()) {
+                    field.value = data.display_name;
+                }
+            }
+        })
+        .catch(error => {
+            console.log('Géocodage inverse non disponible:', error);
+        });
+}
 
 function setupAutocompleteLieux(inputId, suggestionsId) {
     const input = document.getElementById(inputId);
@@ -439,16 +703,16 @@ function setupAutocompleteLieux(inputId, suggestionsId) {
     
     input.addEventListener('input', function() {
         clearTimeout(debounceTimer);
+        const query = this.value.trim();
+        
+        if (query.length < 3) {
+            suggestions.style.display = 'none';
+            return;
+        }
+        
         debounceTimer = setTimeout(() => {
-            const query = this.value.trim();
-            
-            if (query.length < 3) {
-                suggestions.style.display = 'none';
-                return;
-            }
-            
-            // Appel AJAX pour récupérer les suggestions
-            fetch(`{% url 'gestion_trajets:ajax_recherche_lieux' %}?q=${encodeURIComponent(query)}`)
+            const ajaxUrl = "{% url 'gestion_trajets:ajax_recherche_lieux' %}";
+            fetch(ajaxUrl + '?q=' + encodeURIComponent(query))
                 .then(response => response.json())
                 .then(data => {
                     suggestions.innerHTML = '';
@@ -457,16 +721,19 @@ function setupAutocompleteLieux(inputId, suggestionsId) {
                         data.lieux.forEach(lieu => {
                             const item = document.createElement('a');
                             item.className = 'list-group-item list-group-item-action lieu-suggestion';
-                            item.innerHTML = `
-                                <div class="fw-semibold">${lieu.nom}</div>
-                                <small class="text-muted">${lieu.adresse}</small>
-                            `;
+                            item.innerHTML = '<div class="fw-semibold">' + lieu.nom + '</div><small class="text-muted">' + lieu.adresse + '</small>';
                             
                             item.addEventListener('click', function() {
                                 input.value = lieu.nom;
                                 document.getElementById(inputId.replace('lieu_', 'lat_')).value = lieu.lat;
                                 document.getElementById(inputId.replace('lieu_', 'lng_')).value = lieu.lng;
                                 suggestions.style.display = 'none';
+                                
+                                if (map) {
+                                    map.setView([lieu.lat, lieu.lng], 15);
+                                    const markerType = inputId.includes('depart') ? 'depart' : 'arrivee';
+                                    placeMarker(L.latLng(lieu.lat, lieu.lng), markerType);
+                                }
                             });
                             
                             suggestions.appendChild(item);
@@ -484,7 +751,6 @@ function setupAutocompleteLieux(inputId, suggestionsId) {
         }, 300);
     });
     
-    // Masquer les suggestions au clic extérieur
     document.addEventListener('click', function(e) {
         if (!input.contains(e.target) && !suggestions.contains(e.target)) {
             suggestions.style.display = 'none';
@@ -507,7 +773,6 @@ function setupVehiculeSelection() {
             }
         });
         
-        // Appliquer l'état initial
         if (checkbox.checked) {
             const card = checkbox.nextElementSibling.querySelector('.card');
             card.style.borderColor = '#007bff';
@@ -535,13 +800,11 @@ function setupFormValidation() {
             return;
         }
         
-        // Afficher un indicateur de chargement
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Calcul en cours...';
         submitBtn.disabled = true;
         
-        // Remettre le bouton normal en cas d'erreur de validation côté serveur
         setTimeout(() => {
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;

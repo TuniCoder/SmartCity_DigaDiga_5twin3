@@ -186,10 +186,14 @@
                                         <td>
                                             {% if demande.priorite == 'rapidite' %}
                                                 <span class="badge bg-primary">⚡ Rapide</span>
-                                            {% elif demande.priorite == 'economie' %}
+                                            {% elif demande.priorite == 'economique' %}
                                                 <span class="badge bg-success">💰 Économie</span>
-                                            {% elif demande.priorite == 'ecologie' %}
+                                            {% elif demande.priorite == 'ecologique' %}
                                                 <span class="badge bg-success">🌿 Écologie</span>
+                                            {% elif demande.priorite == 'confort' %}
+                                                <span class="badge bg-info">🛋️ Confort</span>
+                                            {% elif demande.priorite == 'moins_circulation' %}
+                                                <span class="badge bg-warning">🚦 Sans circulation</span>
                                             {% endif %}
                                         </td>
                                         <td>
@@ -227,11 +231,24 @@
                     </h6>
                 </div>
                 <div class="card-body">
+                    <!-- DEBUG: Affichage des alertes -->
+                    <div class="small text-muted mb-2">
+                        Debug: {{ alertes_actives|length }} alerte(s) trouvée(s)
+                    </div>
+                    
                     {% if alertes_actives %}
                         {% for alerte in alertes_actives %}
-                        <div class="alert alert-{% if alerte.severite == 'high' %}danger{% elif alerte.severite == 'medium' %}warning{% else %}info{% endif %} alert-sm" role="alert">
-                            <strong>{{ alerte.type_transport }}</strong><br>
-                            <small>{{ alerte.message|truncatechars:80 }}</small>
+                        <div class="alert alert-{% if alerte.severite == 'important' %}danger{% elif alerte.severite == 'moyen' %}warning{% else %}info{% endif %} alert-sm" role="alert">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-{% if alerte.type_alerte == 'retard' %}clock{% elif alerte.type_alerte == 'fermeture' %}times-circle{% elif alerte.type_alerte == 'trafic' %}car{% else %}info-circle{% endif %} me-2 mt-1"></i>
+                                <div>
+                                    <strong>{{ alerte.titre }}</strong><br>
+                                    <small>{{ alerte.description|truncatechars:80 }}</small>
+                                    <div class="text-muted small mt-1">
+                                        <i class="fas fa-tag"></i> {{ alerte.ligne_transport }}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         {% endfor %}
                     {% else %}
@@ -251,6 +268,7 @@
                     </h6>
                 </div>
                 <div class="card-body">
+                    
                     <div class="row text-center">
                         <div class="col-4">
                             <div class="border-right">
@@ -292,10 +310,14 @@
                             <strong>Priorité:</strong> 
                             {% if preferences.priorite_defaut == 'rapidite' %}
                                 <span class="badge bg-primary">⚡ Rapidité</span>
-                            {% elif preferences.priorite_defaut == 'economie' %}
+                            {% elif preferences.priorite_defaut == 'economique' %}
                                 <span class="badge bg-success">💰 Économie</span>
-                            {% elif preferences.priorite_defaut == 'ecologie' %}
+                            {% elif preferences.priorite_defaut == 'ecologique' %}
                                 <span class="badge bg-success">🌿 Écologie</span>
+                            {% elif preferences.priorite_defaut == 'confort' %}
+                                <span class="badge bg-info">🛋️ Confort</span>
+                            {% elif preferences.priorite_defaut == 'moins_circulation' %}
+                                <span class="badge bg-warning">🚦 Sans circulation</span>
                             {% endif %}
                         </li>
                         <li class="mb-2">
