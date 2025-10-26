@@ -15,6 +15,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 import json
 import logging
+import time
 
 from .models import Vehicule, TypeVehicule, MaintenanceVehicule, UtilisationVehicule
 from ..ontology_manager.vehicle_rdf_manager import vehicle_rdf_manager
@@ -26,8 +27,32 @@ logger = logging.getLogger(__name__)
 def index_vehicules(request):
     """Page d'accueil de la gestion des véhicules"""
     try:
-        # Récupérer les statistiques
-        stats = vehicle_rdf_manager.get_vehicle_statistics()
+        # Calculer les statistiques depuis la base de données Django
+        total_vehicles = Vehicule.objects.count()
+        active_vehicles = Vehicule.objects.filter(statut='actif').count()
+        electric_vehicles = Vehicule.objects.filter(niveau_batterie__isnull=False).count()
+        maintenance_vehicles_count = Vehicule.objects.filter(statut='maintenance').count()
+        accessible_vehicles = Vehicule.objects.filter(type_vehicule__accessible_pmr=True).count()
+        
+        # Statistiques par type
+        vehicles_by_type = {}
+        for vehicle_type in TypeVehicule.objects.all():
+            vehicles_by_type[vehicle_type.nom] = Vehicule.objects.filter(type_vehicule=vehicle_type).count()
+        
+        # Statistiques par statut
+        vehicles_by_status = {}
+        for status_code, status_label in Vehicule.STATUTS:
+            vehicles_by_status[status_code] = Vehicule.objects.filter(statut=status_code).count()
+        
+        stats = {
+            'total_vehicles': total_vehicles,
+            'vehicles_by_status': vehicles_by_status,
+            'vehicles_by_type': vehicles_by_type,
+            'electric_vehicles': electric_vehicles,
+            'accessible_vehicles': accessible_vehicles,
+            'active_vehicles': active_vehicles,
+            'maintenance_vehicles': maintenance_vehicles_count,
+        }
         
         # Récupérer les derniers véhicules ajoutés
         recent_vehicles = Vehicule.objects.select_related('type_vehicule').order_by('-date_mise_en_service')[:5]
@@ -38,6 +63,9 @@ def index_vehicules(request):
             Q(prochaine_maintenance__isnull=False)
         ).select_related('type_vehicule')[:5]
         
+        # Vérifier si l'utilisateur est admin
+        is_admin = request.user.is_staff or request.user.is_superuser
+        
         context = {
             'page_title': 'Gestion des Véhicules - SmartCity',
             'module_name': 'Gestion des Véhicules',
@@ -46,6 +74,7 @@ def index_vehicules(request):
             'recent_vehicles': recent_vehicles,
             'maintenance_vehicles': maintenance_vehicles,
             'vehicle_types': TypeVehicule.objects.all(),
+            'is_admin': is_admin,
         }
         return render(request, 'gestion_vehicules/index.html', context)
         
@@ -630,3 +659,189 @@ def api_positions(request):
             'status': 'error',
             'message': str(e)
         }, status=500)
+
+
+@login_required
+def tracking_vehicules(request):
+    """Page de suivi GPS des véhicules"""
+    try:
+        # Récupérer les véhicules avec coordonnées GPS
+        vehicles = Vehicule.objects.filter(
+            latitude__isnull=False,
+            longitude__isnull=False
+        ).select_related('type_vehicule')
+        
+        # Préparer les données pour la carte
+        vehicles_data = []
+        for vehicle in vehicles:
+            vehicles_data.append({
+                'id': vehicle.id,
+                'numero': vehicle.numero_identification,
+                'type': vehicle.type_vehicule.nom,
+                'statut': vehicle.statut,
+                'localisation': vehicle.localisation_actuelle,
+                'latitude': float(vehicle.latitude),
+                'longitude': float(vehicle.longitude),
+                'niveau_batterie': vehicle.niveau_batterie,
+            })
+        
+        context = {
+            'page_title': 'Suivi GPS - SmartCity',
+            'vehicles': vehicles,
+            'vehicles_data': json.dumps(vehicles_data),
+        }
+        return render(request, 'gestion_vehicules/tracking.html', context)
+        
+    except Exception as e:
+        logger.error(f"Erreur dans tracking_vehicules: {e}")
+        messages.error(request, f"Erreur lors du chargement du suivi GPS: {e}")
+        return render(request, 'gestion_vehicules/tracking.html', {
+            'page_title': 'Suivi GPS - SmartCity',
+            'vehicles': [],
+            'vehicles_data': '[]',
+        })
+
+
+@login_required
+def gestion_maintenance(request):
+    """Page de gestion de la maintenance"""
+    try:
+        # Récupérer les maintenances planifiées
+        maintenances_planifiees = MaintenanceVehicule.objects.filter(
+            statut='planifiee'
+        ).select_related('vehicule__type_vehicule').order_by('date_planifiee')
+        
+        # Récupérer les maintenances en cours
+        maintenances_en_cours = MaintenanceVehicule.objects.filter(
+            statut='en_cours'
+        ).select_related('vehicule__type_vehicule')
+        
+        # Récupérer les véhicules nécessitant une maintenance
+        vehicules_maintenance = Vehicule.objects.filter(
+            Q(statut='maintenance') | 
+            Q(prochaine_maintenance__isnull=False)
+        ).select_related('type_vehicule')
+        
+        context = {
+            'page_title': 'Gestion Maintenance - SmartCity',
+            'maintenances_planifiees': maintenances_planifiees,
+            'maintenances_en_cours': maintenances_en_cours,
+            'vehicules_maintenance': vehicules_maintenance,
+        }
+        return render(request, 'gestion_vehicules/maintenance.html', context)
+        
+    except Exception as e:
+        logger.error(f"Erreur dans gestion_maintenance: {e}")
+        messages.error(request, f"Erreur lors du chargement de la maintenance: {e}")
+        return render(request, 'gestion_vehicules/maintenance.html', {
+            'page_title': 'Gestion Maintenance - SmartCity',
+            'maintenances_planifiees': [],
+            'maintenances_en_cours': [],
+            'vehicules_maintenance': [],
+        })
+
+
+@login_required
+def analytics_vehicules(request):
+    """Page d'analytics des véhicules"""
+    try:
+        # Calculer les statistiques
+        total_vehicles = Vehicule.objects.count()
+        active_vehicles = Vehicule.objects.filter(statut='actif').count()
+        electric_vehicles = Vehicule.objects.filter(niveau_batterie__isnull=False).count()
+        maintenance_vehicles = Vehicule.objects.filter(statut='maintenance').count()
+        
+        stats = {
+            'total_vehicles': total_vehicles,
+            'active_vehicles': active_vehicles,
+            'electric_vehicles': electric_vehicles,
+            'maintenance_vehicles': maintenance_vehicles,
+        }
+        
+        context = {
+            'page_title': 'Analytics Véhicules - SmartCity',
+            'stats': stats,
+        }
+        return render(request, 'gestion_vehicules/analytics.html', context)
+        
+    except Exception as e:
+        logger.error(f"Erreur dans analytics_vehicules: {e}")
+        messages.error(request, f"Erreur lors du chargement des analytics: {e}")
+        return render(request, 'gestion_vehicules/analytics.html', {
+            'page_title': 'Analytics Véhicules - SmartCity',
+            'stats': {},
+        })
+
+
+@login_required
+def api_sync_from_rdf(request):
+    """API pour synchroniser les véhicules depuis l'ontologie RDF"""
+    if request.method == 'POST':
+        try:
+            # Récupérer tous les véhicules depuis l'ontologie RDF
+            success, vehicles_data = vehicle_rdf_manager.get_all_vehicles()
+            
+            if not success:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Erreur lors de la récupération des données RDF'
+                })
+            
+            synced_count = 0
+            errors = []
+            
+            for vehicle_data in vehicles_data:
+                try:
+                    # Vérifier si le véhicule existe déjà
+                    vehicle_id = vehicle_data.get('id', '').replace('Vehicule_', '')
+                    if vehicle_id.isdigit():
+                        vehicle_id = int(vehicle_id)
+                        if Vehicule.objects.filter(id=vehicle_id).exists():
+                            continue
+                    
+                    # Créer le type de véhicule s'il n'existe pas
+                    type_vehicule, created = TypeVehicule.objects.get_or_create(
+                        nom=vehicle_data.get('type_vehicule', 'Inconnu'),
+                        defaults={
+                            'capacite_passagers': vehicle_data.get('capacite_passagers', 4),
+                            'emission_co2': vehicle_data.get('emission_co2', 0.0),
+                            'accessible_pmr': vehicle_data.get('accessible_pmr', False),
+                        }
+                    )
+                    
+                    # Créer le véhicule
+                    vehicule = Vehicule.objects.create(
+                        numero_identification=vehicle_data.get('numero', f'RDF_{int(time.time())}'),
+                        type_vehicule=type_vehicule,
+                        statut=vehicle_data.get('statut', 'actif'),
+                        localisation_actuelle=vehicle_data.get('localisation', ''),
+                        latitude=vehicle_data.get('latitude'),
+                        longitude=vehicle_data.get('longitude'),
+                        niveau_batterie=vehicle_data.get('niveau_batterie'),
+                    )
+                    
+                    synced_count += 1
+                    
+                except Exception as e:
+                    errors.append(f"Erreur lors de la création du véhicule: {str(e)}")
+            
+            if errors:
+                return JsonResponse({
+                    'status': 'partial_success',
+                    'message': f'{synced_count} véhicules synchronisés depuis RDF, {len(errors)} erreurs',
+                    'errors': errors
+                })
+            else:
+                return JsonResponse({
+                    'status': 'success',
+                    'message': f'{synced_count} véhicules synchronisés depuis RDF avec succès'
+                })
+                
+        except Exception as e:
+            logger.error(f"Erreur lors de la synchronisation depuis RDF: {e}")
+    return JsonResponse({
+                'status': 'error',
+                'message': f'Erreur lors de la synchronisation depuis RDF: {str(e)}'
+    })
+    
+    return JsonResponse({'status': 'error', 'message': 'Méthode non autorisée'})

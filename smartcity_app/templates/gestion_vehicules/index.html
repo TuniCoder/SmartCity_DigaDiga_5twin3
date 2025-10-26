@@ -124,7 +124,7 @@
         </div>
         <div class="col-md-3">
             <div class="stats-card">
-                <h3>{{ stats.vehicles_by_status.actif|default:0 }}</h3>
+                <h3>{{ stats.active_vehicles|default:0 }}</h3>
                 <p><i class="bi bi-check-circle"></i> Actifs</p>
             </div>
         </div>
@@ -150,9 +150,11 @@
                     <h5 class="mb-0"><i class="bi bi-lightning"></i> Actions Rapides</h5>
                 </div>
                 <div class="card-body">
+                    {% if is_admin %}
                     <a href="{% url 'gestion_vehicules:creer_vehicule' %}" class="quick-action-btn">
                         <i class="bi bi-plus-circle"></i> Ajouter Véhicule
                     </a>
+                    {% endif %}
                     <a href="{% url 'gestion_vehicules:liste_vehicules' %}" class="quick-action-btn">
                         <i class="bi bi-list"></i> Liste Complète
                     </a>
@@ -165,6 +167,11 @@
                     <a href="{% url 'gestion_vehicules:analytics_vehicules' %}" class="quick-action-btn">
                         <i class="bi bi-graph-up"></i> Analytics
                     </a>
+                    {% if not is_admin %}
+                    <button onclick="syncVehiclesFromRDF()" class="quick-action-btn" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                        <i class="bi bi-arrow-repeat"></i> Synchroniser RDF
+                    </button>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -339,5 +346,77 @@
             })
             .catch(error => console.log('Erreur lors du rafraîchissement des stats:', error));
     }, 30000);
+    
+    // Fonction pour synchroniser les véhicules depuis le RDF
+    function syncVehiclesFromRDF() {
+        const button = event.target.closest('button');
+        const originalContent = button.innerHTML;
+        
+        // Afficher le spinner
+        button.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Synchronisation...';
+        button.disabled = true;
+        
+        fetch('{% url "gestion_vehicules:api_sync_from_rdf" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification('Véhicules synchronisés avec succès depuis l\'ontologie RDF', 'success');
+                // Recharger la page pour afficher les nouvelles données
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } else {
+                showNotification('Erreur lors de la synchronisation: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showNotification('Erreur lors de la synchronisation', 'error');
+        })
+        .finally(() => {
+            // Restaurer le bouton
+            button.innerHTML = originalContent;
+            button.disabled = false;
+        });
+    }
+    
+    function showNotification(message, type) {
+        // Créer une notification toast
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Supprimer automatiquement après 5 secondes
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 5000);
+    }
+    
+    // Ajouter une classe CSS pour l'animation de rotation
+    const style = document.createElement('style');
+    style.textContent = `
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
 </script>
 {% endblock %}

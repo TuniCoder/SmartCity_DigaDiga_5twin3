@@ -25,4 +25,5 @@ urlpatterns = [
     path('api/vehicles/<int:vehicule_id>/sync/', views.api_sync_vehicle_to_rdf, name='api_sync_vehicle_to_rdf'),
     path('api/statistics/', views.api_vehicle_statistics, name='api_vehicle_statistics'),
     path('api/positions/', views.api_positions, name='api_positions'),
+    path('api/sync-from-rdf/', views.api_sync_from_rdf, name='api_sync_from_rdf'),
 ]
