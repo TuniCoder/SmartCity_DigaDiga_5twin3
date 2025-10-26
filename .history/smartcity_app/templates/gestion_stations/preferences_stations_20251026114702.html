@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Préférences Stations{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Mes Préférences de Stations</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" id="preferences-form">
+                {% csrf_token %}
+                
+                <!-- Type de station -->
+                <div class="mb-3">
+                    <label class="form-label" for="type_station">Type de Station Préféré</label>
+                    <select class="form-select" name="type_station" id="type_station">
+                        <option value="">Tous les types</option>
+                        <option value="bus" {% if preferences.type_station == 'bus' %}selected{% endif %}>Station de Bus</option>
+                        <option value="metro" {% if preferences.type_station == 'metro' %}selected{% endif %}>Station de Métro</option>
+                        <option value="tram" {% if preferences.type_station == 'tram' %}selected{% endif %}>Station de Tramway</option>
+                        <option value="train" {% if preferences.type_station == 'train' %}selected{% endif %}>Station de Train</option>
+                        <option value="mixte" {% if preferences.type_station == 'mixte' %}selected{% endif %}>Station Mixte</option>
+                    </select>
+                </div>
+
+                <!-- Distance maximale -->
+                <div class="mb-3">
+                    <label class="form-label" for="distance_max">Distance Maximale (km)</label>
+                    <input type="number" class="form-control" name="distance_max" id="distance_max"
+                           min="0.1" max="20" step="0.1" 
+                           value="{{ preferences.distance_max|default:5.0 }}">
+                    <div class="form-text">Distance maximale acceptable pour une station</div>
+                </div>
+
+                <!-- Équipements souhaités -->
+                <div class="mb-3">
+                    <label id="equipements-group" class="form-label">Équipements souhaités</label>
+                    <div role="group" aria-labelledby="equipements-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="equipements" 
+                                   value="ascenseur" id="check_ascenseur"
+                                   {% if 'ascenseur' in preferences.equipements %}checked{% endif %}>
+                            <label class="form-check-label" for="check_ascenseur">
+                                Ascenseur
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="equipements" 
+                                   value="escalator" id="check_escalator"
+                                   {% if 'escalator' in preferences.equipements %}checked{% endif %}>
+                            <label class="form-check-label" for="check_escalator">
+                                Escalator
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="equipements" 
+                                   value="parking" id="check_parking"
+                                   {% if 'parking' in preferences.equipements %}checked{% endif %}>
+                            <label class="form-check-label" for="check_parking">
+                                Parking
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accessibilité PMR -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="accessibilite" 
+                               id="accessibilite" {% if preferences.accessibilite %}checked{% endif %}>
+                        <label class="form-check-label" for="accessibilite">
+                            Nécessite une accessibilité PMR
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Notifications -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="notification" 
+                               id="notification" {% if preferences.notification %}checked{% endif %}>
+                        <label class="form-check-label" for="notification">
+                            Recevoir des notifications sur les stations recommandées
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Position actuelle -->
+                <div class="mb-3">
+                    <label class="form-label">Position de référence</label>
+                    <div id="map" style="height: 300px;" class="mb-2"></div>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="location" readonly>
+                        <button type="button" class="btn btn-secondary" id="get-location">
+                            <i class="bi bi-geo-alt"></i> Utiliser ma position
+                        </button>
+                    </div>
+                    <input type="hidden" name="latitude" id="lat" value="{{ preferences.latitude|default:36.8065 }}">
+                    <input type="hidden" name="longitude" id="lng" value="{{ preferences.longitude|default:10.1815 }}">
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer mes préférences
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Carte des recommandations -->
+    <div class="card mt-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Stations Recommandées</h5>
+        </div>
+        <div class="card-body">
+            <div id="map" style="height: 400px;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places"></script>
+<script>
+let map;
+let marker;
+let searchBox;
+let markers = [];
+
+function initMap() {
+    // Position initiale (Tunis par défaut ou position sauvegardée)
+    const position = {
+        lat: parseFloat(document.getElementById('lat').value),
+        lng: parseFloat(document.getElementById('lng').value)
+    };
+
+    // Initialiser la carte
+    map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 13,
+        center: position
+    });
+
+    // Ajouter un marqueur déplaçable
+    marker = new google.maps.Marker({
+        position: position,
+        map: map,
+        draggable: true,
+        title: 'Position de référence',
+        icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: '#4285F4',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2
+        }
+    });
+
+    // Mettre à jour les coordonnées quand le marqueur est déplacé
+    marker.addListener('dragend', () => {
+        const pos = marker.getPosition();
+        document.getElementById('lat').value = pos.lat();
+        document.getElementById('lng').value = pos.lng();
+        document.getElementById('location').value = `${pos.lat()}, ${pos.lng()}`;
+    });
+
+    // Initialiser la recherche d'adresse
+    const input = document.createElement('input');
+    input.className = 'form-control map-search';
+    input.type = 'text';
+    input.placeholder = 'Rechercher une adresse...';
+    
+    searchBox = new google.maps.places.SearchBox(input);
+    map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+
+    // Mettre à jour la carte quand une adresse est sélectionnée
+    searchBox.addListener('places_changed', () => {
+        const places = searchBox.getPlaces();
+        if (places.length === 0) return;
+
+        const place = places[0];
+        if (!place.geometry || !place.geometry.location) return;
+
+        // Centrer la carte et déplacer le marqueur
+        map.setCenter(place.geometry.location);
+        marker.setPosition(place.geometry.location);
+        
+        // Mettre à jour les coordonnées
+        document.getElementById('lat').value = place.geometry.location.lat();
+        document.getElementById('lng').value = place.geometry.location.lng();
+        document.getElementById('location').value = place.formatted_address;
+    });
+
+    // Géolocalisation
+    document.getElementById('get-location').addEventListener('click', () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+
+                    map.setCenter(pos);
+                    marker.setPosition(pos);
+                    
+                    document.getElementById('lat').value = pos.lat;
+                    document.getElementById('lng').value = pos.lng;
+                    document.getElementById('location').value = `${pos.lat}, ${pos.lng}`;
+                    
+                    // Faire une recherche inversée pour obtenir l'adresse
+                    const geocoder = new google.maps.Geocoder();
+                    geocoder.geocode({ location: pos }, (results, status) => {
+                        if (status === 'OK' && results[0]) {
+                            document.getElementById('location').value = results[0].formatted_address;
+                        }
+                    });
+                },
+                (error) => {
+                    console.error('Erreur de géolocalisation:', error);
+                    alert('Impossible d\'obtenir votre position. Veuillez vérifier vos paramètres de localisation.');
+                }
+            );
+        } else {
+            alert('La géolocalisation n\'est pas supportée par votre navigateur.');
+        }
+    });
+}
+
+// Gestionnaire de soumission du formulaire
+document.getElementById('preferences-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    try {
+        const response = await fetch('{% url "gestion_stations:api_stations_list" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: formData
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                window.location.href = '{% url "gestion_stations:recommandations" %}';
+            } else {
+                alert('Erreur lors de l\'enregistrement des préférences');
+            }
+        } else {
+            throw new Error('Erreur réseau');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        alert('Une erreur est survenue lors de l\'enregistrement des préférences');
+    }
+});
+
+document.addEventListener('DOMContentLoaded', initMap);
+</script>
+
+<style>
+.map-search {
+    margin: 10px;
+    width: calc(100% - 20px);
+    max-width: 400px;
+}
+</style>
+{% endblock %}

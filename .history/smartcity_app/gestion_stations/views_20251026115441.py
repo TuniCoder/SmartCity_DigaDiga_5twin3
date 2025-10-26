@@ -99,40 +99,14 @@ def details_station(request, station_id):
         messages.error(request, 'Station non trouvée.')
         return redirect('gestion_stations:liste')
     
-    # Récupérer les équipements de la station
-    equipements = [
-        {
-            'nom': 'Ascenseur Nord',
-            'statut': 'Opérationnel',
-            'derniere_maintenance': '2023-12-01'
-        },
-        {
-            'nom': 'Escalator Principal',
-            'statut': 'En maintenance',
-            'derniere_maintenance': '2023-11-15'
-        },
-        {
-            'nom': 'Caméra de surveillance',
-            'statut': 'Opérationnel',
-            'derniere_maintenance': '2023-11-30'
-        }
-    ]
-    
-    # Simuler des données de statistiques
-    from random import randint, uniform
-    statistiques = {
-        'affluence_moyenne': f'{randint(50, 200)} personnes/heure',
-        'taux_occupation': f'{randint(20, 95)}%',
-        'nombre_passages': f'{randint(1000, 5000)}'
-    }
-    
-    # Configuration de l'API Google Maps
-    from django.conf import settings
     context = {
         'station': station,
-        'equipements': equipements,
-        'statistiques': statistiques,
-        'google_maps_api_key': getattr(settings, 'GOOGLE_MAPS_API_KEY', '')
+        'equipements': station.get('equipements', []),
+        'statistiques': {
+            'affluence_moyenne': 'N/A',
+            'taux_occupation': 'N/A',
+            'nombre_passages': 'N/A',
+        }
     }
     
     return render(request, 'gestion_stations/details_station.html', context)
@@ -185,44 +159,19 @@ def gestion_equipements(request):
 def preferences_stations(request):
     """Gestion des préférences utilisateur pour les stations"""
     if request.method == 'POST':
-        try:
-            # Récupérer les préférences
-            preferences = {
-                'type_station': request.POST.get('type_station'),
-                'distance_max': float(request.POST.get('distance_max', 5.0)),
-                'equipements': request.POST.getlist('equipements'),
-                'accessibilite': request.POST.get('accessibilite') == 'on',
-                'notification': request.POST.get('notification') == 'on',
-                'latitude': float(request.POST.get('latitude', 36.8065)),
-                'longitude': float(request.POST.get('longitude', 10.1815))
-            }
-            
-            # Sauvegarder les préférences dans le RDF
-            success = rdf_manager.save_user_station_preferences(request.user.id, preferences)
-            
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                if success:
-                    return JsonResponse({
-                        'success': True,
-                        'message': 'Préférences enregistrées avec succès'
-                    })
-                else:
-                    return JsonResponse({
-                        'success': False,
-                        'message': 'Erreur lors de l\'enregistrement des préférences'
-                    }, status=400)
-            
-            messages.success(request, 'Vos préférences ont été enregistrées avec succès !')
-            return redirect('gestion_stations:preferences')
-            
-        except (ValueError, TypeError) as e:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': False,
-                    'message': str(e)
-                }, status=400)
-            messages.error(request, f'Erreur de validation : {str(e)}')
-            return redirect('gestion_stations:preferences')
+        # Récupérer les préférences
+        preferences = {
+            'type_station': request.POST.get('type_station'),
+            'distance_max': float(request.POST.get('distance_max', 5.0)),
+            'equipements': request.POST.getlist('equipements'),
+            'accessibilite': request.POST.get('accessibilite') == 'on',
+            'notification': request.POST.get('notification') == 'on'
+        }
+        
+        # Sauvegarder les préférences dans le RDF
+        rdf_manager.save_user_station_preferences(request.user.id, preferences)
+        messages.success(request, 'Vos préférences ont été enregistrées avec succès !')
+        return redirect('gestion_stations:preferences')
 
     # Récupérer les préférences existantes
     user_preferences = rdf_manager.get_user_station_preferences(request.user.id)

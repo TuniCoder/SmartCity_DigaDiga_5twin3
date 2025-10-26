@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Liste des Stations{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <!-- Liste des stations -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Stations Disponibles</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group" id="stations-list">
+                        {% for station in stations %}
+                        <a href="#" class="list-group-item list-group-item-action station-item" 
+                           data-lat="{{ station.latitude }}" 
+                           data-lng="{{ station.longitude }}"
+                           data-name="{{ station.nom }}"
+                           data-type="{{ station.type }}"
+                           data-capacity="{{ station.capacite }}"
+                           data-status="{{ station.status }}">
+                            <h6>{{ station.nom }}</h6>
+                            <small>Type: {{ station.type }} | Capacité: {{ station.capacite }}</small>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Carte Google Maps -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <div id="map" style="height: 500px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+<script>
+let map;
+let markers = [];
+
+function initMap() {
+    // Centrer sur Tunis par défaut
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: {lat: 36.8065, lng: 10.1815},
+        zoom: 12
+    });
+
+    // Ajouter les marqueurs pour chaque station
+    document.querySelectorAll('.station-item').forEach(station => {
+        const lat = parseFloat(station.dataset.lat);
+        const lng = parseFloat(station.dataset.lng);
+        const name = station.dataset.name;
+        const type = station.dataset.type;
+
+        const marker = new google.maps.Marker({
+            position: {lat, lng},
+            map: map,
+            title: name,
+            icon: getMarkerIcon(type)
+        });
+
+        markers.push(marker);
+
+        // Info window pour chaque marqueur
+        const infoWindow = new google.maps.InfoWindow({
+            content: `
+                <div>
+                    <h6>${name}</h6>
+                    <p>Type: ${type}</p>
+                    <p>Capacité: ${station.dataset.capacity}</p>
+                    <p>Statut: ${station.dataset.status}</p>
+                </div>
+            `
+        });
+
+        marker.addListener('click', () => {
+            infoWindow.open(map, marker);
+        });
+    });
+}
+
+function getMarkerIcon(type) {
+    // Personnaliser les icônes selon le type de station
+    switch(type) {
+        case 'bus':
+            return 'URL_ICON_BUS';
+        case 'metro':
+            return 'URL_ICON_METRO';
+        case 'recharge':
+            return 'URL_ICON_RECHARGE';
+        default:
+            return null;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initMap);
+</script>
+{% endblock %}
