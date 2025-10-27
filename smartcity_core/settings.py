@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'smartcity_app',
+    'smartcity_app.gestion_location',
     'rest_framework',
     'corsheaders',
 ]

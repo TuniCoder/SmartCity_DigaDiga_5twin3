@@ -7,7 +7,7 @@ import os
 import logging
 from datetime import datetime
 from typing import List, Dict, Optional, Tuple
-from rdflib import Graph, Namespace, URIRef, Literal, BNode
+from rdflib import Graph, Namespace, URIRef, Literal, BNode, XSD
 from rdflib.plugins.sparql import prepareQuery
 from django.conf import settings
 
@@ -447,7 +447,6 @@ class RDFManager:
         try:
             import time
             from datetime import datetime
-            from rdflib import XSD
             
             # Créer un ID unique avec timestamp + microsecondes + rang pour éviter les doublons
             timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
@@ -535,8 +534,6 @@ class RDFManager:
             Tuple (success: bool, message: str)
         """
         try:
-            from rdflib import XSD
-            
             trajet_uri = self.mobility_ns[trajet_id]
             
             # Vérifier que le trajet existe
@@ -1039,6 +1036,363 @@ class RDFManager:
         except Exception as e:
             logger.error(f"Erreur lors de la suppression de l'utilisateur {user_id} du RDF: {e}")
             return False
+
+
+    # ==========================================
+    # MÉTHODES CRUD POUR LOCATIONS (Web Sémantique)
+    # ==========================================
+    
+    def _get_location_uri_by_numero(self, numero_location: str) -> Optional[URIRef]:
+        """
+        Helper function to get the URI of a location by its numeroLocation.
+        """
+        query = """
+            SELECT ?location_uri
+            WHERE {
+                ?location_uri mobility:numeroLocation ?numero .
+            }
+            """
+        
+        prepared_query = prepareQuery(query, initNs={"mobility": self.mobility_ns})
+        
+        for row in self.graph.query(prepared_query, initBindings={'numero': Literal(numero_location, datatype=XSD.string)}):
+            return row.location_uri
+        
+        return None
+
+    def create_location(self, location_data: Dict) -> Tuple[bool, str]:
+        """
+        Crée une nouvelle location dans l'ontologie RDF
+        
+        Args:
+            location_data: Dictionnaire avec les données de la location
+                - Propriétés principales:
+                  - utilisateur_id, utilisateur_username, vehicule_id
+                  - numero_location, type_location, statut
+                  - date_debut, date_fin, lieu_prise, lieu_retour
+                  - conducteur_principal, prix_total_calcule
+                  - kilometrage_depart, etat_depart
+                  - options_choisies, services_additionnels
+                  - assurance_comprise, franchise_assurance
+        
+        Returns:
+            Tuple (success: bool, location_uri: str)
+        """
+        try:
+            import time
+            from datetime import datetime
+            
+            # Créer un ID unique avec timestamp + microsecondes
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+            microsec = int(time.time() * 1000000) % 1000
+            location_id = location_data.get('id_unique', f"Location_{timestamp}_{microsec}")
+            location_uri = self.mobility_ns[location_id]
+            
+            # Vérifier si la location existe déjà
+            if (location_uri, None, None) in self.graph:
+                location_id = f"Location_{int(time.time() * 1000000)}"
+                location_uri = self.mobility_ns[location_id]
+            
+            # Ajouter le type
+            self.graph.add((location_uri, self.rdf_ns.type, self.mobility_ns.Location))
+            
+            # Ajouter le label
+            label = f"Location {location_data.get('numero_location', 'N/A')} - {location_data.get('conducteur_principal', 'Client')}"
+            self.graph.add((location_uri, self.rdfs_ns.label, Literal(label, lang='fr')))
+            
+            # **NOUVELLES PROPRIÉTÉS** : Mapping des champs vers les propriétés RDF
+            property_mappings = {
+                'utilisateur_id': (self.mobility_ns.utilisateurId, XSD.string),
+                'utilisateur_username': (self.mobility_ns.utilisateurUsername, XSD.string),
+                'vehicule_id': (self.mobility_ns.vehiculeId, XSD.string),
+                'numero_location': (self.mobility_ns.numeroLocation, XSD.string),
+                'type_location': (self.mobility_ns.typeLocation, XSD.string),
+                'statut': (self.mobility_ns.statutLocation, XSD.string),
+                'date_debut': (self.mobility_ns.dateDebutLocation, XSD.dateTime),
+                'date_fin': (self.mobility_ns.dateFinLocation, XSD.dateTime),
+                'lieu_prise': (self.mobility_ns.lieuPrise, XSD.string),
+                'lieu_retour': (self.mobility_ns.lieuRetour, XSD.string),
+                'conducteur_principal': (self.mobility_ns.conducteurPrincipal, XSD.string),
+                'conducteur_secondaire': (self.mobility_ns.conducteurSecondaire, XSD.string),
+                'numero_permis': (self.mobility_ns.numeroPermis, XSD.string),
+                'prix_total_calcule': (self.mobility_ns.prixTotalCalcule, XSD.float),
+                'prix_total_final': (self.mobility_ns.prixTotalFinal, XSD.float),
+                'caution_payee': (self.mobility_ns.cautionPayee, XSD.float),
+                'caution_rendue': (self.mobility_ns.cautionRendue, XSD.float),
+                'kilometrage_depart': (self.mobility_ns.kilometrageDepart, XSD.float),
+                'kilometrage_retour': (self.mobility_ns.kilometrageRetour, XSD.float),
+                'kilometrage_total': (self.mobility_ns.kilometrageTotal, XSD.float),
+                'etat_depart': (self.mobility_ns.etatDepart, XSD.string),
+                'etat_retour': (self.mobility_ns.etatRetour, XSD.string),
+                'dommages_signales': (self.mobility_ns.dommagesSignales, XSD.string),
+                'options_choisies': (self.mobility_ns.optionsChoisies, XSD.string),
+                'services_additionnels': (self.mobility_ns.servicesAdditionnels, XSD.string),
+                'assurance_comprise': (self.mobility_ns.assuranceComprise, XSD.boolean),
+                'franchise_assurance': (self.mobility_ns.franchiseAssurance, XSD.float),
+                'assurance_supplementaire': (self.mobility_ns.assuranceSupplementaire, XSD.boolean),
+                'commentaires_client': (self.mobility_ns.commentairesClient, XSD.string),
+                'note_experience': (self.mobility_ns.noteExperience, XSD.integer),
+                'est_recurrente': (self.mobility_ns.estRecurrente, XSD.boolean),
+                'frequence_recurrence': (self.mobility_ns.frequenceRecurrence, XSD.string),
+                'cree_par_admin': (self.mobility_ns.creeParAdmin, XSD.boolean),
+            }
+            
+            # Ajouter toutes les propriétés présentes
+            for key, (predicate, datatype) in property_mappings.items():
+                if key in location_data and location_data[key] is not None:
+                    value = location_data[key]
+                    
+                    # Conversion de type si nécessaire
+                    if datatype == XSD.float:
+                        value = float(value)
+                    elif datatype == XSD.integer:
+                        value = int(value)
+                    elif datatype == XSD.boolean:
+                        value = bool(value)
+                    elif datatype == XSD.string:
+                        value = str(value)
+                    
+                    self.graph.add((location_uri, predicate, Literal(value, datatype=datatype)))
+            
+            # Sauvegarder dans le fichier RDF
+            if self.save_ontology():
+                logger.info(f"✅ Location créée avec succès: {location_id}")
+                return True, str(location_uri)
+            else:
+                return False, "Erreur lors de la sauvegarde"
+                
+        except Exception as e:
+            logger.error(f"❌ Erreur lors de la création de la location: {e}")
+            return False, str(e)
+    
+    def get_locations_by_user(self, user_id: str) -> List[Dict]:
+        """
+        Récupère toutes les locations d'un utilisateur spécifique
+        
+        Args:
+            user_id: Identifiant de l'utilisateur
+        
+        Returns:
+            Liste de locations
+        """
+        # Lecture directe du graphe pour robustesse (évite les problèmes de comparaison
+        # entre littéraux typés et littéraux simples dans SPARQL).
+        try:
+            locations = []
+            for location_uri in self.graph.subjects(self.rdf_ns.type, self.mobility_ns.Location):
+                # Chercher la propriété utilisateurId
+                utilisateur_vals = list(self.graph.objects(location_uri, self.mobility_ns.utilisateurId))
+                if not utilisateur_vals:
+                    continue
+
+                # Comparer la valeur en str() pour supporter les littéraux typés
+                if not any(str(val) == str(user_id) for val in utilisateur_vals):
+                    continue
+
+                loc = {'location': str(location_uri)}
+                for s, p, o in self.graph.triples((location_uri, None, None)):
+                    predicate_name = str(p).split('#')[-1]
+                    loc[predicate_name] = str(o)
+
+                locations.append(loc)
+
+            # Trier par dateDebutLocation si présent (descendant)
+            try:
+                locations.sort(key=lambda x: x.get('dateDebutLocation', ''), reverse=True)
+            except Exception:
+                pass
+
+            logger.info(f"Found {len(locations)} locations for user {user_id}")
+            return locations
+        except Exception as e:
+            logger.error(f"Erreur lors de la lecture des locations depuis le graphe: {e}")
+            return []
+    
+    def get_all_locations(self) -> List[Dict]:
+        """
+        Récupère toutes les locations (pour l'admin)
+        
+        Returns:
+            Liste de toutes les locations
+        """
+        logger.info(f"Taille du graphe avant récupération des locations: {len(self.graph)}")
+        # Lecture directe du graphe pour lister toutes les locations
+        try:
+            locations = []
+            for location_uri in self.graph.subjects(self.rdf_ns.type, self.mobility_ns.Location):
+                loc = {'location': str(location_uri)}
+                for s, p, o in self.graph.triples((location_uri, None, None)):
+                    predicate_name = str(p).split('#')[-1]
+                    loc[predicate_name] = str(o)
+                locations.append(loc)
+
+            # Trier par dateDebutLocation si présent (descendant)
+            try:
+                locations.sort(key=lambda x: x.get('dateDebutLocation', ''), reverse=True)
+            except Exception:
+                pass
+
+            return locations
+        except Exception as e:
+            logger.error(f"Erreur lors de la lecture de toutes les locations depuis le graphe: {e}")
+            return []
+
+    def update_location(self, location_id: str, location_data: Dict) -> Tuple[bool, str]:
+        """
+        Met à jour génériquement une location existante dans l'ontologie.
+        
+        Args:
+            location_id: Identifiant de la location à modifier (numeroLocation).
+            location_data: Dictionnaire avec les nouvelles données.
+        
+        Returns:
+            Tuple (success: bool, message: str)
+        """
+        try:
+            location_uri = self._get_location_uri_by_numero(location_id)
+
+            if location_uri is None:
+                return False, f"La location avec le numeroLocation '{location_id}' n'existe pas"
+
+            # Mapping des propriétés pour la mise à jour
+            property_mappings = {
+                'lieu_prise': (self.mobility_ns.lieuPrise, XSD.string),
+                'lieu_retour': (self.mobility_ns.lieuRetour, XSD.string),
+                'conducteur_principal': (self.mobility_ns.conducteurPrincipal, XSD.string),
+                'conducteur_secondaire': (self.mobility_ns.conducteurSecondaire, XSD.string),
+                'statut': (self.mobility_ns.statutLocation, XSD.string),
+                # Ajoutez d'autres champs modifiables ici
+            }
+
+            for key, (predicate, datatype) in property_mappings.items():
+                if key in location_data:
+                    # Supprimer l'ancienne valeur
+                    self.graph.remove((location_uri, predicate, None))
+                    
+                    # Ajouter la nouvelle valeur
+                    value = location_data[key]
+                    literal_value = Literal(value, datatype=datatype)
+                    self.graph.add((location_uri, predicate, literal_value))
+
+            # Sauvegarder les changements
+            if self.save_ontology():
+                logger.info(f"Location {location_id} mise à jour avec succès.")
+                return True, "Location mise à jour avec succès"
+            else:
+                return False, "Erreur lors de la sauvegarde de l'ontologie"
+
+        except Exception as e:
+            logger.error(f"Erreur lors de la mise à jour de la location {location_id}: {e}")
+            return False, str(e)
+    
+    def update_location_status(self, location_id: str, new_status: str) -> Tuple[bool, str]:
+        """
+        Met à jour le statut d'une location
+        
+        Args:
+            location_id: Identifiant de la location (numeroLocation)
+            new_status: Nouveau statut
+        
+        Returns:
+            Tuple (success: bool, message: str)
+        """
+        try:
+            location_uri = self._get_location_uri_by_numero(location_id)
+            
+            if location_uri is None:
+                return False, f"La location {location_id} n'existe pas"
+            
+            # Supprimer l'ancien statut
+            self.graph.remove((location_uri, self.mobility_ns.statutLocation, None))
+            
+            # Ajouter le nouveau statut
+            self.graph.add((location_uri, self.mobility_ns.statutLocation, 
+                          Literal(new_status, datatype=XSD.string)))
+            
+            # Sauvegarder
+            if self.save_ontology():
+                logger.info(f"Statut de location mis à jour: {location_id} -> {new_status}")
+                return True, "Statut mis à jour avec succès"
+            else:
+                return False, "Erreur lors de la sauvegarde"
+                
+        except Exception as e:
+            logger.error(f"Erreur lors de la mise à jour du statut: {e}")
+            return False, str(e)
+    
+    def delete_location(self, location_id: str) -> Tuple[bool, str]:
+        """
+        Supprime une location de l'ontologie
+        
+        Args:
+            location_id: Identifiant de la location à supprimer (numeroLocation)
+        
+        Returns:
+            Tuple (success: bool, message: str)
+        """
+        try:
+            location_uri = self._get_location_uri_by_numero(location_id)
+            
+            if location_uri is None:
+                return False, f"La location {location_id} n'existe pas"
+
+            # Supprimer tous les triplets où la location est sujet
+            self.graph.remove((location_uri, None, None))
+            
+            # Supprimer tous les triplets où la location est objet
+            self.graph.remove((None, None, location_uri))
+            
+            # Sauvegarder
+            if self.save_ontology():
+                logger.info(f"Location supprimée: {location_id}")
+                return True, "Location supprimée avec succès"
+            else:
+                return False, "Erreur lors de la sauvegarde"
+                
+        except Exception as e:
+            logger.error(f"Erreur lors de la suppression de la location: {e}")
+            return False, str(e)
+    
+    def get_location_by_id(self, location_id: str) -> Optional[Dict]:
+        """
+        Récupère une location spécifique par son ID (numeroLocation)
+        
+        Args:
+            location_id: Identifiant de la location (numeroLocation)
+        
+        Returns:
+            Dictionnaire avec les données de la location ou None
+        """
+        try:
+            location_uri = self._get_location_uri_by_numero(location_id)
+
+            if location_uri is None:
+                return None
+            
+            location_data = {'id': location_id, 'uri': str(location_uri)}
+            
+            # Récupérer toutes les propriétés
+            for s, p, o in self.graph.triples((location_uri, None, None)):
+                predicate_name = str(p).split('#')[-1]
+                location_data[predicate_name] = str(o)
+            
+            return location_data
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération de la location par ID '{location_id}': {e}")
+            return None
+
+    def get_location_by_numero(self, numero_location: str) -> Optional[Dict]:
+        """
+        Récupère une location spécifique par son numeroLocation.
+
+        Args:
+            numero_location: Le numéro de la location à trouver.
+
+        Returns:
+            Dictionnaire avec les données de la location ou None.
+        """
+        return self.get_location_by_id(numero_location)
 
 
 # Instance globale du gestionnaire RDF

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Paiement - SmartCity{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Paiement sécurisé</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <p>Vous êtes sur le point de procéder au paiement de votre service SmartCity.</p>
+                    </div>
+
+                    <form id="payment-form" class="mt-4">
+                        <div class="form-group mb-3">
+                            <label for="amount">Montant (€)</label>
+                            <input type="number" id="amount" class="form-control" value="10" min="1" step="0.01" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="description">Description</label>
+                            <input type="text" id="description" class="form-control" value="Paiement SmartCity" required>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label for="card-element">Carte de crédit</label>
+                            <div id="card-element" class="form-control p-3">
+                                <!-- Stripe Card Element will be inserted here -->
+                            </div>
+                            <div id="card-errors" class="text-danger mt-2"></div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button id="submit-button" class="btn btn-primary btn-lg">Payer maintenant</button>
+                        </div>
+                    </form>
+
+                    <div class="mt-4">
+                        <p class="text-center">
+                            <img src="https://stripe.com/img/v3/home/social.png" alt="Stripe" height="30">
+                            <span class="ms-2">Paiement sécurisé par Stripe</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    // Initialisation de Stripe
+    const stripe = Stripe('{{ stripe_public_key }}');
+    const elements = stripe.elements();
+
+    // Style pour l'élément de carte
+    const style = {
+        base: {
+            color: '#32325d',
+            fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+            fontSmoothing: 'antialiased',
+            fontSize: '16px',
+            '::placeholder': {
+                color: '#aab7c4'
+            }
+        },
+        invalid: {
+            color: '#fa755a',
+            iconColor: '#fa755a'
+        }
+    };
+
+    // Création de l'élément de carte
+    const cardElement = elements.create('card', {style: style});
+    cardElement.mount('#card-element');
+
+    // Gestion des erreurs de l'élément de carte
+    cardElement.on('change', ({error}) => {
+        const displayError = document.getElementById('card-errors');
+        if (error) {
+            displayError.textContent = error.message;
+        } else {
+            displayError.textContent = '';
+        }
+    });
+
+    // Gestion du formulaire de paiement
+    const form = document.getElementById('payment-form');
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        
+        const submitButton = document.getElementById('submit-button');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Traitement en cours...';
+        
+        const amount = Math.round(parseFloat(document.getElementById('amount').value) * 100);
+        const description = document.getElementById('description').value;
+        
+        try {
+            // Création de l'intention de paiement
+            const response = await fetch('/payment/create-payment-intent/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    amount: amount,
+                    description: description
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            // Confirmation du paiement
+            const {error, paymentIntent} = await stripe.confirmCardPayment(data.client_secret, {
+                payment_method: {
+                    card: cardElement,
+                    billing_details: {
+                        name: 'Utilisateur SmartCity'
+                    }
+                }
+            });
+            
+            if (error) {
+                throw new Error(error.message);
+            } else if (paymentIntent.status === 'succeeded') {
+                window.location.href = '/payment/success/';
+            }
+        } catch (error) {
+            const errorElement = document.getElementById('card-errors');
+            errorElement.textContent = error.message;
+            submitButton.disabled = false;
+            submitButton.textContent = 'Payer maintenant';
+        }
+    });
+    
+    // Fonction pour récupérer le token CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

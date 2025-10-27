@@ -1,0 +1,370 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .location-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .location-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    
+    .vehicule-image {
+        height: 200px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 3rem;
+    }
+    
+    .prix-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+    }
+    
+    .statut-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    
+    .statut-disponible { background: #28a745; color: white; }
+    .statut-loue { background: #dc3545; color: white; }
+    .statut-maintenance { background: #ffc107; color: black; }
+    .statut-reserve { background: #17a2b8; color: white; }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stats-label {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+    
+    .filter-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .btn-reserver {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-reserver:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    
+    .alert-custom {
+        border-radius: 15px;
+        border: none;
+        padding: 1rem 1.5rem;
+    }
+    
+    .pagination-custom .page-link {
+        border-radius: 10px;
+        margin: 0 2px;
+        border: none;
+        color: #667eea;
+    }
+    
+    .pagination-custom .page-item.active .page-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+    }
+    
+    .source-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(102, 126, 234, 0.9);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1">
+                        <i class="fas fa-car text-primary me-2"></i>
+                        Gestion de Location
+                    </h1>
+                    <p class="text-muted mb-0">Réservez votre véhicule en toute simplicité</p>
+                </div>
+                <div class="source-badge">
+                    <i class="fas fa-database me-1"></i>
+                    {{ source_donnees|default:"RDF + SQLite" }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+   
+    <!-- Actions Rapides -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <i class="fas fa-bolt text-warning me-2"></i>
+                        Actions Rapides
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'gestion_location:rechercher_vehicules' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-search me-2"></i>
+                                Rechercher Véhicule
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'gestion_location:mes_locations' %}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-list me-2"></i>
+                                Mes Réservations
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'gestion_location:admin_dashboard' %}" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-cog me-2"></i>
+                                Administration
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'gestion_location:admin_liste_locations' %}" class="btn btn-outline-danger w-100">
+                                <i class="fas fa-users me-2"></i>
+                                Toutes Réservations
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenu Principal -->
+    <div class="row">
+        <!-- Véhicules Disponibles -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-car text-primary me-2"></i>
+                        Véhicules Disponibles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if vehicules %}
+                        <div class="row">
+                            {% for vehicule in vehicules %}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card location-card h-100">
+                                    <div class="position-relative">
+                                        <div class="vehicule-image">
+                                            <i class="{{ vehicule.type_location.icone }}"></i>
+                                        </div>
+                                        <div class="prix-badge">
+                                            {{ vehicule.type_location.prix_heure }}€/h
+                                        </div>
+                                        <div class="statut-badge statut-{{ vehicule.statut }}">
+                                            {{ vehicule.get_statut_display }}
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ vehicule.type_location.nom }}</h6>
+                                        <p class="card-text text-muted small">
+                                            <i class="fas fa-users me-1"></i>
+                                            {{ vehicule.type_location.capacite_passagers }} passagers
+                                        </p>
+                                        <p class="card-text text-muted small">
+                                            <i class="fas fa-suitcase me-1"></i>
+                                            {{ vehicule.type_location.capacite_bagages }} bagages
+                                        </p>
+                                        <p class="card-text text-muted small">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            {{ vehicule.station_location|default:"Station centrale" }}
+                                        </p>
+                                        <div class="mt-3">
+                                            <a href="{% url 'gestion_location:rechercher_vehicules' %}?vehicule={{ vehicule.id }}" 
+                                               class="btn btn-reserver w-100">
+                                                <i class="fas fa-calendar-plus me-2"></i>
+                                                Réserver
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if is_paginated %}
+                        <nav aria-label="Pagination des véhicules">
+                            <ul class="pagination pagination-custom justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1">&laquo; Première</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédente</a>
+                                    </li>
+                                {% endif %}
+                                
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivante</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Dernière &raquo;</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-car text-muted" style="font-size: 4rem;"></i>
+                            <h5 class="text-muted mt-3">Aucun véhicule disponible</h5>
+                            <p class="text-muted">Tous les véhicules sont actuellement en cours d'utilisation.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Dernières Réservations -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">
+                        <i class="fas fa-history text-info me-2"></i>
+                        Dernières Réservations
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if dernieres_reservations %}
+                        {% for reservation in dernieres_reservations %}
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 40px; height: 40px;">
+                                    <i class="fas fa-car"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1">{{ reservation.numero_reservation }}</h6>
+                                <p class="text-muted small mb-0">
+                                    {{ reservation.date_debut|date:"d/m/Y H:i" }}
+                                </p>
+                                <span class="badge bg-{{ reservation.statut|yesno:'success,warning,danger' }}">
+                                    {{ reservation.get_statut_display }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">Aucune réservation récente</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Alertes -->
+            {% if alertes_personnelles %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        Alertes Importantes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for alerte in alertes_personnelles %}
+                    <div class="alert alert-{{ alerte.niveau_priorite|yesno:'danger,warning,info' }} alert-custom mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-{{ alerte.type_alerte|yesno:'clock,exclamation,info' }} me-2"></i>
+                            <div>
+                                <strong>{{ alerte.titre }}</strong>
+                                <br>
+                                <small>{{ alerte.description }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animation des cartes au survol
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.location-card');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    });
+</script>
+{% endblock %}

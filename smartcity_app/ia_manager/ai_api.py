@@ -8,6 +8,9 @@ import logging
 from typing import Dict, List, Optional, Tuple
 from django.conf import settings
 
+# Import des requêtes SPARQL pour les locations
+from ..gestion_location.location_sparql import SPARQL_QUERIES as LOCATION_SPARQL_QUERIES
+
 logger = logging.getLogger(__name__)
 
 class AIQueryProcessor:
@@ -19,7 +22,8 @@ class AIQueryProcessor:
             'vehicule': ['véhicule', 'vehicle', 'voiture', 'vélo', 'bike', 'car', 'auto'],
             'station': ['station', 'arrêt', 'stop', 'parking', 'borne'],
             'trajet': ['trajet', 'voyage', 'trip', 'parcours', 'route', 'itinéraire'],
-            'trafic': ['trafic', 'traffic', 'circulation', 'transport', 'ligne']
+            'trafic': ['trafic', 'traffic', 'circulation', 'transport', 'ligne'],
+            'location': ['location', 'rental', 'réservation', 'reservation']
         }
         
         self.action_patterns = {
@@ -135,18 +139,19 @@ class AIQueryProcessor:
             'vehicule': 'mobility:Véhicule',
             'station': 'mobility:Station',
             'trajet': 'mobility:Trajet',
-            'trafic': 'mobility:Route'
+            'trafic': 'mobility:Route',
+            'location': 'mobility:Location'
         }
         
         # Mappage des propriétés vers RDF
         property_mapping = {
             'nom': {'utilisateur': 'mobility:nom', 'station': 'mobility:nomStation', 'trajet': 'mobility:pointDépart'},
-            'type': {'vehicule': 'mobility:typeVéhicule', 'station': 'mobility:typeStation'},
-            'statut': {'vehicule': 'mobility:statut'},
+            'type': {'vehicule': 'mobility:typeVéhicule', 'station': 'mobility:typeStation', 'location': 'mobility:typeLocation'},
+            'statut': {'vehicule': 'mobility:statut', 'location': 'mobility:statutLocation'},
             'position': {'station': ['mobility:latitude', 'mobility:longitude']},
             'distance': {'trajet': 'mobility:distance'},
-            'durée': {'trajet': 'mobility:durée'},
-            'coût': {'trajet': 'mobility:coût'}
+            'durée': {'trajet': 'mobility:durée', 'location': 'mobility:dureeLocation'},
+            'coût': {'trajet': 'mobility:coût', 'location': 'mobility:prixLocation'}
         }
         
         # Variables de base
@@ -215,7 +220,8 @@ class AIQueryProcessor:
             'vehicule': 'véhicules', 
             'station': 'stations',
             'trajet': 'trajets',
-            'trafic': 'données de trafic'
+            'trafic': 'données de trafic',
+            'location': 'locations'
         }
         
         action_names = {
@@ -334,6 +340,28 @@ class SampleQueries:
                 """,
                 "category": "Trajets"
             },
+
+            "user_locations": {
+                "name": "Locations par utilisateur",
+                "description": "Liste toutes les locations avec les utilisateurs qui les ont effectuées",
+                "query": """
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                
+                SELECT DISTINCT ?location ?numero ?statut ?userName ?dateDebut ?prix
+                WHERE {
+                    ?location rdf:type mobility:Location .
+                    ?location mobility:conducteurPrincipal ?userName .
+                    OPTIONAL { ?location mobility:numeroLocation ?numero }
+                    OPTIONAL { ?location mobility:statutLocation ?statut }
+                    OPTIONAL { ?location mobility:dateDebutLocation ?dateDebut }
+                    OPTIONAL { ?location mobility:prixTotalCalcule ?prix }
+                }
+                ORDER BY ?userName
+                """,
+                "category": "Locations"
+                
+            },
             
             "vehicle_statistics": {
                 "name": "Statistiques véhicules",
@@ -349,29 +377,63 @@ class SampleQueries:
                 """,
                 "category": "Statistiques"
             },
-            
-            "reservations_active": {
-                "name": "Réservations actives",
-                "description": "Liste toutes les réservations actives",
-                "query": """
-                SELECT ?reservation ?userName ?vehicleBrand ?dateReservation ?dureeReservation ?prix
-                WHERE {
-                    ?reservation rdf:type mobility:Réservation .
-                    ?reservation mobility:statutRéservation "active" .
-                    ?user mobility:réserve ?reservation .
-                    ?reservation mobility:concerne ?vehicle .
-                    ?user mobility:nom ?userName .
-                    OPTIONAL { ?vehicle mobility:marque ?vehicleBrand }
-                    OPTIONAL { ?reservation mobility:dateRéservation ?dateReservation }
-                    OPTIONAL { ?reservation mobility:duréeRéservation ?dureeReservation }
-                    OPTIONAL { ?reservation mobility:prixRéservation ?prix }
-                }
-                ORDER BY ?dateReservation
-                """,
-                "category": "Réservations"
-            }
-        }
 
+
+   "all_locations": {
+    "name": "Toutes les locations",
+    "description": "Liste toutes les locations avec leurs informations de base",
+    "query": """
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+    SELECT DISTINCT ?location ?numero ?statut ?type ?dateDebut ?dateFin ?lieuPrise ?lieuRetour ?conducteur ?prix
+    WHERE {
+        ?location rdf:type mobility:Location .
+        OPTIONAL { ?location mobility:numeroLocation ?numero . }
+        OPTIONAL { ?location mobility:statutLocation ?statut . }
+        OPTIONAL { ?location mobility:typeLocation ?type . }
+        OPTIONAL { ?location mobility:dateDebutLocation ?dateDebut . }
+        OPTIONAL { ?location mobility:dateFinLocation ?dateFin . }
+        OPTIONAL { ?location mobility:lieuPrise ?lieuPrise . }
+        OPTIONAL { ?location mobility:lieuRetour ?lieuRetour . }
+        OPTIONAL { ?location mobility:conducteurPrincipal ?conducteur . }
+        OPTIONAL { ?location mobility:prixTotalCalcule ?prix . }
+    }
+    ORDER BY DESC(?dateDebut)
+    """,
+    "category": "Locations"
+},
+
+
+
+    "location_statistics_by_status": {
+        "name": "Statistiques des locations par statut",
+        "description": "Compte le nombre de locations pour chaque statut",
+        "query": """
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+        
+        SELECT ?statut (COUNT(DISTINCT ?location) as ?count)
+        WHERE {
+            ?location rdf:type mobility:Location .
+            OPTIONAL { ?location mobility:statutLocation ?statut }
+        }
+        GROUP BY ?statut
+        ORDER BY DESC(?count)
+        """,
+        "category": "Statistiques"
+    },
+    
+    # Utilisation des requêtes SPARQL importées depuis location_sparql.py
+    "active_locations": LOCATION_SPARQL_QUERIES["active_locations"],
+    "user_locations_details": LOCATION_SPARQL_QUERIES["user_locations_details"],
+    "all_locations": LOCATION_SPARQL_QUERIES["all_locations"],
+    "user_locations": LOCATION_SPARQL_QUERIES["user_locations"],
+    "location_details": LOCATION_SPARQL_QUERIES["location_details"],
+    "locations_by_vehicle": LOCATION_SPARQL_QUERIES["locations_by_vehicle"],
+    "locations_by_date_range": LOCATION_SPARQL_QUERIES["locations_by_date_range"]
+}
 
 # Instance globale du processeur IA
 ai_processor = AIQueryProcessor()
