@@ -16,6 +16,8 @@ urlpatterns = [
     path('trafic/', include('smartcity_app.gestion_trafic.urls')),
     path('vehicules/', include('smartcity_app.gestion_vehicules.urls')),
     path('chat/', include('chatbot.urls')),
+    path('location/', include('smartcity_app.gestion_location.urls')),
+    path('payment_service/', include('smartcity_app.payment_service.urls')), 
 ]
 
 # Servir les fichiers statiques et média en développement

@@ -12,7 +12,8 @@
                 </h1>
                 <p class="lead mb-4">
                     Plateforme sémantique pour la gestion intelligente de la mobilité urbaine.
-                    Explorez, interrogez et analysez les données de transport en utilisant les technologies du web sémantique.
+                    Explorez, interrogez et analysez les données de transport en utilisant les technologies du web
+                    sémantique.
                 </p>
                 <div class="d-flex flex-wrap gap-3">
                     <a href="{% url 'smartcity_app:query' %}" class="btn btn-light btn-lg">
@@ -39,7 +40,7 @@
                 <i class="fas fa-chart-bar"></i> Aperçu des Données
             </h2>
         </div>
-        
+
         <div class="col-md-3 col-sm-6">
             <div class="stat-card">
                 <div class="stat-number">{{ statistics.total_triples|default:0 }}</div>
@@ -47,7 +48,7 @@
                 <i class="fas fa-database fa-2x mt-2"></i>
             </div>
         </div>
-        
+
         <div class="col-md-3 col-sm-6">
             <div class="stat-card">
                 <div class="stat-number">{{ statistics.classes|default:0 }}</div>
@@ -55,7 +56,7 @@
                 <i class="fas fa-sitemap fa-2x mt-2"></i>
             </div>
         </div>
-        
+
         <div class="col-md-3 col-sm-6">
             <div class="stat-card">
                 <div class="stat-number">{{ statistics.properties|default:0 }}</div>
@@ -63,7 +64,7 @@
                 <i class="fas fa-link fa-2x mt-2"></i>
             </div>
         </div>
-        
+
         <div class="col-md-3 col-sm-6">
             <div class="stat-card">
                 <div class="stat-number">{{ statistics.individuals|default:0 }}</div>
@@ -113,12 +114,39 @@
             </div>
         </div>
 
+        <!-- Module Location - Nouveau -->
+        <div class="col-lg-6 col-md-6 mb-4">
+            <div class="card h-100 border-info">
+                <div class="card-header bg-info text-white text-center">
+                    <i class="fas fa-car fa-2x"></i>
+                    <h5 class="mt-2 mb-0">Gestion de Location</h5>
+                    <span class="badge bg-light text-info">🆕 Nouveau!</span>
+                </div>
+                <div class="card-body text-center">
+                    <p class="card-text">
+                        <strong>Système de réservation intelligent</strong><br>
+                        • Recherche et réservation de véhicules<br>
+                        • Interface admin complète<br>
+                        • Stockage RDF + SQLite
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'gestion_location:index_location' %}" class="btn btn-info">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard Location
+                        </a>
+                        <a href="{% url 'gestion_location:rechercher_vehicules' %}" class="btn btn-outline-info">
+                            <i class="fas fa-search"></i> Rechercher Véhicule
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Modules en Développement -->
         <div class="col-lg-6 col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-header bg-primary text-white text-center">
                     <i class="fas fa-tools fa-2x"></i>
-                    <h5 class="mt-2 mb-0">5 Gestions Métier</h5>
+                    <h5 class="mt-2 mb-0">4 Gestions Métier</h5>
                     <span class="badge bg-light text-primary">🚧 Ready to Code</span>
                 </div>
                 <div class="card-body">
@@ -142,7 +170,8 @@
                             </a>
                         </div>
                         <div class="col-6 mb-3">
-                            <a href="{% url 'gestion_utilisateurs:dashboard_user' %}" class="btn btn-outline-success w-100">
+                            <a href="{% url 'gestion_utilisateurs:dashboard_user' %}"
+                                class="btn btn-outline-success w-100">
                                 <i class="fas fa-users"></i><br>
                                 <small>Utilisateurs</small>
                             </a>
@@ -151,10 +180,12 @@
                     <hr>
                     <div class="text-center">
                         <small class="text-muted mb-2 d-block"><strong>Infrastructure Technique :</strong></small>
-                        <a href="{% url 'api_manager:index_api_manager' %}" class="btn btn-sm btn-outline-secondary me-2">
+                        <a href="{% url 'api_manager:index_api_manager' %}"
+                            class="btn btn-sm btn-outline-secondary me-2">
                             <i class="fas fa-plug"></i> API Hub
                         </a>
-                        <a href="#" onclick="window.open('/static/docs/GUIDE_DEMARRAGE.md', '_blank')" class="btn btn-sm btn-outline-primary">
+                        <a href="#" onclick="window.open('/static/docs/GUIDE_DEMARRAGE.md', '_blank')"
+                            class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-book"></i> Guide Équipe
                         </a>
                     </div>
@@ -179,7 +210,7 @@
                 </div>
                 <div class="card-body text-center">
                     <p class="card-text">
-                        Posez des questions en langage naturel et obtenez automatiquement 
+                        Posez des questions en langage naturel et obtenez automatiquement
                         des requêtes SPARQL générées par l'IA.
                     </p>
                     <a href="{% url 'smartcity_app:query' %}" class="btn btn-primary">
@@ -197,7 +228,7 @@
                 </div>
                 <div class="card-body text-center">
                     <p class="card-text">
-                        Explorez la structure de l'ontologie : classes, propriétés, 
+                        Explorez la structure de l'ontologie : classes, propriétés,
                         individus et leurs relations sémantiques.
                     </p>
                     <a href="{% url 'smartcity_app:ontology_view' %}" class="btn btn-primary">
@@ -215,7 +246,7 @@
                 </div>
                 <div class="card-body text-center">
                     <p class="card-text">
-                        Recherchez dans toute l'ontologie par mots-clés 
+                        Recherchez dans toute l'ontologie par mots-clés
                         et filtrez les résultats par type d'entité.
                     </p>
                     <a href="{% url 'smartcity_app:search' %}" class="btn btn-primary">
@@ -245,7 +276,8 @@
                         <div>
                             <h5 class="card-title mb-1">Utilisateurs</h5>
                             {% if statistics.entities_by_type.Utilisateur %}
-                                <span class="badge bg-info">{{ statistics.entities_by_type.Utilisateur }} enregistré(s)</span>
+                            <span class="badge bg-info">{{ statistics.entities_by_type.Utilisateur }}
+                                enregistré(s)</span>
                             {% endif %}
                         </div>
                     </div>
@@ -267,7 +299,8 @@
                         <div>
                             <h5 class="card-title mb-1">Véhicules</h5>
                             {% if statistics.entities_by_type.Véhicule %}
-                                <span class="badge bg-success">{{ statistics.entities_by_type.Véhicule }} disponible(s)</span>
+                            <span class="badge bg-success">{{ statistics.entities_by_type.Véhicule }}
+                                disponible(s)</span>
                             {% endif %}
                         </div>
                     </div>
@@ -289,7 +322,7 @@
                         <div>
                             <h5 class="card-title mb-1">Stations</h5>
                             {% if statistics.entities_by_type.Station %}
-                                <span class="badge bg-warning">{{ statistics.entities_by_type.Station }} station(s)</span>
+                            <span class="badge bg-warning">{{ statistics.entities_by_type.Station }} station(s)</span>
                             {% endif %}
                         </div>
                     </div>
@@ -311,7 +344,7 @@
                         <div>
                             <h5 class="card-title mb-1">Trafic</h5>
                             {% if statistics.entities_by_type.Route %}
-                                <span class="badge bg-danger">{{ statistics.entities_by_type.Route }} route(s)</span>
+                            <span class="badge bg-danger">{{ statistics.entities_by_type.Route }} route(s)</span>
                             {% endif %}
                         </div>
                     </div>
@@ -333,7 +366,7 @@
                         <div>
                             <h5 class="card-title mb-1">Trajets</h5>
                             {% if statistics.entities_by_type.Trajet %}
-                                <span class="badge bg-info">{{ statistics.entities_by_type.Trajet }} trajet(s)</span>
+                            <span class="badge bg-info">{{ statistics.entities_by_type.Trajet }} trajet(s)</span>
                             {% endif %}
                         </div>
                     </div>
@@ -407,8 +440,10 @@
                     <div class="question-example" onclick="askQuestion('Trouve les véhicules électriques disponibles')">
                         <i class="fas fa-arrow-right text-success"></i> "Trouve les véhicules électriques disponibles"
                     </div>
-                    <div class="question-example" onclick="askQuestion('Où se trouvent les stations avec leurs coordonnées?')">
-                        <i class="fas fa-arrow-right text-success"></i> "Où se trouvent les stations avec leurs coordonnées?"
+                    <div class="question-example"
+                        onclick="askQuestion('Où se trouvent les stations avec leurs coordonnées?')">
+                        <i class="fas fa-arrow-right text-success"></i> "Où se trouvent les stations avec leurs
+                        coordonnées?"
                     </div>
                     <div class="question-example" onclick="askQuestion('Quel est le coût moyen des trajets?')">
                         <i class="fas fa-arrow-right text-success"></i> "Quel est le coût moyen des trajets?"
@@ -441,13 +476,13 @@
     }
 
     // Animation des cartes au scroll
-    $(document).ready(function() {
+    $(document).ready(function () {
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
         };
 
-        const observer = new IntersectionObserver(function(entries) {
+        const observer = new IntersectionObserver(function (entries) {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.style.opacity = '1';
@@ -456,7 +491,7 @@
             });
         }, observerOptions);
 
-        $('.card').each(function() {
+        $('.card').each(function () {
             this.style.opacity = '0';
             this.style.transform = 'translateY(20px)';
             this.style.transition = 'opacity 0.6s ease, transform 0.6s ease';

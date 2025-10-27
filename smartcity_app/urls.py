@@ -32,6 +32,9 @@ urlpatterns = [
     # Modules de gestion
     path('trajets/', include('smartcity_app.gestion_trajets.urls')),
     
+    # Module de paiement Stripe
+    path('payment/', include('smartcity_app.payment_service.urls')),
+    
     # Redirections pour compatibilité
     path('home/', RedirectView.as_view(pattern_name='smartcity_app:index', permanent=True)),
     path('dashboard/', RedirectView.as_view(pattern_name='smartcity_app:index', permanent=True)),

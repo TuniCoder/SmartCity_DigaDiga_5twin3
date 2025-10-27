@@ -10,6 +10,9 @@ import logging
 from typing import Dict, List, Optional, Tuple
 from django.conf import settings
 
+# Import des requêtes SPARQL pour les locations
+from ..gestion_location.location_sparql import SPARQL_QUERIES as LOCATION_SPARQL_QUERIES
+
 logger = logging.getLogger(__name__)
 
 # Configuration OpenAI
@@ -38,12 +41,19 @@ class AIQueryProcessor:
     def __init__(self):
         self.entity_patterns = {
             'utilisateur': ['utilisateur', 'user', 'personne', 'client', 'usager'],
-            'vehicule': ['véhicule', 'vehicle', 'voiture', 'vélo', 'bike', 'car', 'auto'],
+            'voiture': ['voiture', 'voitures', 'auto', 'car', 'automobile', 'véhicule particulier'],
+            'velo': ['vélo', 'vélos', 'velo', 'velos', 'bike', 'bicyclette', 'cyclisme'],
+            'bus': ['bus', 'autobus', 'transport en commun', 'transport public'],
+            'moto': ['moto', 'motos', 'motocyclette', 'motorcycle'],
+            'trottinette': ['trottinette', 'trottinettes', 'scooter électrique', 'e-scooter'],
+            'camion': ['camion', 'camions', 'truck', 'poids lourd', 'utilitaire'],
+            'vehicule': ['véhicule', 'véhicules', 'vehicle', 'vehicles', 'tous les véhicules'],
             'station': ['station', 'arrêt', 'stop', 'parking', 'borne', 'gare'],
             'trajet': ['trajet', 'voyage', 'trip', 'parcours', 'route', 'itinéraire'],
             'trafic': ['trafic', 'traffic', 'circulation', 'transport', 'ligne'],
             'capteur': ['capteur', 'sensor', 'détecteur', 'capteurs', 'sensors'],
-            'zone_trafic': ['zone', 'zone de trafic', 'zone trafic', 'secteur', 'région']
+            'zone_trafic': ['zone', 'zone de trafic', 'zone trafic', 'secteur', 'région'],
+            'location': ['location', 'rental', 'réservation', 'reservation']
         }
 
         self.action_patterns = {
@@ -149,11 +159,23 @@ class AIQueryProcessor:
         if 'électrique' in question:
             filters.append({'property': 'typeVéhicule', 'value': 'électrique', 'operator': '='})
         
+        # Détection de couleurs
+        couleurs = ['rouge', 'bleu', 'vert', 'blanc', 'noir', 'jaune', 'orange', 'violet', 'rose', 'gris']
+        for couleur in couleurs:
+            if couleur in question.lower():
+                filters.append({'property': 'couleur', 'value': couleur, 'operator': '='})
+        
+        # Détection de marques courantes
+        marques = ['toyota', 'peugeot', 'renault', 'ford', 'volkswagen', 'bmw', 'mercedes', 'audi', 'citroën', 'hyundai']
+        for marque in marques:
+            if marque in question.lower():
+                filters.append({'property': 'marque', 'value': marque.capitalize(), 'operator': '='})
+        
         # Recherche de noms spécifiques (mots en majuscules ou entre guillemets)
         name_matches = re.findall(r'[A-Z][a-z]+|"([^"]*)"', question)
         for match in name_matches:
             name = match if isinstance(match, str) else match[0]
-            if len(name) > 2:  # Éviter les mots trop courts
+            if len(name) > 2 and name.lower() not in marques and name.lower() not in couleurs:  # Éviter les duplicatas
                 filters.append({'property': 'nom', 'value': name, 'operator': 'contains'})
         
         return filters
@@ -164,13 +186,20 @@ class AIQueryProcessor:
         # Mappage des entités vers les classes RDF
         entity_mapping = {
             'utilisateur': 'mobility:Utilisateur',
-            'vehicule': 'mobility:Véhicule',
+            'voiture': 'mobility:Voiture',
+            'velo': 'mobility:Vélo', 
+            'bus': 'mobility:Bus',
+            'moto': 'mobility:Moto',
+            'trottinette': 'mobility:Trottinette',
+            'camion': 'mobility:Camion',
+            'vehicule': 'mobility:Véhicule',  # Sera géré spécialement pour tous les véhicules
             'station': 'mobility:Station',
             'trajet': 'mobility:Trajet',
             'trafic': 'mobility:Route',
             'capteur': 'mobility:CapteurTrafic',
             'zone_trafic': 'mobility:ZoneTrafic',
-            'general': 'owl:Thing'
+            'general': 'owl:Thing',
+            'location': 'mobility:Location'
         }
 
         # Mappage des propriétés vers RDF
@@ -179,16 +208,62 @@ class AIQueryProcessor:
                 'utilisateur': 'mobility:nom',
                 'station': 'mobility:nomStation',
                 'trajet': 'mobility:pointDépart',
-                'capteur': 'mobility:nomCapteur'
+                'capteur': 'mobility:nomCapteur',
+                'vehicule': 'mobility:nom',
+                'voiture': 'mobility:nom',
+                'velo': 'mobility:nom',
+                'bus': 'mobility:nom',
+                'moto': 'mobility:nom',
+                'trottinette': 'mobility:nom',
+                'camion': 'mobility:nom'
             },
             'type': {
                 'vehicule': 'mobility:typeVéhicule',
+                'voiture': 'mobility:typeVéhicule',
+                'velo': 'mobility:typeVéhicule',
+                'bus': 'mobility:typeVéhicule',
+                'moto': 'mobility:typeVéhicule',
+                'trottinette': 'mobility:typeVéhicule',
+                'camion': 'mobility:typeVéhicule',
                 'station': 'mobility:typeStation',
                 'capteur': 'mobility:typeCapteur'
             },
             'statut': {
                 'vehicule': 'mobility:statut',
+                'voiture': 'mobility:statut',
+                'velo': 'mobility:statut',
+                'bus': 'mobility:statut',
+                'moto': 'mobility:statut',
+                'trottinette': 'mobility:statut',
+                'camion': 'mobility:statut',
                 'capteur': 'mobility:statutCapteur'
+            },
+            'marque': {
+                'vehicule': 'mobility:marque',
+                'voiture': 'mobility:marque',
+                'velo': 'mobility:marque',
+                'bus': 'mobility:marque',
+                'moto': 'mobility:marque',
+                'trottinette': 'mobility:marque',
+                'camion': 'mobility:marque'
+            },
+            'modele': {
+                'vehicule': 'mobility:modèle',
+                'voiture': 'mobility:modèle',
+                'velo': 'mobility:modèle',
+                'bus': 'mobility:modèle',
+                'moto': 'mobility:modèle',
+                'trottinette': 'mobility:modèle',
+                'camion': 'mobility:modèle'
+            },
+            'couleur': {
+                'vehicule': 'mobility:couleur',
+                'voiture': 'mobility:couleur',
+                'velo': 'mobility:couleur',
+                'bus': 'mobility:couleur',
+                'moto': 'mobility:couleur',
+                'trottinette': 'mobility:couleur',
+                'camion': 'mobility:couleur'
             },
             'position': {
                 'station': ['mobility:latitude', 'mobility:longitude'],
@@ -207,9 +282,21 @@ class AIQueryProcessor:
         select_vars = [main_var]
         where_clauses = []
         
-        # Classe principale
-        rdf_class = entity_mapping.get(entity, 'owl:Thing')
-        where_clauses.append(f'{main_var} rdf:type {rdf_class} .')
+        # Classe principale - traitement spécial pour les véhicules
+        if entity == 'vehicule':
+            # Pour les véhicules, utiliser une union de toutes les classes de véhicules
+            vehicle_classes = ['mobility:Voiture', 'mobility:Vélo', 'mobility:Bus', 'mobility:Moto', 'mobility:Trottinette', 'mobility:Camion']
+            union_clauses = []
+            for vc in vehicle_classes:
+                union_clauses.append(f'{{ {main_var} rdf:type {vc} }}')
+            where_clauses.append('{ ' + ' UNION '.join(union_clauses) + ' }')
+        elif entity in ['voiture', 'velo', 'bus', 'moto', 'trottinette', 'camion']:
+            # Type spécifique de véhicule
+            rdf_class = entity_mapping.get(entity, 'owl:Thing')
+            where_clauses.append(f'{main_var} rdf:type {rdf_class} .')
+        else:
+            rdf_class = entity_mapping.get(entity, 'owl:Thing')
+            where_clauses.append(f'{main_var} rdf:type {rdf_class} .')
         
         # Ajout des propriétés demandées
         for prop in properties:
@@ -283,11 +370,26 @@ class AIQueryProcessor:
             '''
         elif 'véhicule' in question_lower or 'vehicle' in question_lower:
             return '''
-            PREFIX : <http://example.org/mobility-ontology/2025/09#>
-            SELECT ?vehicule ?type ?statut WHERE {
-                ?vehicule a :Vehicule .
-                ?vehicule :type ?type .
-                ?vehicule :statut ?statut .
+            PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            SELECT ?vehicule ?marque ?modele ?statut ?type WHERE {
+                {
+                    ?vehicule rdf:type mobility:Voiture .
+                } UNION {
+                    ?vehicule rdf:type mobility:Vélo .
+                } UNION {
+                    ?vehicule rdf:type mobility:Bus .
+                } UNION {
+                    ?vehicule rdf:type mobility:Moto .
+                } UNION {
+                    ?vehicule rdf:type mobility:Trottinette .
+                } UNION {
+                    ?vehicule rdf:type mobility:Camion .
+                }
+                OPTIONAL { ?vehicule mobility:marque ?marque }
+                OPTIONAL { ?vehicule mobility:modèle ?modele }
+                OPTIONAL { ?vehicule mobility:statut ?statut }
+                ?vehicule rdf:type ?type .
             }
             LIMIT 20
             '''
@@ -321,7 +423,8 @@ class AIQueryProcessor:
             'trajet': 'trajets',
             'trafic': 'données de trafic',
             'capteur': 'capteurs de trafic',
-            'zone_trafic': 'zones de trafic'
+            'zone_trafic': 'zones de trafic',
+            'location': 'locations'
         }
         
         action_names = {
@@ -375,8 +478,8 @@ class SampleQueries:
             # ===== REQUÊTES DE BASE (Version simplifiée) =====
             'station-1': {
                 'name': 'Stations de transport',
-                'question': 'Liste des stations de transport disponibles',
-                'sparql': '''
+                'description': 'Liste des stations de transport disponibles',
+                'query': '''
                 PREFIX : <http://example.org/mobility-ontology/2025/09#>
                 SELECT ?station ?name ?address
                 WHERE {
@@ -390,15 +493,28 @@ class SampleQueries:
             },
             'vehicle-1': {
                 'name': 'Véhicules disponibles',
-                'question': 'Quels véhicules sont disponibles',
-                'sparql': '''
-                PREFIX : <http://example.org/mobility-ontology/2025/09#>
-                SELECT ?vehicule ?type ?statut
+                'description': 'Quels véhicules sont disponibles',
+                'query': '''
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                SELECT ?vehicule ?marque ?modele ?type ?statut
                 WHERE {
-                    ?vehicule a :Vehicule .
-                    ?vehicule :type ?type .
-                    ?vehicule :statut ?statut .
-                    FILTER (?statut = "actif")
+                    {
+                        ?vehicule a mobility:Voiture .
+                    } UNION {
+                        ?vehicule a mobility:Vélo .
+                    } UNION {
+                        ?vehicule a mobility:Bus .
+                    } UNION {
+                        ?vehicule a mobility:Moto .
+                    } UNION {
+                        ?vehicule a mobility:Trottinette .
+                    } UNION {
+                        ?vehicule a mobility:Camion .
+                    }
+                    OPTIONAL { ?vehicule mobility:marque ?marque }
+                    OPTIONAL { ?vehicule mobility:modèle ?modele }
+                    OPTIONAL { ?vehicule mobility:typeVéhicule ?type }
+                    OPTIONAL { ?vehicule mobility:statut ?statut }
                 }
                 LIMIT 20
                 ''',
@@ -406,8 +522,8 @@ class SampleQueries:
             },
             'route-1': {
                 'name': 'Routes disponibles',
-                'question': 'Liste des routes dans la ville',
-                'sparql': '''
+                'description': 'Liste des routes dans la ville',
+                'query': '''
                 PREFIX : <http://example.org/mobility-ontology/2025/09#>
                 SELECT ?route ?nom ?longueur
                 WHERE {
@@ -421,8 +537,8 @@ class SampleQueries:
             },
             'user-1': {
                 'name': 'Utilisateurs actifs',
-                'question': 'Combien d\'utilisateurs sont actifs',
-                'sparql': '''
+                'description': 'Combien d\'utilisateurs sont actifs',
+                'query': '''
                 PREFIX : <http://example.org/mobility-ontology/2025/09#>
                 SELECT ?utilisateur ?nom
                 WHERE {
@@ -436,8 +552,8 @@ class SampleQueries:
             },
             'traffic-1': {
                 'name': 'État du trafic',
-                'question': 'Quel est l\'état du trafic',
-                'sparql': '''
+                'description': 'Quel est l\'état du trafic',
+                'query': '''
                 PREFIX : <http://example.org/mobility-ontology/2025/09#>
                 SELECT ?capteur ?intensite ?heure
                 WHERE {
@@ -477,15 +593,27 @@ class SampleQueries:
                 "query": """
                 PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
                 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-                SELECT ?vehicle ?marque ?modele ?couleur ?type
+                SELECT ?vehicle ?marque ?modele ?couleur ?type ?statut
                 WHERE {
-                    ?vehicle rdf:type mobility:Véhicule .
-                    ?vehicle mobility:statut "disponible" .
+                    {
+                        ?vehicle rdf:type mobility:Voiture .
+                    } UNION {
+                        ?vehicle rdf:type mobility:Vélo .
+                    } UNION {
+                        ?vehicle rdf:type mobility:Bus .
+                    } UNION {
+                        ?vehicle rdf:type mobility:Moto .
+                    } UNION {
+                        ?vehicle rdf:type mobility:Trottinette .
+                    } UNION {
+                        ?vehicle rdf:type mobility:Camion .
+                    }
                     OPTIONAL { ?vehicle mobility:marque ?marque }
                     OPTIONAL { ?vehicle mobility:modèle ?modele }
                     OPTIONAL { ?vehicle mobility:couleur ?couleur }
+                    OPTIONAL { ?vehicle mobility:statut ?statut }
                     ?vehicle rdf:type ?type .
-                    FILTER(?type = mobility:Vélo || ?type = mobility:Voiture)
+                    FILTER(?statut = "disponible" || ?statut = "actif")
                 }
                 ORDER BY ?marque
                 """,
@@ -534,6 +662,28 @@ class SampleQueries:
                 """,
                 "category": "Trajets"
             },
+
+            "user_locations": {
+                "name": "Locations par utilisateur",
+                "description": "Liste toutes les locations avec les utilisateurs qui les ont effectuées",
+                "query": """
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                
+                SELECT DISTINCT ?location ?numero ?statut ?userName ?dateDebut ?prix
+                WHERE {
+                    ?location rdf:type mobility:Location .
+                    ?location mobility:conducteurPrincipal ?userName .
+                    OPTIONAL { ?location mobility:numeroLocation ?numero }
+                    OPTIONAL { ?location mobility:statutLocation ?statut }
+                    OPTIONAL { ?location mobility:dateDebutLocation ?dateDebut }
+                    OPTIONAL { ?location mobility:prixTotalCalcule ?prix }
+                }
+                ORDER BY ?userName
+                """,
+                "category": "Locations"
+                
+            },
             
             "vehicle_statistics": {
                 "name": "Statistiques véhicules",
@@ -544,12 +694,109 @@ class SampleQueries:
                 SELECT ?type (COUNT(?vehicle) as ?count)
                 WHERE {
                     ?vehicle rdf:type ?type .
-                    FILTER(?type = mobility:Vélo || ?type = mobility:Voiture)
+                    FILTER(?type = mobility:Vélo || ?type = mobility:Voiture || ?type = mobility:Bus || ?type = mobility:Moto || ?type = mobility:Trottinette || ?type = mobility:Camion)
                 }
                 GROUP BY ?type
                 ORDER BY DESC(?count)
                 """,
                 "category": "Statistiques"
+            },
+
+            # ===== REQUÊTES VÉHICULES SPÉCIFIQUES =====
+            
+            "electric_vehicles": {
+                "name": "Véhicules électriques",
+                "description": "Liste tous les véhicules électriques",
+                "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                SELECT ?vehicle ?marque ?modele ?type ?batterie ?statut
+                WHERE {
+                    {
+                        ?vehicle rdf:type mobility:Voiture .
+                    } UNION {
+                        ?vehicle rdf:type mobility:Vélo .
+                    } UNION {
+                        ?vehicle rdf:type mobility:Bus .
+                    } UNION {
+                        ?vehicle rdf:type mobility:Moto .
+                    } UNION {
+                        ?vehicle rdf:type mobility:Trottinette .
+                    }
+                    ?vehicle mobility:typeVéhicule ?typeVeh .
+                    FILTER(CONTAINS(LCASE(?typeVeh), "électrique"))
+                    OPTIONAL { ?vehicle mobility:marque ?marque }
+                    OPTIONAL { ?vehicle mobility:modèle ?modele }
+                    OPTIONAL { ?vehicle mobility:niveauBatterie ?batterie }
+                    OPTIONAL { ?vehicle mobility:statut ?statut }
+                    ?vehicle rdf:type ?type .
+                }
+                ORDER BY ?marque
+                """,
+                "category": "Véhicules"
+            },
+
+            "cars_only": {
+                "name": "Voitures uniquement",
+                "description": "Liste toutes les voitures",
+                "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                SELECT ?voiture ?marque ?modele ?couleur ?immatriculation ?statut ?typeVeh
+                WHERE {
+                    ?voiture rdf:type mobility:Voiture .
+                    OPTIONAL { ?voiture mobility:marque ?marque }
+                    OPTIONAL { ?voiture mobility:modèle ?modele }
+                    OPTIONAL { ?voiture mobility:couleur ?couleur }
+                    OPTIONAL { ?voiture mobility:immatriculation ?immatriculation }
+                    OPTIONAL { ?voiture mobility:statut ?statut }
+                    OPTIONAL { ?voiture mobility:typeVéhicule ?typeVeh }
+                }
+                ORDER BY ?marque ?modele
+                """,
+                "category": "Véhicules"
+            },
+
+            "bikes_only": {
+                "name": "Vélos uniquement",
+                "description": "Liste tous les vélos",
+                "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                SELECT ?velo ?marque ?modele ?couleur ?statut ?batterie ?station
+                WHERE {
+                    ?velo rdf:type mobility:Vélo .
+                    OPTIONAL { ?velo mobility:marque ?marque }
+                    OPTIONAL { ?velo mobility:modèle ?modele }
+                    OPTIONAL { ?velo mobility:couleur ?couleur }
+                    OPTIONAL { ?velo mobility:statut ?statut }
+                    OPTIONAL { ?velo mobility:niveauBatterie ?batterie }
+                    OPTIONAL { ?velo mobility:disponibleÀ ?station }
+                }
+                ORDER BY ?marque ?modele
+                """,
+                "category": "Véhicules"
+            },
+
+            "buses_only": {
+                "name": "Bus uniquement", 
+                "description": "Liste tous les bus",
+                "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                SELECT ?bus ?marque ?modele ?ligne ?capacite ?statut ?localisation
+                WHERE {
+                    ?bus rdf:type mobility:Bus .
+                    OPTIONAL { ?bus mobility:marque ?marque }
+                    OPTIONAL { ?bus mobility:modèle ?modele }
+                    OPTIONAL { ?bus mobility:ligne ?ligne }
+                    OPTIONAL { ?bus mobility:capacité ?capacite }
+                    OPTIONAL { ?bus mobility:statut ?statut }
+                    OPTIONAL { ?bus mobility:localisation ?localisation }
+                }
+                ORDER BY ?ligne ?marque
+                """,
+                "category": "Véhicules"
             },
 
             # ===== REQUÊTES GESTION TRAFIC =====
@@ -704,22 +951,101 @@ class SampleQueries:
                 ORDER BY ?dateReservation
                 """,
                 "category": "Réservations"
-            }
+            },
+             "all_locations": {
+    "name": "Toutes les locations",
+    "description": "Liste toutes les locations avec leurs informations de base",
+    "query": """
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+    SELECT DISTINCT ?location ?numero ?statut ?type ?dateDebut ?dateFin ?lieuPrise ?lieuRetour ?conducteur ?prix
+    WHERE {
+        ?location rdf:type mobility:Location .
+        OPTIONAL { ?location mobility:numeroLocation ?numero . }
+        OPTIONAL { ?location mobility:statutLocation ?statut . }
+        OPTIONAL { ?location mobility:typeLocation ?type . }
+        OPTIONAL { ?location mobility:dateDebutLocation ?dateDebut . }
+        OPTIONAL { ?location mobility:dateFinLocation ?dateFin . }
+        OPTIONAL { ?location mobility:lieuPrise ?lieuPrise . }
+        OPTIONAL { ?location mobility:lieuRetour ?lieuRetour . }
+        OPTIONAL { ?location mobility:conducteurPrincipal ?conducteur . }
+        OPTIONAL { ?location mobility:prixTotalCalcule ?prix . }
+    }
+    ORDER BY DESC(?dateDebut)
+    """,
+    "category": "Locations"
+},
+
+
+
+    "location_statistics_by_status": {
+        "name": "Statistiques des locations par statut",
+        "description": "Compte le nombre de locations pour chaque statut",
+        "query": """
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+        
+        SELECT ?statut (COUNT(DISTINCT ?location) as ?count)
+        WHERE {
+            ?location rdf:type mobility:Location .
+            OPTIONAL { ?location mobility:statutLocation ?statut }
+        }
+        GROUP BY ?statut
+        ORDER BY DESC(?count)
+        """,
+        "category": "Statistiques"
+    },
+    
+    # Utilisation des requêtes SPARQL importées depuis location_sparql.py
+    "active_locations": LOCATION_SPARQL_QUERIES["active_locations"],
+    "user_locations_details": LOCATION_SPARQL_QUERIES["user_locations_details"],
+    "all_locations": LOCATION_SPARQL_QUERIES["all_locations"],
+    "user_locations": LOCATION_SPARQL_QUERIES["user_locations"],
+    "location_details": LOCATION_SPARQL_QUERIES["location_details"],
+    "locations_by_vehicle": LOCATION_SPARQL_QUERIES["locations_by_vehicle"],
+    "locations_by_date_range": LOCATION_SPARQL_QUERIES["locations_by_date_range"]
         }
     
     @staticmethod
     def _get_example_questions():
         """Return example questions for the AI assistant - Fusionné"""
+        # Deux exemples simples et robustes par type d'entité, basés sur la structure
+        # présente dans `mobility_ontology_clean.rdf` (instances et propriétés courantes).
         return [
-            
+            # Utilisateurs
             "Liste tous les utilisateurs",
-            "Combien de véhicules sont disponibles?",
-            "Montre-moi les stations avec leurs coordonnées",
-            "Quels sont les trajets de plus de 5km?",
-            "Trouve les véhicules électriques",
-            "Où se trouvent les stations de vélos?",
-            "Liste les utilisateurs de type cycliste",
-            "Quel est le coût moyen des trajets?"
+            "Montre les utilisateurs ayant le rôle 'Administrateur'",
+
+            # Véhicules
+         "Montre-moi les voitures",
+        "Quels sont les vélos disponibles?",
+        "Liste les bus de la ville",
+
+            # Stations
+            "Liste les stations avec leurs coordonnées",
+            "Montre les stations de type 'StationCentre'",
+
+            # Trajets
+            "Liste les trajets dont la distance est supérieure à 5",
+            "Montre les trajets dont le pointDépart contient 'paris'",
+
+            # Capteurs
+            "Liste les capteurs de trafic actifs",
+            "Montre les capteurs avec une précision élevée",
+
+            # Trafic / Routes / Zones
+            "Liste les routes où le niveauCirculation est 'fort'",
+            "Montre les zones de trafic contenant 'centre'",
+
+            # Locations / Réservations
+            "Liste les locations actives",
+            "Montre les réservations pour l'utilisateur avec id 2",
+
+            # Autres (général / fallback)
+            "Donne-moi quelques exemples d'individus (ex. Trajet, Location, Véhicule)",
+            "Affiche les propriétés (labels) associées à une instance donnée"
         ]
 
 

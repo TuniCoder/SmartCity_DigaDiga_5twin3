@@ -309,7 +309,21 @@ PREFIX owl: &lt;http://www.w3.org/2002/07/owl#&gt;</div>
 {% endblock %}
 
 {% block extra_js %}
+<!-- JSON DATA -->
+{% if results %}
+    {{ results|json_script:"results-data" }}
+{% endif %}
+
 <script>
+    // Données des résultats pour l'export
+    let resultsData = null;
+    {% if results %}
+        const resultsDataElement = document.getElementById('results-data');
+        if (resultsDataElement) {
+            resultsData = JSON.parse(resultsDataElement.textContent);
+        }
+    {% endif %}
+
     // Pré-remplir la question depuis l'URL
     $(document).ready(function() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -380,15 +394,15 @@ LIMIT 10`;
 
     // Export des résultats
     function exportResults(format) {
-        {% if results %}
-            const resultsData = {{ results|safe }};
-            
+        if (resultsData && resultsData.length > 0) {
             if (format === 'csv') {
                 exportToCSV(resultsData);
             } else if (format === 'json') {
                 exportToJSON(resultsData);
             }
-        {% endif %}
+        } else {
+            alert('Aucune donnée à exporter');
+        }
     }
 
     function exportToCSV(data) {

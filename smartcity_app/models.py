@@ -12,6 +12,7 @@ from .gestion_vehicules.models import *
 from .gestion_stations.models import *
 from .gestion_trafic.models import *
 from .gestion_trajets.models import *
+from .gestion_location.models import *
 
 
 class UserProfile(models.Model):

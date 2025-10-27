@@ -1,0 +1,670 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reservation-card {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+
+    .reservation-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .statut-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+
+    .statut-en_attente {
+        background: #ffc107;
+        color: black;
+    }
+
+    .statut-confirmee {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .statut-en_cours {
+        background: #28a745;
+        color: white;
+    }
+
+    .statut-terminee {
+        background: #6c757d;
+        color: white;
+    }
+
+    .statut-annulee {
+        background: #dc3545;
+        color: white;
+    }
+
+    .statut-en_retard {
+        background: #fd7e14;
+        color: white;
+    }
+
+    .filter-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .stats-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .stats-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .btn-action {
+        border-radius: 20px;
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .btn-modifier {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+    }
+
+    .btn-modifier:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .btn-annuler {
+        background: #dc3545;
+        border: none;
+        color: white;
+    }
+
+    .btn-annuler:hover {
+        background: #c82333;
+        color: white;
+    }
+
+    .btn-details {
+        background: #17a2b8;
+        border: none;
+        color: white;
+    }
+
+    .btn-details:hover {
+        background: #138496;
+        color: white;
+    }
+
+    .pagination-custom .page-link {
+        border-radius: 10px;
+        margin: 0 2px;
+        border: none;
+        color: #667eea;
+    }
+
+    .pagination-custom .page-item.active .page-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+    }
+
+    .no-reservations {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #6c757d;
+    }
+
+    .no-reservations i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .source-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(102, 126, 234, 0.9);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: bold;
+    }
+
+    .rdf-data {
+        background: rgba(102, 126, 234, 0.1);
+        border-left: 4px solid #667eea;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 0 10px 10px 0;
+    }
+
+    .rdf-data h6 {
+        color: #667eea;
+        margin-bottom: 0.5rem;
+    }
+
+    .rdf-data small {
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1">
+                        <i class="fas fa-list text-primary me-2"></i>
+                        Mes Réservations
+                    </h1>
+                    <p class="text-muted mb-0">Gérez vos réservations de véhicules</p>
+                </div>
+                <div class="source-badge">
+                    <i class="fas fa-database me-1"></i>
+                    {{ source_donnees|default:"RDF + SQLite" }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="stats-card">
+                <div class="stats-number">{{ total_reservations }}</div>
+                <div class="stats-label">
+                    <i class="fas fa-list me-1"></i>
+                    Total Réservations
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stats-card">
+                <div class="stats-number">{{ reservations_actives }}</div>
+                <div class="stats-label">
+                    <i class="fas fa-clock me-1"></i>
+                    Réservations Actives
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stats-card">
+                <div class="stats-number">{{ reservations_rdf|length }}</div>
+                <div class="stats-label">
+                    <i class="fas fa-database me-1"></i>
+                    Données RDF
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="filter-section">
+        <h5 class="mb-3">
+            <i class="fas fa-filter me-2"></i>
+            Filtrer les Réservations
+        </h5>
+        <form method="GET" class="row">
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Statut</label>
+                <select name="statut" class="form-select">
+                    <option value="">Tous les statuts</option>
+                    {% for value, label in statuts_choices %}
+                    <option value="{{ value }}" {% if filtres.statut == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Type</label>
+                <select name="type" class="form-select">
+                    <option value="">Tous les types</option>
+                    {% for value, label in types_choices %}
+                    <option value="{{ value }}" {% if filtres.type == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 mb-3">
+                <label class="form-label">Date Début</label>
+                <input type="date" name="date_debut" class="form-control" value="{{ filtres.date_debut }}">
+            </div>
+            <div class="col-md-2 mb-3">
+                <label class="form-label">Date Fin</label>
+                <input type="date" name="date_fin" class="form-control" value="{{ filtres.date_fin }}">
+            </div>
+            <div class="col-md-2 mb-3">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i>
+                        Filtrer
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Actions Rapides -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-bolt text-warning me-2"></i>
+                            Actions Rapides
+                        </h5>
+                        <div>
+                            <a href="{% url 'gestion_location:rechercher_vehicules' %}"
+                                class="btn btn-outline-primary me-2">
+                                <i class="fas fa-plus me-1"></i>
+                                Nouvelle Réservation
+                            </a>
+                            <a href="{% url 'gestion_location:index_location' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-home me-1"></i>
+                                Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des Réservations -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-alt text-primary me-2"></i>
+                        Historique des Réservations
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if reservations or reservations_rdf %}
+                    
+                    {% if reservations %}
+                    {% for reservation in reservations %}
+                    <div class="card reservation-card">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-2">
+                                    <div class="text-center">
+                                        <i class="fas fa-car text-primary" style="font-size: 2rem;"></i>
+                                        <div class="mt-2">
+                                            <span class="statut-badge statut-{{ reservation.statut }}">
+                                                {{ reservation.get_statut_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6 class="mb-1">{{ reservation.numero_reservation }}</h6>
+                                    <p class="text-muted mb-1">
+                                        <i class="fas fa-car me-1"></i>
+                                        {{ reservation.vehicule.type_location.nom }}
+                                    </p>
+                                    <p class="text-muted mb-1">
+                                        <i class="fas fa-user me-1"></i>
+                                        {{ reservation.conducteur_principal }}
+                                    </p>
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        {{ reservation.lieu_prise }} → {{ reservation.lieu_retour }}
+                                    </p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p class="mb-1">
+                                        <strong>Début:</strong> {{ reservation.date_debut|date:"d/m/Y H:i" }}
+                                    </p>
+                                    <p class="mb-1">
+                                        <strong>Fin:</strong> {{ reservation.date_fin|date:"d/m/Y H:i" }}
+                                    </p>
+                                    <p class="mb-0">
+                                        <strong>Durée:</strong> {{ reservation.duree_location|floatformat:1 }}h
+                                    </p>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="text-center">
+                                        <h5 class="text-primary mb-1">{{ reservation.prix_total_calcule }}€</h5>
+                                        <p class="text-muted small mb-2">
+                                            Caution: {{ reservation.caution_payee }}€
+                                        </p>
+                                        {% if reservation.note_experience %}
+                                        <div class="mb-2">
+                                            {% for i in "12345" %}
+                                            {% if forloop.counter <= reservation.note_experience %} <i
+                                                class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                <i class="far fa-star text-muted"></i>
+                                                {% endif %}
+                                                {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-1">
+                                    <div class="btn-group-vertical">
+                                        <a href="{% url 'gestion_location:detail_location' reservation.id %}"
+                                            class="btn btn-details btn-action btn-sm mb-1">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if reservation.statut in 'en_attente,confirmee' %}
+                                        <button class="btn btn-modifier btn-action btn-sm mb-1"
+                                            data-reservation-id="{{ reservation.id }}"
+                                            data-lieu-prise="{{ reservation.lieu_prise|escapejs }}"
+                                            data-lieu-retour="{{ reservation.lieu_retour|escapejs }}"
+                                            data-conducteur-principal="{{ reservation.conducteur_principal|escapejs }}"
+                                            data-conducteur-secondaire="{{ reservation.conducteur_secondaire|default:''|escapejs }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-annuler btn-action btn-sm"
+                                            data-reservation-id="{{ reservation.id }}">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                    <nav aria-label="Pagination des réservations">
+                        <ul class="pagination pagination-custom justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">&laquo; Première</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédente</a>
+                            </li>
+                            {% endif %}
+
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivante</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Dernière
+                                    &raquo;</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    {% else %}
+                    {# Affichage simplifié pour les réservations provenant uniquement de l'ontologie RDF #}
+                    {% for res_rdf in reservations_rdf %}
+                    <div class="card reservation-card">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-2">
+                                    <div class="text-center">
+                                        <i class="fas fa-database text-primary" style="font-size: 2rem;"></i>
+                                        <div class="mt-2">
+                                            <span
+                                                class="statut-badge statut-{{ res_rdf.statutLocation|default:'inconnu' }}">
+                                                {{ res_rdf.statutLocation|default:'Inconnu' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6 class="mb-1">{{ res_rdf.numeroLocation|default:'N/A' }}</h6>
+                                    <p class="text-muted mb-1">
+                                        <i class="fas fa-user me-1"></i>
+                                        {{ res_rdf.conducteurPrincipal|default:'-' }}
+                                    </p>
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        {{ res_rdf.lieuPrise|default:'-' }} → {{ res_rdf.lieuRetour|default:'-' }}
+                                    </p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p class="mb-1">
+                                        <strong>Début:</strong> {{ res_rdf.dateDebutLocation|default:'-' }}
+                                    </p>
+                                    <p class="mb-1">
+                                        <strong>Fin:</strong> {{ res_rdf.dateFinLocation|default:'-' }}
+                                    </p>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="text-center">
+                                        <h5 class="text-primary mb-1">{{ res_rdf.prixTotalCalcule|default:'-' }}€</h5>
+                                        <p class="text-muted small mb-2">
+                                            Caution: {{ res_rdf.cautionPayee|default:'-' }}€
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-1">
+                                    <div class="btn-group-vertical">
+                                        <a href="{% url 'gestion_location:detail_location' res_rdf.numeroLocation %}"
+                                           class="btn btn-details btn-action btn-sm mb-1">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% else %}
+                    <div class="no-reservations">
+                        <i class="fas fa-calendar-times"></i>
+                        <h5>Aucune réservation trouvée</h5>
+                        <p>Vous n'avez pas encore de réservations ou elles ne correspondent pas aux filtres
+                            sélectionnés.</p>
+                        <a href="{% url 'gestion_location:rechercher_vehicules' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>
+                            Créer une Réservation
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Modification -->
+<div class="modal fade" id="modifierModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>
+                    Modifier la Réservation
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="modifierForm" method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" id="reservationId" name="reservation_id">
+
+                    <div class="mb-3">
+                        <label class="form-label">Lieu de Prise</label>
+                        <input type="text" name="lieu_prise" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Lieu de Retour</label>
+                        <input type="text" name="lieu_retour" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Conducteur Principal</label>
+                        <input type="text" name="conducteur_principal" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Conducteur Secondaire</label>
+                        <input type="text" name="conducteur_secondaire" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>
+                        Sauvegarder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmation d'Annulation -->
+<div class="modal fade" id="annulerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Confirmer l'Annulation
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir annuler cette réservation ?</p>
+                <p class="text-muted small">Cette action est irréversible et le véhicule sera rendu disponible.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Non, garder</button>
+                <form id="annulerForm" method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" id="annulerReservationId" name="reservation_id">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times me-2"></i>
+                        Oui, annuler
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function modifierReservation(reservationId, data) {
+        document.getElementById('reservationId').value = reservationId;
+        document.getElementById('modifierForm').action =
+            `{% url 'gestion_location:modifier_location' 0 %}`.replace('0', reservationId);
+
+        // Pré-remplir les champs du formulaire si des données sont fournies
+        if (data) {
+            const lieuPriseInput = document.querySelector('#modifierForm [name="lieu_prise"]');
+            const lieuRetourInput = document.querySelector('#modifierForm [name="lieu_retour"]');
+            const conducteurPrincipalInput = document.querySelector('#modifierForm [name="conducteur_principal"]');
+            const conducteurSecondaireInput = document.querySelector('#modifierForm [name="conducteur_secondaire"]');
+
+            if (lieuPriseInput && data.lieuPrise !== undefined) lieuPriseInput.value = data.lieuPrise;
+            if (lieuRetourInput && data.lieuRetour !== undefined) lieuRetourInput.value = data.lieuRetour;
+            if (conducteurPrincipalInput && data.conducteurPrincipal !== undefined) conducteurPrincipalInput.value = data.conducteurPrincipal;
+            if (conducteurSecondaireInput && data.conducteurSecondaire !== undefined) conducteurSecondaireInput.value = data.conducteurSecondaire;
+        }
+
+        const modal = new bootstrap.Modal(document.getElementById('modifierModal'));
+        modal.show();
+    }
+
+    function annulerReservation(reservationId) {
+        document.getElementById('annulerReservationId').value = reservationId;
+        document.getElementById('annulerForm').action =
+            `{% url 'gestion_location:annuler_location' 0 %}`.replace('0', reservationId);
+
+        const modal = new bootstrap.Modal(document.getElementById('annulerModal'));
+        modal.show();
+    }
+
+    // Délégué: gérer les clics sur les boutons modifier/annuler sans inline onclick
+    document.addEventListener('click', function (e) {
+        const modBtn = e.target.closest('.btn-modifier');
+        if (modBtn) {
+            const id = modBtn.getAttribute('data-reservation-id');
+            if (id) {
+                // Collecter les données pré-encodées
+                const data = {
+                    lieuPrise: modBtn.getAttribute('data-lieu-prise') || '',
+                    lieuRetour: modBtn.getAttribute('data-lieu-retour') || '',
+                    conducteurPrincipal: modBtn.getAttribute('data-conducteur-principal') || '',
+                    conducteurSecondaire: modBtn.getAttribute('data-conducteur-secondaire') || ''
+                };
+                modifierReservation(id, data);
+            }
+            return;
+        }
+
+        const annBtn = e.target.closest('.btn-annuler');
+        if (annBtn) {
+            const id = annBtn.getAttribute('data-reservation-id');
+            if (id) annulerReservation(id);
+            return;
+        }
+    });
+
+    // Animation des cartes au survol
+    document.addEventListener('DOMContentLoaded', function () {
+        const cards = document.querySelectorAll('.reservation-card');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function () {
+                this.style.transform = 'translateY(-3px)';
+            });
+            card.addEventListener('mouseleave', function () {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    });
+</script>
+{% endblock %}

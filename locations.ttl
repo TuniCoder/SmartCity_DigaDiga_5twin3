@@ -1,0 +1,38 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <http://schema.org/> .
+@prefix loc: <http://smartcity.org/location/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+loc:LOC20251027F4FA5054 
+    rdf:type schema:Reservation ;
+    schema:customer "anas" ;
+    schema:fromLocation "sousa" ;
+    schema:toLocation "sousa" ;
+    schema:startDate "2025-10-29T10:25:00+01:00"^^xsd:dateTime ;
+    schema:endDate "2025-10-30T10:25:00+01:00"^^xsd:dateTime ;
+    schema:price "600.0"^^xsd:decimal ;
+    schema:deposit "500.0"^^xsd:decimal ;
+    schema:status "en_attente" .
+
+loc:LOC202510277FD07522
+    rdf:type schema:Reservation ;
+    schema:customer "anas" ;
+    schema:fromLocation "bardo" ;
+    schema:toLocation "manouba" ;
+    schema:startDate "2025-10-28T10:46:00+01:00"^^xsd:dateTime ;
+    schema:endDate "2025-10-30T10:46:00+01:00"^^xsd:dateTime ;
+    schema:price "288.0"^^xsd:decimal ;
+    schema:deposit "150.0"^^xsd:decimal ;
+    schema:status "en_attente" .
+
+loc:LOC20251026C0F6E2B9
+    rdf:type schema:Reservation ;
+    schema:customer "anas" ;
+    schema:fromLocation "bardo" ;
+    schema:toLocation "ariena" ;
+    schema:startDate "2025-10-27T20:39:00+01:00"^^xsd:dateTime ;
+    schema:endDate "2025-10-28T20:39:00+01:00"^^xsd:dateTime ;
+    schema:price "600.0"^^xsd:decimal ;
+    schema:deposit "500.0"^^xsd:decimal ;
+    schema:status "en_cours" .
