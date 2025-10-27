@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+    .confirmation-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .warning-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .vehicle-info {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .info-value {
+        color: #666;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .status-actif { background-color: #d4edda; color: #155724; }
+    .status-maintenance { background-color: #fff3cd; color: #856404; }
+    .status-hors_service { background-color: #f8d7da; color: #721c24; }
+    .status-reserve { background-color: #cce5ff; color: #004085; }
+    
+    .warning-box {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+    }
+    
+    .btn-secondary {
+        border-radius: 25px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+    }
+    
+    .rdf-indicator {
+        background: #dc3545;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: inline-block;
+        margin-top: 1rem;
+    }
+    
+    .consequences-list {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .consequences-list ul {
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+    
+    .consequences-list li {
+        margin-bottom: 0.5rem;
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">{{ page_title }}</h1>
+                    <p class="text-muted mb-0">Confirmation de suppression du véhicule</p>
+                </div>
+                <div>
+                    <a href="{% url 'gestion_vehicules:detail_vehicule' vehicule.id %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Retour au détail
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="confirmation-card">
+                <div class="warning-header">
+                    <h4 class="mb-2"><i class="bi bi-exclamation-triangle"></i> Confirmation de Suppression</h4>
+                    <p class="mb-0">Cette action est irréversible</p>
+                </div>
+
+                <!-- Informations du véhicule -->
+                <div class="vehicle-info">
+                    <h5 class="mb-3"><i class="bi bi-truck"></i> Véhicule à supprimer</h5>
+                    <div class="info-row">
+                        <span class="info-label">Numéro d'Identification</span>
+                        <span class="info-value">{{ vehicule.numero_identification }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Type de Véhicule</span>
+                        <span class="info-value">{{ vehicule.type_vehicule.nom }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Catégorie</span>
+                        <span class="info-value">{{ vehicule.type_vehicule.get_categorie_display }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Statut</span>
+                        <span class="info-value">
+                            <span class="status-badge status-{{ vehicule.statut }}">
+                                {{ vehicule.get_statut_display }}
+                            </span>
+                        </span>
+                    </div>
+                    {% if vehicule.immatriculation %}
+                    <div class="info-row">
+                        <span class="info-label">Immatriculation</span>
+                        <span class="info-value">{{ vehicule.immatriculation }}</span>
+                    </div>
+                    {% endif %}
+                    {% if vehicule.localisation_actuelle %}
+                    <div class="info-row">
+                        <span class="info-label">Localisation</span>
+                        <span class="info-value">{{ vehicule.localisation_actuelle }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="info-row">
+                        <span class="info-label">Date de Mise en Service</span>
+                        <span class="info-value">{{ vehicule.date_mise_en_service|date:"d/m/Y à H:i" }}</span>
+                    </div>
+                </div>
+
+                <!-- Avertissement -->
+                <div class="warning-box">
+                    <h6 class="mb-3"><i class="bi bi-exclamation-triangle text-warning"></i> Attention !</h6>
+                    <p class="mb-0">
+                        Vous êtes sur le point de supprimer définitivement ce véhicule. Cette action supprimera :
+                    </p>
+                </div>
+
+                <!-- Conséquences -->
+                <div class="consequences-list">
+                    <h6 class="mb-3"><i class="bi bi-list-ul"></i> Conséquences de la suppression</h6>
+                    <ul>
+                        <li><strong>Base de données Django :</strong> Toutes les données du véhicule seront supprimées</li>
+                        <li><strong>Ontologie RDF :</strong> Le véhicule sera automatiquement supprimé de l'ontologie</li>
+                        <li><strong>Historique de maintenance :</strong> Tous les enregistrements de maintenance seront perdus</li>
+                        <li><strong>Historique d'utilisation :</strong> Tous les enregistrements d'utilisation seront perdus</li>
+                        <li><strong>Relations :</strong> Toutes les relations avec d'autres entités seront supprimées</li>
+                    </ul>
+                </div>
+
+                <!-- Formulaire de confirmation -->
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                        <label class="form-check-label" for="confirmDelete">
+                            <strong>Je confirme vouloir supprimer définitivement ce véhicule</strong>
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="confirmRDF" required>
+                        <label class="form-check-label" for="confirmRDF">
+                            <strong>Je comprends que cette action supprimera aussi le véhicule de l'ontologie RDF</strong>
+                        </label>
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="rdf-indicator">
+                            <i class="bi bi-exclamation-triangle"></i> Suppression automatique de l'ontologie RDF
+                        </div>
+                        <div>
+                            <a href="{% url 'gestion_vehicules:detail_vehicule' vehicule.id %}" class="btn btn-secondary me-2">
+                                <i class="bi bi-x-circle"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                                <i class="bi bi-trash"></i> Supprimer Définitivement
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmDeleteCheckbox = document.getElementById('confirmDelete');
+        const confirmRDFCheckbox = document.getElementById('confirmRDF');
+        const deleteButton = document.getElementById('deleteButton');
+        const form = document.querySelector('form');
+        
+        // Activer/désactiver le bouton de suppression
+        function toggleDeleteButton() {
+            if (confirmDeleteCheckbox.checked && confirmRDFCheckbox.checked) {
+                deleteButton.disabled = false;
+            } else {
+                deleteButton.disabled = true;
+            }
+        }
+        
+        confirmDeleteCheckbox.addEventListener('change', toggleDeleteButton);
+        confirmRDFCheckbox.addEventListener('change', toggleDeleteButton);
+        
+        // Confirmation finale avant soumission
+        form.addEventListener('submit', function(e) {
+            if (!confirmDeleteCheckbox.checked || !confirmRDFCheckbox.checked) {
+                e.preventDefault();
+                alert('Veuillez cocher toutes les cases de confirmation');
+                return;
+            }
+            
+            // Demander une confirmation finale
+            const vehicleName = '{{ vehicule.numero_identification }}';
+            const finalConfirm = confirm(
+                `Êtes-vous ABSOLUMENT CERTAIN de vouloir supprimer définitivement le véhicule "${vehicleName}" ?\n\n` +
+                'Cette action est IRRÉVERSIBLE et supprimera toutes les données associées !'
+            );
+            
+            if (!finalConfirm) {
+                e.preventDefault();
+            } else {
+                // Afficher un message de suppression en cours
+                deleteButton.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Suppression...';
+                deleteButton.disabled = true;
+            }
+        });
+    });
+    
+    // Ajouter une classe CSS pour l'animation de rotation
+    const style = document.createElement('style');
+    style.textContent = `
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}
