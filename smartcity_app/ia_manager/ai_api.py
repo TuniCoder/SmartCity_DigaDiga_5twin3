@@ -1,11 +1,22 @@
-# smartcity_app/ia_manager/ai_api.py
+"""
+Gestionnaire IA pour interpréter les questions en langage naturel 
+et générer des requêtes SPARQL correspondantes
+"""
 
 import openai
 import os
+import re
+import logging
+from typing import Dict, List, Optional, Tuple
+from django.conf import settings
 
+logger = logging.getLogger(__name__)
+
+# Configuration OpenAI
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def ask_ai(prompt):
+    """Fonction utilitaire pour interroger OpenAI"""
     try:
         response = openai.ChatCompletion.create(
             model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
@@ -20,212 +31,15 @@ def ask_ai(prompt):
     except Exception as e:
         return f"❌ AI Error: {e}"
 
-class AIProcessor:
-    """AI processor for SmartCity queries"""
-    
-    def __call__(self, prompt):
-        """Allow AIProcessor to be called as a function for backward compatibility"""
-        return ask_ai(prompt)
-    
-    def process_natural_language_query(self, question):
-        """Process a natural language question and generate SPARQL query"""
-        try:
-            # Simple placeholder implementation
-            # In a real implementation, this would use OpenAI to convert natural language to SPARQL
-            
-            response = {
-                'success': True,
-                'sparql_query': self._generate_simple_sparql(question),
-                'explanation': f"Traduction de la question '{question}' en requête SPARQL",
-                'detected_entity': self._detect_entity(question),
-                'detected_action': self._detect_action(question),
-                'detected_properties': [],
-                'detected_filters': []
-            }
-            return response
-        except Exception as e:
-            return {
-                'success': False,
-                'error': str(e),
-                'suggestion': []
-            }
-    
-    def _generate_simple_sparql(self, question):
-        """Generate a simple SPARQL query based on the question"""
-        # This is a simplified implementation
-        # A real implementation would use AI to generate proper SPARQL
-        
-        question_lower = question.lower()
-        
-        if 'station' in question_lower or 'gare' in question_lower:
-            return '''
-            PREFIX : <http://example.org/mobility-ontology/2025/09#>
-            SELECT ?station ?nom ?adresse WHERE {
-                ?station a :StationTransport .
-                ?station :nom ?nom .
-                OPTIONAL { ?station :adresse ?adresse . }
-            }
-            LIMIT 20
-            '''
-        elif 'véhicule' in question_lower or 'vehicle' in question_lower:
-            return '''
-            PREFIX : <http://example.org/mobility-ontology/2025/09#>
-            SELECT ?vehicule ?type ?statut WHERE {
-                ?vehicule a :Vehicule .
-                ?vehicule :type ?type .
-                ?vehicule :statut ?statut .
-            }
-            LIMIT 20
-            '''
-        else:
-            # Generic query
-            return '''
-            PREFIX : <http://example.org/mobility-ontology/2025/09#>
-            SELECT ?s ?p ?o WHERE {
-                ?s ?p ?o .
-            }
-            LIMIT 20
-            '''
-    
-    def _detect_entity(self, question):
-        """Detect entity type from question"""
-        question_lower = question.lower()
-        if 'station' in question_lower or 'gare' in question_lower:
-            return 'StationTransport'
-        elif 'véhicule' in question_lower or 'vehicle' in question_lower:
-            return 'Vehicule'
-        elif 'route' in question_lower or 'street' in question_lower:
-            return 'Route'
-        return None
-    
-    def _detect_action(self, question):
-        """Detect action from question"""
-        question_lower = question.lower()
-        if 'liste' in question_lower or 'show' in question_lower or 'get' in question_lower:
-            return 'SELECT'
-        elif 'count' in question_lower or 'combien' in question_lower or 'nombre' in question_lower:
-            return 'COUNT'
-        return 'SELECT'
-
-# Create instance for backward compatibility
-ai_processor = AIProcessor()
-
-class SampleQueries:
-    """Predefined SPARQL queries for SmartCity ontology"""
-    
-    @staticmethod
-    def get_predefined_queries():
-        """Return dictionary of predefined queries organized by category"""
-        return {
-            'station-1': {
-                'name': 'Stations de transport',
-                'question': 'Liste des stations de transport disponibles',
-                'sparql': '''
-                PREFIX : <http://example.org/mobility-ontology/2025/09#>
-                SELECT ?station ?name ?address
-                WHERE {
-                    ?station a :StationTransport .
-                    ?station :nom ?name .
-                    OPTIONAL { ?station :adresse ?address . }
-                }
-                LIMIT 20
-                ''',
-                'category': 'Stations'
-            },
-            'vehicle-1': {
-                'name': 'Véhicules disponibles',
-                'question': 'Quels véhicules sont disponibles',
-                'sparql': '''
-                PREFIX : <http://example.org/mobility-ontology/2025/09#>
-                SELECT ?vehicule ?type ?statut
-                WHERE {
-                    ?vehicule a :Vehicule .
-                    ?vehicule :type ?type .
-                    ?vehicule :statut ?statut .
-                    FILTER (?statut = "actif")
-                }
-                LIMIT 20
-                ''',
-                'category': 'Véhicules'
-            },
-            'route-1': {
-                'name': 'Routes disponibles',
-                'question': 'Liste des routes dans la ville',
-                'sparql': '''
-                PREFIX : <http://example.org/mobility-ontology/2025/09#>
-                SELECT ?route ?nom ?longueur
-                WHERE {
-                    ?route a :Route .
-                    ?route :nom ?nom .
-                    OPTIONAL { ?route :longueur ?longueur . }
-                }
-                LIMIT 20
-                ''',
-                'category': 'Infrastructure'
-            },
-            'user-1': {
-                'name': 'Utilisateurs actifs',
-                'question': 'Combien d\'utilisateurs sont actifs',
-                'sparql': '''
-                PREFIX : <http://example.org/mobility-ontology/2025/09#>
-                SELECT ?utilisateur ?nom
-                WHERE {
-                    ?utilisateur a :Utilisateur .
-                    ?utilisateur :nom ?nom .
-                    ?utilisateur :statut "actif" .
-                }
-                LIMIT 20
-                ''',
-                'category': 'Utilisateurs'
-            },
-            'traffic-1': {
-                'name': 'État du trafic',
-                'question': 'Quel est l\'état du trafic',
-                'sparql': '''
-                PREFIX : <http://example.org/mobility-ontology/2025/09#>
-                SELECT ?capteur ?intensite ?heure
-                WHERE {
-                    ?capteur a :CapteurTrafic .
-                    ?capteur :intensiteTrafic ?intensite .
-                    ?capteur :timestamp ?heure .
-                }
-                ORDER BY DESC(?heure)
-                LIMIT 20
-                ''',
-                'category': 'Trafic'
-            }
-        }
-    
-    @staticmethod
-    def _get_example_questions():
-        """Return example questions for the AI assistant"""
-        return [
-            "Quelles sont les stations de métro près de moi ?",
-            "Combien de vélos sont disponibles dans la ville ?",
-            "Quels sont les itinéraires pour aller à l'aéroport ?",
-            "Y a-t-il des embouteillages sur la route principale ?",
-            "Quels transports sont accessibles aux personnes à mobilité réduite ?"
-]
-"""
-Gestionnaire IA pour interpréter les questions en langage naturel 
-et générer des requêtes SPARQL correspondantes
-"""
-
-import re
-import logging
-from typing import Dict, List, Optional, Tuple
-from django.conf import settings
-
-logger = logging.getLogger(__name__)
 
 class AIQueryProcessor:
-    """Processeur IA pour convertir langage naturel en SPARQL"""
+    """Processeur IA pour convertir langage naturel en SPARQL - Version complète"""
     
     def __init__(self):
         self.entity_patterns = {
             'utilisateur': ['utilisateur', 'user', 'personne', 'client', 'usager'],
             'vehicule': ['véhicule', 'vehicle', 'voiture', 'vélo', 'bike', 'car', 'auto'],
-            'station': ['station', 'arrêt', 'stop', 'parking', 'borne'],
+            'station': ['station', 'arrêt', 'stop', 'parking', 'borne', 'gare'],
             'trajet': ['trajet', 'voyage', 'trip', 'parcours', 'route', 'itinéraire'],
             'trafic': ['trafic', 'traffic', 'circulation', 'transport', 'ligne'],
             'capteur': ['capteur', 'sensor', 'détecteur', 'capteurs', 'sensors'],
@@ -233,8 +47,8 @@ class AIQueryProcessor:
         }
 
         self.action_patterns = {
-            'lister': ['liste', 'lister', 'affiche', 'montre', 'voir', 'trouver', 'chercher'],
-            'compter': ['compte', 'combien', 'nombre', 'total', 'quantité'],
+            'lister': ['liste', 'lister', 'affiche', 'montre', 'voir', 'trouver', 'chercher', 'show', 'get'],
+            'compter': ['compte', 'combien', 'nombre', 'total', 'quantité', 'count'],
             'filtrer': ['avec', 'ayant', 'qui ont', 'où', 'filter', 'condition'],
             'localiser': ['où', 'localisation', 'position', 'situé', 'coordonnées'],
             'analyser': ['analyser', 'analyse', 'étudier', 'examiner', 'vérifier']
@@ -252,6 +66,10 @@ class AIQueryProcessor:
             'frequence': ['fréquence', 'frequency', 'intervalle', 'mesure'],
             'vitesse': ['vitesse', 'speed', 'vélocité', 'km/h']
         }
+    
+    def __call__(self, prompt):
+        """Allow AIQueryProcessor to be called as a function for backward compatibility"""
+        return ask_ai(prompt)
     
     def process_natural_language_query(self, question: str) -> Dict:
         """
@@ -351,7 +169,8 @@ class AIQueryProcessor:
             'trajet': 'mobility:Trajet',
             'trafic': 'mobility:Route',
             'capteur': 'mobility:CapteurTrafic',
-            'zone_trafic': 'mobility:ZoneTrafic'
+            'zone_trafic': 'mobility:ZoneTrafic',
+            'general': 'owl:Thing'
         }
 
         # Mappage des propriétés vers RDF
@@ -425,6 +244,9 @@ class AIQueryProcessor:
         # Construction de la requête finale
         if action == 'compter':
             sparql_query = f"""
+            PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
             SELECT (COUNT(DISTINCT {main_var}) as ?count)
             WHERE {{
                 {' '.join(where_clauses)}
@@ -432,6 +254,9 @@ class AIQueryProcessor:
             """
         else:
             sparql_query = f"""
+            PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
             SELECT DISTINCT {' '.join(select_vars)}
             WHERE {{
                 {' '.join(where_clauses)}
@@ -442,6 +267,51 @@ class AIQueryProcessor:
         
         return sparql_query.strip()
     
+    def _generate_simple_sparql(self, question):
+        """Generate a simple SPARQL query based on the question - For backward compatibility"""
+        question_lower = question.lower()
+        
+        if 'station' in question_lower or 'gare' in question_lower:
+            return '''
+            PREFIX : <http://example.org/mobility-ontology/2025/09#>
+            SELECT ?station ?nom ?adresse WHERE {
+                ?station a :StationTransport .
+                ?station :nom ?nom .
+                OPTIONAL { ?station :adresse ?adresse . }
+            }
+            LIMIT 20
+            '''
+        elif 'véhicule' in question_lower or 'vehicle' in question_lower:
+            return '''
+            PREFIX : <http://example.org/mobility-ontology/2025/09#>
+            SELECT ?vehicule ?type ?statut WHERE {
+                ?vehicule a :Vehicule .
+                ?vehicule :type ?type .
+                ?vehicule :statut ?statut .
+            }
+            LIMIT 20
+            '''
+        else:
+            # Generic query
+            return '''
+            PREFIX : <http://example.org/mobility-ontology/2025/09#>
+            SELECT ?s ?p ?o WHERE {
+                ?s ?p ?o .
+            }
+            LIMIT 20
+            '''
+    
+    def _detect_entity(self, question):
+        """Detect entity type from question - For backward compatibility"""
+        question_lower = question.lower()
+        if 'station' in question_lower or 'gare' in question_lower:
+            return 'StationTransport'
+        elif 'véhicule' in question_lower or 'vehicle' in question_lower:
+            return 'Vehicule'
+        elif 'route' in question_lower or 'street' in question_lower:
+            return 'Route'
+        return None
+    
     def _generate_explanation(self, entity: str, action: str, properties: List[str], filters: List[Dict]) -> str:
         """Génère une explication de la requête générée"""
         entity_names = {
@@ -449,7 +319,9 @@ class AIQueryProcessor:
             'vehicule': 'véhicules', 
             'station': 'stations',
             'trajet': 'trajets',
-            'trafic': 'données de trafic'
+            'trafic': 'données de trafic',
+            'capteur': 'capteurs de trafic',
+            'zone_trafic': 'zones de trafic'
         }
         
         action_names = {
@@ -483,21 +355,109 @@ class AIQueryProcessor:
             "Trouve les véhicules électriques",
             "Où se trouvent les stations de vélos?",
             "Liste les utilisateurs de type cycliste",
-            "Quel est le coût moyen des trajets?"
+            "Quel est le coût moyen des trajets?",
+            "Quelles sont les stations de métro près de moi ?",
+            "Combien de vélos sont disponibles dans la ville ?",
+            "Quels sont les itinéraires pour aller à l'aéroport ?",
+            "Y a-t-il des embouteillages sur la route principale ?",
+            "Quels transports sont accessibles aux personnes à mobilité réduite ?"
         ]
 
 
+
 class SampleQueries:
-    """Classe contenant des requêtes SPARQL prédéfinies pour différents cas d'usage"""
+    """Classe contenant des requêtes SPARQL prédéfinies pour différents cas d'usage - Version fusionnée"""
     
     @staticmethod
     def get_predefined_queries() -> Dict[str, Dict]:
-        """Retourne un dictionnaire de requêtes SPARQL prédéfinies"""
+        """Retourne un dictionnaire de requêtes SPARQL prédéfinies fusionnées"""
         return {
+            # ===== REQUÊTES DE BASE (Version simplifiée) =====
+            'station-1': {
+                'name': 'Stations de transport',
+                'question': 'Liste des stations de transport disponibles',
+                'sparql': '''
+                PREFIX : <http://example.org/mobility-ontology/2025/09#>
+                SELECT ?station ?name ?address
+                WHERE {
+                    ?station a :StationTransport .
+                    ?station :nom ?name .
+                    OPTIONAL { ?station :adresse ?address . }
+                }
+                LIMIT 20
+                ''',
+                'category': 'Stations'
+            },
+            'vehicle-1': {
+                'name': 'Véhicules disponibles',
+                'question': 'Quels véhicules sont disponibles',
+                'sparql': '''
+                PREFIX : <http://example.org/mobility-ontology/2025/09#>
+                SELECT ?vehicule ?type ?statut
+                WHERE {
+                    ?vehicule a :Vehicule .
+                    ?vehicule :type ?type .
+                    ?vehicule :statut ?statut .
+                    FILTER (?statut = "actif")
+                }
+                LIMIT 20
+                ''',
+                'category': 'Véhicules'
+            },
+            'route-1': {
+                'name': 'Routes disponibles',
+                'question': 'Liste des routes dans la ville',
+                'sparql': '''
+                PREFIX : <http://example.org/mobility-ontology/2025/09#>
+                SELECT ?route ?nom ?longueur
+                WHERE {
+                    ?route a :Route .
+                    ?route :nom ?nom .
+                    OPTIONAL { ?route :longueur ?longueur . }
+                }
+                LIMIT 20
+                ''',
+                'category': 'Infrastructure'
+            },
+            'user-1': {
+                'name': 'Utilisateurs actifs',
+                'question': 'Combien d\'utilisateurs sont actifs',
+                'sparql': '''
+                PREFIX : <http://example.org/mobility-ontology/2025/09#>
+                SELECT ?utilisateur ?nom
+                WHERE {
+                    ?utilisateur a :Utilisateur .
+                    ?utilisateur :nom ?nom .
+                    ?utilisateur :statut "actif" .
+                }
+                LIMIT 20
+                ''',
+                'category': 'Utilisateurs'
+            },
+            'traffic-1': {
+                'name': 'État du trafic',
+                'question': 'Quel est l\'état du trafic',
+                'sparql': '''
+                PREFIX : <http://example.org/mobility-ontology/2025/09#>
+                SELECT ?capteur ?intensite ?heure
+                WHERE {
+                    ?capteur a :CapteurTrafic .
+                    ?capteur :intensiteTrafic ?intensite .
+                    ?capteur :timestamp ?heure .
+                }
+                ORDER BY DESC(?heure)
+                LIMIT 20
+                ''',
+                'category': 'Trafic'
+            },
+
+            # ===== REQUÊTES AVANCÉES (Version complète) =====
             "all_users": {
                 "name": "Tous les utilisateurs",
                 "description": "Liste tous les utilisateurs avec leurs informations de base",
                 "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                 SELECT ?user ?nom ?email ?typeUtilisateur ?age
                 WHERE {
                     ?user rdf:type mobility:Utilisateur .
@@ -515,6 +475,8 @@ class SampleQueries:
                 "name": "Véhicules disponibles",
                 "description": "Liste tous les véhicules avec statut 'disponible'",
                 "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                 SELECT ?vehicle ?marque ?modele ?couleur ?type
                 WHERE {
                     ?vehicle rdf:type mobility:Véhicule .
@@ -534,6 +496,8 @@ class SampleQueries:
                 "name": "Stations avec localisation",
                 "description": "Liste toutes les stations avec leurs coordonnées",
                 "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                 SELECT ?station ?nomStation ?latitude ?longitude ?adresse ?capacite
                 WHERE {
                     ?station rdf:type mobility:Station .
@@ -552,6 +516,8 @@ class SampleQueries:
                 "name": "Trajets des utilisateurs",
                 "description": "Liste tous les trajets avec les utilisateurs qui les ont effectués",
                 "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                 SELECT ?trajet ?userName ?pointDepart ?pointArrivee ?distance ?duree ?mode ?cout
                 WHERE {
                     ?trajet rdf:type mobility:Trajet .
@@ -573,6 +539,8 @@ class SampleQueries:
                 "name": "Statistiques véhicules",
                 "description": "Compte les véhicules par type",
                 "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                 SELECT ?type (COUNT(?vehicle) as ?count)
                 WHERE {
                     ?vehicle rdf:type ?type .
@@ -590,6 +558,8 @@ class SampleQueries:
                 "name": "Tous les capteurs de trafic",
                 "description": "Liste tous les capteurs de trafic avec leurs informations",
                 "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                 SELECT ?capteur ?nom ?code ?type ?statut ?latitude ?longitude ?zone
                 WHERE {
                     ?capteur rdf:type mobility:CapteurTrafic .
@@ -610,6 +580,8 @@ class SampleQueries:
                 "name": "Capteurs de trafic actifs",
                 "description": "Liste tous les capteurs de trafic avec statut 'actif'",
                 "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                 SELECT ?capteur ?nom ?code ?type ?latitude ?longitude ?frequence
                 WHERE {
                     ?capteur rdf:type mobility:CapteurTrafic .
@@ -630,6 +602,8 @@ class SampleQueries:
                 "name": "Capteurs de trafic par type",
                 "description": "Compte les capteurs de trafic par type",
                 "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                 SELECT ?type (COUNT(?capteur) as ?count)
                 WHERE {
                     ?capteur rdf:type mobility:CapteurTrafic .
@@ -645,6 +619,8 @@ class SampleQueries:
                 "name": "Capteurs de trafic par zone",
                 "description": "Liste les capteurs de trafic groupés par zone",
                 "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                 SELECT ?zone (COUNT(?capteur) as ?count) (GROUP_CONCAT(?nom; separator=", ") as ?capteurs)
                 WHERE {
                     ?capteur rdf:type mobility:CapteurTrafic .
@@ -657,26 +633,12 @@ class SampleQueries:
                 "category": "Gestion Trafic"
             },
 
-            "traffic_sensors_coverage": {
-                "name": "Couverture des capteurs de trafic",
-                "description": "Affiche les zones de trafic et leur couverture en capteurs",
-                "query": """
-                SELECT ?zone (COUNT(?capteur) as ?nombreCapteurs) (AVG(?precision) as ?precisionMoyenne)
-                WHERE {
-                    ?capteur rdf:type mobility:CapteurTrafic .
-                    ?capteur mobility:zoneTrafic ?zone .
-                    OPTIONAL { ?capteur mobility:precisionDetection ?precision }
-                }
-                GROUP BY ?zone
-                ORDER BY DESC(?nombreCapteurs)
-                """,
-                "category": "Gestion Trafic"
-            },
-
             "high_precision_sensors": {
                 "name": "Capteurs haute précision",
                 "description": "Liste les capteurs avec une précision de détection > 90%",
                 "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                 SELECT ?capteur ?nom ?type ?precision ?zone
                 WHERE {
                     ?capteur rdf:type mobility:CapteurTrafic .
@@ -695,6 +657,8 @@ class SampleQueries:
                 "name": "Détails complets des capteurs",
                 "description": "Affiche tous les détails des capteurs de trafic",
                 "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                 SELECT ?capteur ?nom ?code ?type ?statut ?latitude ?longitude ?direction ?frequence ?precision ?vitesseMin ?vitesseMax ?fournisseur ?modele ?zone ?dateInstallation
                 WHERE {
                     ?capteur rdf:type mobility:CapteurTrafic .
@@ -718,60 +682,13 @@ class SampleQueries:
                 """,
                 "category": "Gestion Trafic"
             },
-
-            "traffic_sensors_by_provider": {
-                "name": "Capteurs par fournisseur",
-                "description": "Liste les capteurs groupés par fournisseur",
-                "query": """
-                SELECT ?fournisseur (COUNT(?capteur) as ?count) (GROUP_CONCAT(?nom; separator=", ") as ?capteurs)
-                WHERE {
-                    ?capteur rdf:type mobility:CapteurTrafic .
-                    ?capteur mobility:fournisseur ?fournisseur .
-                    OPTIONAL { ?capteur mobility:nomCapteur ?nom }
-                }
-                GROUP BY ?fournisseur
-                ORDER BY DESC(?count)
-                """,
-                "category": "Gestion Trafic"
-            },
-
-            "traffic_sensors_by_model": {
-                "name": "Capteurs par modèle",
-                "description": "Liste les capteurs groupés par modèle",
-                "query": """
-                SELECT ?modele (COUNT(?capteur) as ?count) ?fournisseur
-                WHERE {
-                    ?capteur rdf:type mobility:CapteurTrafic .
-                    ?capteur mobility:modele ?modele .
-                    OPTIONAL { ?capteur mobility:fournisseur ?fournisseur }
-                }
-                GROUP BY ?modele ?fournisseur
-                ORDER BY DESC(?count)
-                """,
-                "category": "Gestion Trafic"
-            },
-
-            "traffic_sensors_speed_range": {
-                "name": "Plages de vitesse des capteurs",
-                "description": "Affiche les plages de vitesse min/max détectées par les capteurs",
-                "query": """
-                SELECT ?capteur ?nom ?vitesseMin ?vitesseMax ?type
-                WHERE {
-                    ?capteur rdf:type mobility:CapteurTrafic .
-                    ?capteur mobility:vitesseMinDetection ?vitesseMin .
-                    ?capteur mobility:vitesseMaxDetection ?vitesseMax .
-                    OPTIONAL { ?capteur mobility:nomCapteur ?nom }
-                    OPTIONAL { ?capteur mobility:typeCapteur ?type }
-                }
-                ORDER BY ?vitesseMin
-                """,
-                "category": "Gestion Trafic"
-            },
             
             "reservations_active": {
                 "name": "Réservations actives",
                 "description": "Liste toutes les réservations actives",
                 "query": """
+                PREFIX mobility: <http://example.org/mobility-ontology/2025/09#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                 SELECT ?reservation ?userName ?vehicleBrand ?dateReservation ?dureeReservation ?prix
                 WHERE {
                     ?reservation rdf:type mobility:Réservation .
@@ -789,7 +706,22 @@ class SampleQueries:
                 "category": "Réservations"
             }
         }
+    
+    @staticmethod
+    def _get_example_questions():
+        """Return example questions for the AI assistant - Fusionné"""
+        return [
+            
+            "Liste tous les utilisateurs",
+            "Combien de véhicules sont disponibles?",
+            "Montre-moi les stations avec leurs coordonnées",
+            "Quels sont les trajets de plus de 5km?",
+            "Trouve les véhicules électriques",
+            "Où se trouvent les stations de vélos?",
+            "Liste les utilisateurs de type cycliste",
+            "Quel est le coût moyen des trajets?"
+        ]
 
 
-# Instance globale du processeur IA
+# Instances globales pour la compatibilité
 ai_processor = AIQueryProcessor()
