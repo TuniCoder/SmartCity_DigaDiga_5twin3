@@ -4,6 +4,10 @@ Configuration Django pour le projet SmartCity
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'smartcity_app',
+    'chatbot',
     'rest_framework',
     'corsheaders',
 ]
@@ -188,3 +193,10 @@ LOGGING = {
         },
     },
 }
+
+# OpenAI API Configuration
+#OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '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')
+#OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4')
+
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4')
