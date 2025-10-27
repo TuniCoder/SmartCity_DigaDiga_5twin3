@@ -4,10 +4,6 @@ Configuration Django pour le projet SmartCity
 
 from pathlib import Path
 import os
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,7 +28,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'smartcity_app',
-    'chatbot',
     'rest_framework',
     'corsheaders',
 ]
@@ -139,15 +134,7 @@ ONTOLOGY_PATH = BASE_DIR / 'ontology' / 'mobility_ontology_clean.rdf'
 ONTOLOGY_NAMESPACE = 'http://example.org/mobility-ontology/2025/09#'
 
 # Google Maps API Key
-import os
-from pathlib import Path
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-env_path = BASE_DIR / '.env'
-load_dotenv(env_path)
-
-GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
+GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY'  # À remplacer par votre clé API Google Maps
 
 # AI API Settings (pour intégration future avec des services IA)
 AI_API_ENDPOINT = 'http://localhost:8080/api/ai'  # À configurer selon le service IA choisi
@@ -193,10 +180,3 @@ LOGGING = {
         },
     },
 }
-
-# OpenAI API Configuration
-#OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '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')
-#OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4')
-
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4')

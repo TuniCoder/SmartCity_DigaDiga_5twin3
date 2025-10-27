@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestion des Stations{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-3">{{ module_name }}</h1>
+            <p class="lead">{{ module_description }}</p>
+        </div>
+    </div>
+
+    <!-- Cartes des fonctionnalités principales -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
+        <!-- Liste des Stations -->
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-list-ul text-primary"></i>
+                        Liste des Stations
+                    </h5>
+                    <p class="card-text">Consultez toutes les stations disponibles et leurs détails.</p>
+                    <a href="{% url 'gestion_stations:liste' %}" class="btn btn-primary">
+                        <i class="bi bi-arrow-right"></i> Voir les stations
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Préférences -->
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-gear text-primary"></i>
+                        Mes Préférences
+                    </h5>
+                    <p class="card-text">Personnalisez vos critères de stations et options d'accessibilité.</p>
+                    <a href="{% url 'gestion_stations:preferences' %}" class="btn btn-primary">
+                        <i class="bi bi-sliders"></i> Gérer mes préférences
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommandations -->
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-star text-primary"></i>
+                        Recommandations
+                    </h5>
+                    <p class="card-text">Découvrez les stations recommandées selon vos préférences.</p>
+                    <a href="{% url 'gestion_stations:recommandations' %}" class="btn btn-primary">
+                        <i class="bi bi-compass"></i> Voir les recommandations
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ajouter une Station -->
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-plus-circle text-primary"></i>
+                        Nouvelle Station
+                    </h5>
+                    <p class="card-text">Ajoutez une nouvelle station au réseau.</p>
+                    <a href="{% url 'gestion_stations:ajouter' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i> Ajouter une station
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Équipements -->
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-tools text-primary"></i>
+                        Équipements
+                    </h5>
+                    <p class="card-text">Gérez les équipements et installations des stations.</p>
+                    <a href="{% url 'gestion_stations:equipements' %}" class="btn btn-primary">
+                        <i class="bi bi-wrench"></i> Gérer les équipements
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoring -->
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-graph-up text-primary"></i>
+                        Monitoring
+                    </h5>
+                    <p class="card-text">Suivez en temps réel l'activité des stations.</p>
+                    <a href="{% url 'gestion_stations:monitoring' %}" class="btn btn-primary">
+                        <i class="bi bi-activity"></i> Voir le monitoring
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carte des stations -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Vue d'ensemble des stations</h5>
+        </div>
+        <div class="card-body">
+            <div id="map" style="height: 400px;"></div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places"></script>
+<script>
+let map;
+let markers = [];
+
+async function initMap() {
+    // Position initiale (Tunis)
+    const center = { lat: 36.8065, lng: 10.1815 };
+    
+    // Initialiser la carte
+    map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 12,
+        center: center
+    });
+
+    try {
+        // Charger les stations depuis l'API
+        const response = await fetch("{% url 'gestion_stations:api_stations_list' %}");
+        if (!response.ok) throw new Error('Erreur réseau');
+        
+        const data = await response.json();
+        
+        // Ajouter les marqueurs pour chaque station
+        data.stations.forEach(station => {
+            try {
+                const marker = new google.maps.Marker({
+                    position: {
+                        lat: parseFloat(station.latitude),
+                        lng: parseFloat(station.longitude)
+                    },
+                    map: map,
+                    title: station.nom,
+                    icon: getMarkerIcon(station.type)
+                });
+
+                // Ajouter une fenêtre d'info
+                const infowindow = new google.maps.InfoWindow({
+                    content: `
+                        <div>
+                            <h6>${station.nom}</h6>
+                            <p>Type: ${station.type}</p>
+                            <p>Adresse: ${station.adresse || 'Non spécifiée'}</p>
+                            <p>Capacité: ${station.capacite || 'Non spécifiée'}</p>
+                            <a href="{% url 'gestion_stations:details' %}${station.id}" class="btn btn-sm btn-primary">
+                                Voir détails
+                            </a>
+                        </div>
+                    `
+                });
+
+                marker.addListener('click', () => {
+                    infowindow.open(map, marker);
+                });
+
+                markers.push(marker);
+            } catch (err) {
+                console.error('Erreur avec une station:', err);
+            }
+        });
+    } catch (err) {
+        console.error('Erreur lors du chargement des stations:', err);
+        // Afficher un message d'erreur à l'utilisateur
+        const mapDiv = document.getElementById('map');
+        mapDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle"></i>
+                Erreur lors du chargement de la carte. Veuillez réessayer plus tard.
+            </div>
+        `;
+    }
+}
+
+function getMarkerIcon(stationType) {
+    // Retourner différentes icônes selon le type de station
+    const icons = {
+        'bus': {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: '#4285F4',
+            fillOpacity: 1,
+            strokeWeight: 2,
+            strokeColor: '#FFFFFF',
+            scale: 8
+        },
+        'metro': {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: '#DB4437',
+            fillOpacity: 1,
+            strokeWeight: 2,
+            strokeColor: '#FFFFFF',
+            scale: 8
+        },
+        'train': {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: '#0F9D58',
+            fillOpacity: 1,
+            strokeWeight: 2,
+            strokeColor: '#FFFFFF',
+            scale: 8
+        },
+        'tram': {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: '#F4B400',
+            fillOpacity: 1,
+            strokeWeight: 2,
+            strokeColor: '#FFFFFF',
+            scale: 8
+        }
+    };
+    
+    return icons[stationType] || {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: '#9E9E9E',
+        fillOpacity: 1,
+        strokeWeight: 2,
+        strokeColor: '#FFFFFF',
+        scale: 8
+    };
+}
+
+document.addEventListener('DOMContentLoaded', initMap);
+</script>
+
+<style>
+.card-title .bi {
+    margin-right: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% endblock %}

@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Préférences Stations{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Mes Préférences de Stations</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" id="preferences-form">
+                {% csrf_token %}
+                
+                <!-- Type de station -->
+                <div class="mb-3">
+                    <label class="form-label">Type de Station Préféré</label>
+                    <select class="form-select" name="type_station">
+                        <option value="">Tous les types</option>
+                        <option value="bus" {% if preferences.type_station == 'bus' %}selected{% endif %}>Station de Bus</option>
+                        <option value="metro" {% if preferences.type_station == 'metro' %}selected{% endif %}>Station de Métro</option>
+                        <option value="tram" {% if preferences.type_station == 'tram' %}selected{% endif %}>Station de Tramway</option>
+                        <option value="train" {% if preferences.type_station == 'train' %}selected{% endif %}>Station de Train</option>
+                        <option value="mixte" {% if preferences.type_station == 'mixte' %}selected{% endif %}>Station Mixte</option>
+                    </select>
+                </div>
+
+                <!-- Distance maximale -->
+                <div class="mb-3">
+                    <label class="form-label">Distance Maximale (km)</label>
+                    <input type="number" class="form-control" name="distance_max" 
+                           min="0.1" max="20" step="0.1" 
+                           value="{{ preferences.distance_max|default:5.0 }}">
+                    <div class="form-text">Distance maximale acceptable pour une station</div>
+                </div>
+
+                <!-- Équipements souhaités -->
+                <div class="mb-3">
+                    <label class="form-label">Équipements souhaités</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="equipements" 
+                               value="ascenseur" id="check_ascenseur"
+                               {% if 'ascenseur' in preferences.equipements %}checked{% endif %}>
+                        <label class="form-check-label" for="check_ascenseur">
+                            Ascenseur
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="equipements" 
+                               value="escalator" id="check_escalator"
+                               {% if 'escalator' in preferences.equipements %}checked{% endif %}>
+                        <label class="form-check-label" for="check_escalator">
+                            Escalator
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="equipements" 
+                               value="parking" id="check_parking"
+                               {% if 'parking' in preferences.equipements %}checked{% endif %}>
+                        <label class="form-check-label" for="check_parking">
+                            Parking
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Accessibilité PMR -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="accessibilite" 
+                               id="accessibilite" {% if preferences.accessibilite %}checked{% endif %}>
+                        <label class="form-check-label" for="accessibilite">
+                            Nécessite une accessibilité PMR
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Notifications -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="notification" 
+                               id="notification" {% if preferences.notification %}checked{% endif %}>
+                        <label class="form-check-label" for="notification">
+                            Recevoir des notifications sur les stations recommandées
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Position actuelle -->
+                <div class="mb-3">
+                    <label class="form-label">Position de référence</label>
+                    <div id="map" style="height: 300px;" class="mb-2"></div>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="location" readonly>
+                        <button type="button" class="btn btn-secondary" id="get-location">
+                            <i class="bi bi-geo-alt"></i> Utiliser ma position
+                        </button>
+                    </div>
+                    <input type="hidden" name="latitude" id="lat" value="{{ preferences.latitude|default:36.8065 }}">
+                    <input type="hidden" name="longitude" id="lng" value="{{ preferences.longitude|default:10.1815 }}">
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer mes préférences
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Carte des recommandations -->
+    <div class="card mt-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Stations Recommandées</h5>
+        </div>
+        <div class="card-body">
+            <div id="map" style="height: 400px;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+<script>
+let map;
+let userMarker;
+
+function initMap() {
+    // Centrer sur Tunis par défaut
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: {lat: 36.8065, lng: 10.1815},
+        zoom: 12
+    });
+}
+
+document.getElementById('get-location').addEventListener('click', () => {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+            const pos = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            };
+
+            document.getElementById('lat').value = pos.lat;
+            document.getElementById('lng').value = pos.lng;
+            document.getElementById('location').value = `${pos.lat}, ${pos.lng}`;
+
+            // Mettre à jour le marqueur de l'utilisateur
+            if (userMarker) userMarker.setMap(null);
+            userMarker = new google.maps.Marker({
+                position: pos,
+                map: map,
+                icon: 'URL_TO_USER_ICON'
+            });
+
+            map.setCenter(pos);
+        });
+    }
+});
+
+document.getElementById('preferences-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    try {
+        const response = await fetch('/api/stations/preferences/', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            const stations = await response.json();
+            displayRecommendedStations(stations);
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+    }
+});
+
+function displayRecommendedStations(stations) {
+    // Effacer les anciens marqueurs
+    markers.forEach(marker => marker.setMap(null));
+    markers = [];
+
+    // Ajouter les nouveaux marqueurs
+    stations.forEach(station => {
+        const marker = new google.maps.Marker({
+            position: {lat: station.latitude, lng: station.longitude},
+            map: map,
+            title: station.nom,
+            icon: getMarkerIcon(station.type)
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+            content: `
+                <div>
+                    <h6>${station.nom}</h6>
+                    <p>Type: ${station.type}</p>
+                    <p>Distance: ${station.distance.toFixed(2)} km</p>
+                </div>
+            `
+        });
+
+        marker.addListener('click', () => {
+            infoWindow.open(map, marker);
+        });
+
+        markers.push(marker);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initMap);
+</script>
+{% endblock %}

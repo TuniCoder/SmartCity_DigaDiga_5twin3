@@ -1,0 +1,415 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestion des Équipements - SmartCity{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    .equipment-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .header-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .stations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .station-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    
+    .station-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .station-header {
+        background: linear-gradient(45deg, #4CAF50, #45a049);
+        color: white;
+        padding: 20px;
+        position: relative;
+    }
+    
+    .station-name {
+        font-size: 1.3em;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .station-location {
+        font-size: 0.9em;
+        opacity: 0.9;
+    }
+    
+    .equipment-content {
+        padding: 20px;
+    }
+    
+    .equipment-section {
+        margin-bottom: 25px;
+    }
+    
+    .equipment-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .equipment-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .equipment-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #ddd;
+    }
+    
+    .equipment-item.operational {
+        border-left-color: #28a745;
+        background: #d4edda;
+    }
+    
+    .equipment-item.maintenance {
+        border-left-color: #ffc107;
+        background: #fff3cd;
+    }
+    
+    .equipment-item.error {
+        border-left-color: #dc3545;
+        background: #f8d7da;
+    }
+    
+    .equipment-info {
+        flex: 1;
+    }
+    
+    .equipment-name {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .equipment-details {
+        font-size: 0.85em;
+        color: #666;
+        margin-top: 2px;
+    }
+    
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-operational {
+        background: #28a745;
+        color: white;
+    }
+    
+    .status-maintenance {
+        background: #ffc107;
+        color: #000;
+    }
+    
+    .status-error {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .equipment-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+    }
+    
+    .btn-action {
+        flex: 1;
+        padding: 8px 15px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85em;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-maintenance {
+        background: #ffc107;
+        color: #000;
+    }
+    
+    .btn-maintenance:hover {
+        background: #e0a800;
+    }
+    
+    .btn-details {
+        background: #007bff;
+        color: white;
+    }
+    
+    .btn-details:hover {
+        background: #0056b3;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .summary-section {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .summary-card {
+        text-align: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+    }
+    
+    .summary-number {
+        font-size: 2.5em;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .summary-label {
+        font-size: 1em;
+        opacity: 0.9;
+    }
+    
+    @media (max-width: 768px) {
+        .stations-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .equipment-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="equipment-container">
+    <div class="header-section">
+        <h1><i class="fas fa-tools"></i> Gestion des Équipements</h1>
+        <p>Surveillance et maintenance des équipements des stations</p>
+    </div>
+    
+    <div class="summary-section">
+        <h3><i class="fas fa-chart-pie"></i> Résumé Global</h3>
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-number">{{ stations|length }}</div>
+                <div class="summary-label">Stations</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-number">85%</div>
+                <div class="summary-label">Équipements Opérationnels</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-number">12</div>
+                <div class="summary-label">En Maintenance</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-number">2</div>
+                <div class="summary-label">Interventions Planifiées</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stations-grid">
+        {% for station in stations %}
+        <div class="station-card">
+            <div class="station-header">
+                <div class="station-name">{{ station.nom }}</div>
+                <div class="station-location">
+                    <i class="fas fa-map-marker-alt"></i> {{ station.adresse|default:"Adresse non spécifiée" }}
+                </div>
+            </div>
+            
+            <div class="equipment-content">
+                <!-- Ascenseurs -->
+                <div class="equipment-section">
+                    <div class="equipment-title">
+                        <i class="fas fa-elevator"></i>
+                        <span>Ascenseurs ({{ station.equipements.ascenseurs|length }})</span>
+                    </div>
+                    <div class="equipment-list">
+                        {% for ascenseur in station.equipements.ascenseurs %}
+                        <div class="equipment-item {% if ascenseur.statut == 'Opérationnel' %}operational{% elif ascenseur.statut == 'En maintenance' %}maintenance{% else %}error{% endif %}">
+                            <div class="equipment-info">
+                                <div class="equipment-name">Ascenseur #{{ ascenseur.id }}</div>
+                                <div class="equipment-details">
+                                    Dernière maintenance: {{ ascenseur.derniere_maintenance }}
+                                </div>
+                            </div>
+                            <span class="status-badge status-{% if ascenseur.statut == 'Opérationnel' %}operational{% elif ascenseur.statut == 'En maintenance' %}maintenance{% else %}error{% endif %}">
+                                {{ ascenseur.statut }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Escalators -->
+                <div class="equipment-section">
+                    <div class="equipment-title">
+                        <i class="fas fa-stairs"></i>
+                        <span>Escalators ({{ station.equipements.escalators|length }})</span>
+                    </div>
+                    <div class="equipment-list">
+                        {% for escalator in station.equipements.escalators %}
+                        <div class="equipment-item operational">
+                            <div class="equipment-info">
+                                <div class="equipment-name">Escalator #{{ escalator.id }}</div>
+                                <div class="equipment-details">
+                                    Dernière maintenance: {{ escalator.derniere_maintenance }}
+                                </div>
+                            </div>
+                            <span class="status-badge status-operational">{{ escalator.statut }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Caméras -->
+                <div class="equipment-section">
+                    <div class="equipment-title">
+                        <i class="fas fa-video"></i>
+                        <span>Caméras de Surveillance ({{ station.equipements.cameras|length }})</span>
+                    </div>
+                    <div class="equipment-list">
+                        {% for camera in station.equipements.cameras %}
+                        <div class="equipment-item operational">
+                            <div class="equipment-info">
+                                <div class="equipment-name">Caméra #{{ camera.id }}</div>
+                                <div class="equipment-details">Zone: {{ camera.zone }}</div>
+                            </div>
+                            <span class="status-badge status-operational">{{ camera.statut }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="equipment-actions">
+                    <button class="btn-action btn-maintenance" onclick="planifierMaintenance('{{ station.nom }}')">
+                        <i class="fas fa-wrench"></i> Planifier Maintenance
+                    </button>
+                    <a href="{% url 'gestion_stations:details' station.uri %}" class="btn-action btn-details">
+                        <i class="fas fa-info-circle"></i> Détails Station
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: #666;">
+            <i class="fas fa-tools" style="font-size: 4em; margin-bottom: 20px; opacity: 0.3;"></i>
+            <h3>Aucune station trouvée</h3>
+            <p>Aucune station n'est disponible pour la gestion des équipements.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal pour planifier maintenance -->
+<div class="modal fade" id="maintenanceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Planifier une Maintenance</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Station</label>
+                        <input type="text" class="form-control" id="stationMaintenance" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Type d'intervention</label>
+                        <select class="form-control">
+                            <option>Maintenance préventive</option>
+                            <option>Maintenance corrective</option>
+                            <option>Inspection</option>
+                            <option>Réparation</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date planifiée</label>
+                        <input type="date" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary">Planifier</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function planifierMaintenance(stationName) {
+    document.getElementById('stationMaintenance').value = stationName;
+    const modal = new bootstrap.Modal(document.getElementById('maintenanceModal'));
+    modal.show();
+}
+
+// Simulation de mise à jour en temps réel
+setInterval(function() {
+    // Mettre à jour les statuts des équipements
+    console.log('Mise à jour des statuts des équipements...');
+}, 30000); // Toutes les 30 secondes
+</script>
+{% endblock %}

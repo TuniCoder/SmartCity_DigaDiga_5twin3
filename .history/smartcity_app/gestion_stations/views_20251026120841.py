@@ -32,65 +32,38 @@ def liste_stations(request):
 
 @login_required
 def ajouter_station(request):
-    """Interface pour ajouter une station"""
+    """Ajouter une nouvelle station"""
     if request.method == 'POST':
-        try:
-            # Récupérer les données du formulaire
-            nom = request.POST.get('nom')
-            type_station = request.POST.get('type', 'bus')
-            latitude = float(request.POST.get('latitude', '36.8065').replace(',', '.'))
-            longitude = float(request.POST.get('longitude', '10.1815').replace(',', '.'))
-            adresse = request.POST.get('adresse', '')
-            capacite = int(request.POST.get('capacite', '50'))
-            heures_ouverture = request.POST.get('heures_ouverture', '6h-22h')
-            
-            # Validation des données
-            if not nom:
-                messages.error(request, 'Le nom de la station est obligatoire.')
-                return render(request, 'gestion_stations/ajouter_station.html')
-            
-            if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
-                messages.error(request, 'Les coordonnées GPS sont invalides.')
-                return render(request, 'gestion_stations/ajouter_station.html')
-            
-            # Préparer les données pour le gestionnaire RDF
-            station_data = {
-                'nom': nom,
-                'type': type_station,
-                'latitude': latitude,
-                'longitude': longitude,
-                'adresse': adresse,
-                'capacité': capacite,
-                'heures_ouverture': heures_ouverture
-            }
-            
-            # Ajouter la station via RDF
-            success, message = rdf_manager.add_station(station_data)
-            
-            if success:
-                messages.success(request, f'Station "{nom}" ajoutée avec succès!')
-                return redirect('gestion_stations:liste')
-            else:
-                messages.error(request, f'Erreur lors de l\'ajout : {message}')
-                
-        except (ValueError, TypeError) as e:
-            messages.error(request, f'Erreur de validation : {str(e)}')
-        except Exception as e:
-            messages.error(request, f'Erreur inattendue : {str(e)}')
-    
-    # Afficher le formulaire d'ajout
+        # Récupérer les données du formulaire
+        nom = request.POST.get('nom')
+        type_station = request.POST.get('type')
+        latitude = float(request.POST.get('latitude'))
+        longitude = float(request.POST.get('longitude'))
+        adresse = request.POST.get('adresse')
+        capacite = int(request.POST.get('capacite'))
+        heures_ouverture = request.POST.get('heures_ouverture')
+        
+        # Créer la station dans le RDF
+        station_data = {
+            'nom': nom,
+            'type': type_station,
+            'latitude': latitude,
+            'longitude': longitude,
+            'adresse': adresse,
+            'capacite': capacite,
+            'heures_ouverture': heures_ouverture
+        }
+        rdf_manager.add_station(station_data)
+        
+        messages.success(request, f'Station {nom} ajoutée avec succès !')
+        return redirect('liste_stations')
+        
     return render(request, 'gestion_stations/ajouter_station.html')
 
 @login_required
 def modifier_station(request, station_id):
     """Modifier une station existante"""
-    # Construire l'ID au format RDF si c'est un entier
-    if isinstance(station_id, int) or str(station_id).isdigit():
-        rdf_station_id = f"Station_{station_id}"
-    else:
-        rdf_station_id = station_id
-        
-    station = rdf_manager.get_station_by_id(rdf_station_id)
+    station = rdf_manager.get_station_by_id(station_id)
     if not station:
         messages.error(request, 'Station non trouvée.')
         return redirect('gestion_stations:liste')
@@ -121,19 +94,10 @@ def modifier_station(request, station_id):
 @login_required
 def details_station(request, station_id):
     """Détails d'une station"""
-    # Construire l'ID au format RDF si c'est un entier
-    if isinstance(station_id, int) or str(station_id).isdigit():
-        rdf_station_id = f"Station_{station_id}"
-    else:
-        rdf_station_id = station_id
-        
-    station = rdf_manager.get_station_by_id(rdf_station_id)
+    station = rdf_manager.get_station_by_id(station_id)
     if not station:
         messages.error(request, 'Station non trouvée.')
         return redirect('gestion_stations:liste')
-    
-    # Ajouter l'ID numérique pour les URLs
-    station['numeric_id'] = station_id
     
     # Récupérer les équipements de la station
     equipements = [
@@ -178,24 +142,8 @@ def monitoring_stations(request):
     """Monitoring temps réel des stations"""
     stations = rdf_manager.get_stations()
     
-    # Ajouter des données de monitoring simulées pour chaque station et extraire l'ID
+    # Ajouter des données de monitoring simulées pour chaque station
     for station in stations:
-        # Extraire l'ID numérique de l'URI (par exemple: "Station_1698156734" -> "1698156734")
-        station_uri = station.get('station', '')
-        try:
-            # Extraire l'ID à partir de l'URI (format: .../Station_ID ou Station_ID)
-            if 'Station_' in station_uri:
-                station_id = station_uri.split('Station_')[-1]
-                # Vérifier que c'est bien un nombre
-                if station_id.isdigit():
-                    station['id'] = int(station_id)
-                else:
-                    station['id'] = None
-            else:
-                station['id'] = None
-        except (ValueError, AttributeError):
-            station['id'] = None
-            
         station['monitoring'] = {
             'affluence_actuelle': 'Normale',
             'taux_occupation': '65%',
@@ -238,29 +186,16 @@ def preferences_stations(request):
     """Gestion des préférences utilisateur pour les stations"""
     if request.method == 'POST':
         try:
-            # Valider les données d'entrée et normaliser les virgules en points
-            distance_max = request.POST.get('distance_max', '5.0').replace(',', '.')
-            latitude = request.POST.get('latitude', '36.8065').replace(',', '.')
-            longitude = request.POST.get('longitude', '10.1815').replace(',', '.')
-            
             # Récupérer les préférences
             preferences = {
-                'type_station': request.POST.get('type_station', 'all'),
-                'distance_max': float(distance_max),
-                'equipements': request.POST.getlist('equipements') or [],
+                'type_station': request.POST.get('type_station'),
+                'distance_max': float(request.POST.get('distance_max', 5.0)),
+                'equipements': request.POST.getlist('equipements'),
                 'accessibilite': request.POST.get('accessibilite') == 'on',
                 'notification': request.POST.get('notification') == 'on',
-                'latitude': float(latitude),
-                'longitude': float(longitude)
+                'latitude': float(request.POST.get('latitude', 36.8065)),
+                'longitude': float(request.POST.get('longitude', 10.1815))
             }
-            
-            # Validation des coordonnées
-            if not (-90 <= preferences['latitude'] <= 90):
-                raise ValueError("Latitude invalide")
-            if not (-180 <= preferences['longitude'] <= 180):
-                raise ValueError("Longitude invalide")
-            if preferences['distance_max'] <= 0:
-                raise ValueError("Distance maximale invalide")
             
             # Sauvegarder les préférences dans le RDF
             success = rdf_manager.save_user_station_preferences(request.user.id, preferences)
@@ -274,41 +209,23 @@ def preferences_stations(request):
                 else:
                     return JsonResponse({
                         'success': False,
-                        'message': 'Erreur lors de l\'enregistrement des préférences dans la base de données'
+                        'message': 'Erreur lors de l\'enregistrement des préférences'
                     }, status=400)
             
-            if success:
-                messages.success(request, 'Vos préférences ont été enregistrées avec succès !')
-            else:
-                messages.error(request, 'Erreur lors de l\'enregistrement des préférences')
+            messages.success(request, 'Vos préférences ont été enregistrées avec succès !')
             return redirect('gestion_stations:preferences')
             
         except (ValueError, TypeError) as e:
-            error_message = f'Erreur de validation : {str(e)}'
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': False,
-                    'message': error_message
+                    'message': str(e)
                 }, status=400)
-            messages.error(request, error_message)
-            return redirect('gestion_stations:preferences')
-        except Exception as e:
-            error_message = f'Erreur inattendue : {str(e)}'
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': False,
-                    'message': error_message
-                }, status=500)
-            messages.error(request, error_message)
+            messages.error(request, f'Erreur de validation : {str(e)}')
             return redirect('gestion_stations:preferences')
 
     # Récupérer les préférences existantes
-    try:
-        user_preferences = rdf_manager.get_user_station_preferences(request.user.id)
-    except Exception as e:
-        user_preferences = {}
-        messages.warning(request, 'Impossible de récupérer vos préférences existantes')
-    
+    user_preferences = rdf_manager.get_user_station_preferences(request.user.id)
     return render(request, 'gestion_stations/preferences_stations.html', {
         'preferences': user_preferences
     })

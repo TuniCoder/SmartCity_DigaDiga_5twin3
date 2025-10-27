@@ -1,0 +1,538 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Liste des Stations{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<style>
+    .station-item {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .station-item:hover {
+        background-color: #f8f9fa;
+        border-left: 4px solid #007bff;
+    }
+    .station-item.active {
+        background-color: #e3f2fd;
+        border-left: 4px solid #007bff;
+    }
+    .station-type-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+    .station-status {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+    .status-active { background-color: #28a745; }
+    .status-maintenance { background-color: #ffc107; }
+    .status-inactive { background-color: #dc3545; }
+    
+    .search-container {
+        position: relative;
+    }
+    .search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        border-top: none;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+    .search-result-item {
+        padding: 0.5rem;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+    }
+    .search-result-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .filter-container {
+        background: #f8f9fa;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .legend {
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+    .legend-icon {
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+        border-radius: 50%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Panneau de gauche - Liste et filtres -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-map-marker-alt"></i> Stations Disponibles
+                        <span class="badge bg-light text-dark ms-2" id="stations-count">{{ stations|length }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Filtres -->
+                    <div class="filter-container m-3">
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <div class="search-container">
+                                    <input type="text" class="form-control" id="search-input" 
+                                           placeholder="🔍 Rechercher une station...">
+                                    <div id="search-results" class="search-results"></div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <select class="form-select form-select-sm" id="filter-type">
+                                    <option value="">Tous types</option>
+                                    <option value="bus">Bus</option>
+                                    <option value="metro">Métro</option>
+                                    <option value="tram">Tramway</option>
+                                    <option value="train">Train</option>
+                                    <option value="recharge">Recharge</option>
+                                    <option value="mixte">Mixte</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <select class="form-select form-select-sm" id="filter-status">
+                                    <option value="">Tous statuts</option>
+                                    <option value="active">Active</option>
+                                    <option value="maintenance">Maintenance</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-secondary" id="clear-filters">
+                                <i class="fas fa-times"></i> Effacer
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" id="my-location">
+                                <i class="fas fa-location-arrow"></i> Ma position
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Liste des stations -->
+                    <div class="list-group list-group-flush" id="stations-list" style="max-height: 600px; overflow-y: auto;">
+                        {% for station in stations %}
+                        <div class="list-group-item station-item" 
+                             data-id="{{ station.station|default:forloop.counter }}"
+                             data-lat="{{ station.latitude|default:36.8065 }}" 
+                             data-lng="{{ station.longitude|default:10.1815 }}"
+                             data-name="{{ station.nom|default:'Station Sans Nom' }}"
+                             data-type="{{ station.type|default:'inconnu' }}"
+                             data-capacity="{{ station.capacite|default:'N/A' }}"
+                             data-status="{{ station.status|default:'active' }}"
+                             data-address="{{ station.adresse|default:'Adresse non spécifiée' }}">
+                            
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        <span class="station-status status-{{ station.status|default:'active' }}"></span>
+                                        {{ station.nom|default:"Station Sans Nom" }}
+                                    </h6>
+                                    <p class="mb-1 text-muted small">
+                                        <i class="fas fa-map-marker-alt"></i> {{ station.adresse|default:"Adresse non spécifiée" }}
+                                    </p>
+                                    <div class="d-flex gap-2">
+                                        <span class="badge station-type-badge bg-info">{{ station.type|default:"inconnu"|capfirst }}</span>
+                                        {% if station.capacite %}
+                                        <span class="badge bg-secondary">{{ station.capacite }} places</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary view-station" 
+                                            title="Voir sur la carte">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="list-group-item text-center text-muted">
+                            <i class="fas fa-info-circle"></i> Aucune station disponible
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        
+                        <a href="{% url 'gestion_stations:preferences' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-cog"></i> Préférences
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Carte Leaflet -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-map"></i> Localisation des Stations
+                        <div class="float-end">
+                            <button class="btn btn-sm btn-light text-dark" id="toggle-legend">
+                                <i class="fas fa-list"></i> Légende
+                            </button>
+                        </div>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map" style="height: 700px; position: relative;">
+                        <!-- Légende -->
+                        <div id="map-legend" class="legend" style="position: absolute; top: 10px; right: 10px; z-index: 1000; display: none;">
+                            <h6>Types de stations</h6>
+                            <div class="legend-item">
+                                <div class="legend-icon" style="background-color: #007bff;"></div>
+                                Bus
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-icon" style="background-color: #28a745;"></div>
+                                Métro
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-icon" style="background-color: #ffc107;"></div>
+                                Tramway
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-icon" style="background-color: #dc3545;"></div>
+                                Train
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-icon" style="background-color: #6f42c1;"></div>
+                                Recharge
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-icon" style="background-color: #fd7e14;"></div>
+                                Mixte
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <strong id="visible-stations">{{ stations|length }}</strong><br>
+                            <small class="text-muted">Stations visibles</small>
+                        </div>
+                        <div class="col-4">
+                            <strong id="selected-station">Aucune</strong><br>
+                            <small class="text-muted">Station sélectionnée</small>
+                        </div>
+                        <div class="col-4">
+                            <strong id="map-zoom">12</strong><br>
+                            <small class="text-muted">Niveau de zoom</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+// Variables globales
+let map;
+let markers = [];
+let stationsData = [];
+let currentSelectedStation = null;
+
+// Configuration des icônes par type de station
+const stationIcons = {
+    bus: { color: '#007bff', icon: '🚌' },
+    metro: { color: '#28a745', icon: '🚇' },
+    tram: { color: '#ffc107', icon: '🚊' },
+    train: { color: '#dc3545', icon: '🚂' },
+    recharge: { color: '#6f42c1', icon: '🔌' },
+    mixte: { color: '#fd7e14', icon: '🚉' },
+    inconnu: { color: '#6c757d', icon: '📍' }
+};
+
+// Initialisation de la carte
+function initMap() {
+    // Centrer sur Tunis par défaut
+    map = L.map('map').setView([36.8065, 10.1815], 12);
+
+    // Ajouter le layer de carte
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Charger les données des stations
+    loadStationsData();
+    
+    // Ajouter les événements de zoom
+    map.on('zoomend', function() {
+        document.getElementById('map-zoom').textContent = map.getZoom();
+    });
+}
+
+// Charger les données des stations depuis les éléments DOM
+function loadStationsData() {
+    stationsData = [];
+    document.querySelectorAll('.station-item').forEach(station => {
+        const data = {
+            id: station.dataset.id,
+            name: station.dataset.name,
+            type: station.dataset.type,
+            lat: parseFloat(station.dataset.lat),
+            lng: parseFloat(station.dataset.lng),
+            capacity: station.dataset.capacity,
+            status: station.dataset.status,
+            address: station.dataset.address,
+            element: station
+        };
+        stationsData.push(data);
+    });
+    
+    addMarkersToMap();
+}
+
+// Ajouter les marqueurs sur la carte
+function addMarkersToMap() {
+    // Nettoyer les marqueurs existants
+    markers.forEach(marker => map.removeLayer(marker));
+    markers = [];
+
+    stationsData.forEach(station => {
+        if (isNaN(station.lat) || isNaN(station.lng)) return;
+
+        const iconConfig = stationIcons[station.type] || stationIcons.inconnu;
+        
+        // Créer un marqueur coloré personnalisé
+        const marker = L.circleMarker([station.lat, station.lng], {
+            radius: 8,
+            fillColor: iconConfig.color,
+            color: '#fff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+        }).addTo(map);
+
+        // Popup avec informations
+        const popupContent = `
+            <div>
+                <h6><strong>${station.name}</strong></h6>
+                <p><strong>Type:</strong> ${station.type}</p>
+                <p><strong>Adresse:</strong> ${station.address}</p>
+                <p><strong>Capacité:</strong> ${station.capacity}</p>
+                <p><strong>Statut:</strong> <span class="badge bg-${getStatusColor(station.status)}">${station.status}</span></p>
+                <div class="mt-2">
+                    <button class="btn btn-sm btn-primary" onclick="selectStation('${station.id}')">
+                        <i class="fas fa-info-circle"></i> Sélectionner
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="getDirections(${station.lat}, ${station.lng})">
+                        <i class="fas fa-route"></i> Itinéraire
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        marker.bindPopup(popupContent);
+        
+        // Événement de clic
+        marker.on('click', function() {
+            selectStation(station.id);
+        });
+
+        markers.push(marker);
+        station.marker = marker;
+    });
+    
+    updateVisibleStationsCount();
+}
+
+// Sélectionner une station
+function selectStation(stationId) {
+    // Désélectionner la station précédente
+    if (currentSelectedStation) {
+        currentSelectedStation.element.classList.remove('active');
+        currentSelectedStation.marker.setStyle({ weight: 2 });
+    }
+    
+    // Sélectionner la nouvelle station
+    const station = stationsData.find(s => s.id === stationId);
+    if (station) {
+        station.element.classList.add('active');
+        station.marker.setStyle({ weight: 4 });
+        
+        // Centrer la carte sur la station
+        map.setView([station.lat, station.lng], Math.max(map.getZoom(), 15));
+        
+        // Faire défiler la liste vers la station
+        station.element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Mettre à jour l'affichage
+        document.getElementById('selected-station').textContent = station.name;
+        currentSelectedStation = station;
+        
+        // Ouvrir le popup
+        station.marker.openPopup();
+    }
+}
+
+// Fonctions utilitaires
+function getStatusColor(status) {
+    switch(status) {
+        case 'active': return 'success';
+        case 'maintenance': return 'warning';
+        case 'inactive': return 'danger';
+        default: return 'secondary';
+    }
+}
+
+function updateVisibleStationsCount() {
+    const visibleStations = stationsData.filter(station => 
+        map.getBounds().contains([station.lat, station.lng])
+    ).length;
+    document.getElementById('visible-stations').textContent = visibleStations;
+}
+
+// Géolocalisation
+function getMyLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                // Centrer la carte sur la position
+                map.setView([lat, lng], 15);
+                
+                // Ajouter un marqueur temporaire
+                const userMarker = L.marker([lat, lng])
+                    .addTo(map)
+                    .bindPopup('Votre position actuelle')
+                    .openPopup();
+                
+                // Supprimer le marqueur après 5 secondes
+                setTimeout(() => {
+                    map.removeLayer(userMarker);
+                }, 5000);
+            },
+            function(error) {
+                console.error('Erreur de géolocalisation:', error);
+                alert('Impossible d\'obtenir votre position. Veuillez vérifier vos paramètres de localisation.');
+            }
+        );
+    } else {
+        alert('La géolocalisation n\'est pas supportée par votre navigateur.');
+    }
+}
+
+// Fonction pour obtenir des directions (placeholder)
+function getDirections(lat, lng) {
+    const url = `https://www.openstreetmap.org/directions?from=&to=${lat},${lng}`;
+    window.open(url, '_blank');
+}
+
+// Filtrage et recherche
+function applyFilters() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const filterType = document.getElementById('filter-type').value;
+    const filterStatus = document.getElementById('filter-status').value;
+    
+    let visibleCount = 0;
+    
+    document.querySelectorAll('.station-item').forEach(station => {
+        const name = station.dataset.name.toLowerCase();
+        const type = station.dataset.type;
+        const status = station.dataset.status;
+        
+        const matchesSearch = name.includes(searchTerm);
+        const matchesType = !filterType || type === filterType;
+        const matchesStatus = !filterStatus || status === filterStatus;
+        
+        const isVisible = matchesSearch && matchesType && matchesStatus;
+        
+        station.style.display = isVisible ? 'block' : 'none';
+        
+        // Afficher/masquer le marqueur correspondant
+        const stationData = stationsData.find(s => s.id === station.dataset.id);
+        if (stationData && stationData.marker) {
+            if (isVisible) {
+                map.addLayer(stationData.marker);
+                visibleCount++;
+            } else {
+                map.removeLayer(stationData.marker);
+            }
+        }
+    });
+    
+    document.getElementById('stations-count').textContent = visibleCount;
+}
+
+// Événements
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    
+    // Filtres
+    document.getElementById('search-input').addEventListener('input', applyFilters);
+    document.getElementById('filter-type').addEventListener('change', applyFilters);
+    document.getElementById('filter-status').addEventListener('change', applyFilters);
+    
+    // Boutons
+    document.getElementById('clear-filters').addEventListener('click', function() {
+        document.getElementById('search-input').value = '';
+        document.getElementById('filter-type').value = '';
+        document.getElementById('filter-status').value = '';
+        applyFilters();
+    });
+    
+    document.getElementById('my-location').addEventListener('click', getMyLocation);
+    
+    document.getElementById('toggle-legend').addEventListener('click', function() {
+        const legend = document.getElementById('map-legend');
+        legend.style.display = legend.style.display === 'none' ? 'block' : 'none';
+    });
+    
+    // Clic sur les éléments de la liste
+    document.querySelectorAll('.station-item').forEach(station => {
+        station.addEventListener('click', function() {
+            selectStation(this.dataset.id);
+        });
+    });
+    
+    // Boutons "Voir sur la carte"
+    document.querySelectorAll('.view-station').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const station = this.closest('.station-item');
+            selectStation(station.dataset.id);
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Préférences Stations{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Mes Préférences de Stations</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" id="preferences-form">
+                {% csrf_token %}
+                
+                <!-- Type de station préféré -->
+                <div class="mb-3">
+                    <label class="form-label">Type de Station Préféré</label>
+                    <select class="form-select" name="station_type">
+                        <option value="bus">Station de Bus</option>
+                        <option value="metro">Station de Métro</option>
+                        <option value="recharge">Station de Recharge</option>
+                        <option value="mixte">Station Mixte</option>
+                    </select>
+                </div>
+
+                <!-- Distance maximale -->
+                <div class="mb-3">
+                    <label class="form-label">Distance Maximale (km)</label>
+                    <input type="number" class="form-control" name="max_distance" 
+                           min="0" max="50" step="0.5" value="5">
+                </div>
+
+                <!-- Accessibilité -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="accessibility" id="accessibility">
+                        <label class="form-check-label" for="accessibility">
+                            Accessibilité PMR requise
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Position actuelle -->
+                <div class="mb-3">
+                    <label class="form-label">Ma Position</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="location" readonly>
+                        <button type="button" class="btn btn-secondary" id="get-location">
+                            <i class="fas fa-location-arrow"></i> Localiser
+                        </button>
+                    </div>
+                    <input type="hidden" name="latitude" id="lat">
+                    <input type="hidden" name="longitude" id="lng">
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer mes préférences
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Carte des recommandations -->
+    <div class="card mt-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Stations Recommandées</h5>
+        </div>
+        <div class="card-body">
+            <div id="map" style="height: 400px;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+<script>
+let map;
+let userMarker;
+
+function initMap() {
+    // Centrer sur Tunis par défaut
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: {lat: 36.8065, lng: 10.1815},
+        zoom: 12
+    });
+}
+
+document.getElementById('get-location').addEventListener('click', () => {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+            const pos = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            };
+
+            document.getElementById('lat').value = pos.lat;
+            document.getElementById('lng').value = pos.lng;
+            document.getElementById('location').value = `${pos.lat}, ${pos.lng}`;
+
+            // Mettre à jour le marqueur de l'utilisateur
+            if (userMarker) userMarker.setMap(null);
+            userMarker = new google.maps.Marker({
+                position: pos,
+                map: map,
+                icon: 'URL_TO_USER_ICON'
+            });
+
+            map.setCenter(pos);
+        });
+    }
+});
+
+document.getElementById('preferences-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    try {
+        const response = await fetch('/api/stations/preferences/', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            const stations = await response.json();
+            displayRecommendedStations(stations);
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+    }
+});
+
+function displayRecommendedStations(stations) {
+    // Effacer les anciens marqueurs
+    markers.forEach(marker => marker.setMap(null));
+    markers = [];
+
+    // Ajouter les nouveaux marqueurs
+    stations.forEach(station => {
+        const marker = new google.maps.Marker({
+            position: {lat: station.latitude, lng: station.longitude},
+            map: map,
+            title: station.nom,
+            icon: getMarkerIcon(station.type)
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+            content: `
+                <div>
+                    <h6>${station.nom}</h6>
+                    <p>Type: ${station.type}</p>
+                    <p>Distance: ${station.distance.toFixed(2)} km</p>
+                </div>
+            `
+        });
+
+        marker.addListener('click', () => {
+            infoWindow.open(map, marker);
+        });
+
+        markers.push(marker);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initMap);
+</script>
+{% endblock %}
