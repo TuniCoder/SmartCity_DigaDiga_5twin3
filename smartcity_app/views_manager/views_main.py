@@ -136,7 +136,7 @@ def query_view(request):
         'page_title': 'Interrogation Sémantique',
         'predefined_queries': queries_by_category,
         'all_predefined_queries': all_queries,  # Pour la logique de traitement
-        'example_questions': ai_processor._get_example_questions(),
+        'example_questions': SampleQueries._get_example_questions(),
     }
     
     if request.method == 'POST':
