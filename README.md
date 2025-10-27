@@ -245,7 +245,6 @@ Pour un déploiement en production :
 ```bash
 export DJANGO_SETTINGS_MODULE=smartcity_core.settings
 export DEBUG=False
-export SECRET_KEY=your-secret-key
 export DATABASE_URL=postgresql://user:pass@localhost/smartcity
 ```
 

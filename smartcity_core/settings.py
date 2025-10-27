@@ -10,7 +10,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Quick-start development settings - unsuitable for production
-SECRET_KEY = 'django-insecure-smartcity-development-key-2025-change-in-production'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
