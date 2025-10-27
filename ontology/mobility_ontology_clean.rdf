@@ -311,8 +311,87 @@
   </rdf:Description>
   <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#coût">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+<<<<<<< Updated upstream
     <rdfs:label xml:lang="fr">coût</rdfs:label>
     <rdfs:comment xml:lang="fr">Coût du trajet en dinars tunisiens</rdfs:comment>
+=======
+    <rdfs:label xml:lang="fr">type de route</rdfs:label>
+    <rdfs:comment xml:lang="fr">Type de route (urbaine, autoroute, piste cyclable)</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Route"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#étatPiste">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+    <rdfs:label xml:lang="fr">état de piste</rdfs:label>
+    <rdfs:comment xml:lang="fr">État de la piste cyclable (bon, moyen, mauvais)</rdfs:comment>
+    <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#PisteCyclable"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Voiture">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Voiture</rdfs:label>
+    <rdfs:comment xml:lang="fr">Véhicule automobile à quatre roues</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Moto">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Moto</rdfs:label>
+    <rdfs:comment xml:lang="fr">Véhicule à deux roues motorisé</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Scooter">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Scooter</rdfs:label>
+    <rdfs:comment xml:lang="fr">Scooter à essence ou électrique pour déplacements urbains</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Trottinette">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Trottinette</rdfs:label>
+    <rdfs:comment xml:lang="fr">Trottinette classique à propulsion manuelle</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#TrottinetteÉlectrique">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Trottinette Électrique</rdfs:label>
+    <rdfs:comment xml:lang="fr">Trottinette avec assistance électrique</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#VéloÉlectrique">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Vélo Électrique</rdfs:label>
+    <rdfs:comment xml:lang="fr">Vélo avec assistance électrique (VAE)</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Camionnette">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Camionnette</rdfs:label>
+    <rdfs:comment xml:lang="fr">Petit véhicule utilitaire pour transport de marchandises</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Bus">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Bus</rdfs:label>
+    <rdfs:comment xml:lang="fr">Véhicule de transport public de grande capacité</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Tramway">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Tramway</rdfs:label>
+    <rdfs:comment xml:lang="fr">Véhicule ferroviaire urbain électrique</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Métro">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:label xml:lang="fr">Métro</rdfs:label>
+    <rdfs:comment xml:lang="fr">Transport ferroviaire souterrain rapide</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#suitRoute">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label xml:lang="fr">suit route</rdfs:label>
+    <rdfs:comment xml:lang="fr">Relation entre un trajet et la route qu'il suit</rdfs:comment>
+>>>>>>> Stashed changes
     <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
   </rdf:Description>

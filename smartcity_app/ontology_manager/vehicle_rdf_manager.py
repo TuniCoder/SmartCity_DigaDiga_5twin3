@@ -17,7 +17,9 @@ class VehicleRDFManager(RDFManager):
     def __init__(self):
         super().__init__()
         self.vehicle_classes = [
-            'Véhicule', 'Vélo', 'Voiture', 'Moto', 'Bus', 'Métro', 'Tramway'
+            'Véhicule', 'Vélo', 'Voiture', 'Moto', 'Scooter', 'Trottinette', 
+            'TrottinetteÉlectrique', 'VéloÉlectrique', 'Camionnette', 'Bus', 
+            'Tramway', 'Métro'
         ]
     
     def get_vehicle_classes(self) -> List[str]:
