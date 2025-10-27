@@ -13,6 +13,12 @@ urlpatterns = [
     path('partages/', views.vehicules_partages, name='vehicules_partages'),
     path('analytics/', views.analytics_vehicules, name='analytics_vehicules'),
     
+    # AI Assistant (before CRUD to avoid conflict)
+    path('assistant/', views.ai_assistant, name='ai_assistant'),
+    path('api/chat/', views.api_chat_with_ai, name='api_chat_with_ai'),
+    path('api/chat/history/', views.api_chat_history, name='api_chat_history'),
+    path('api/chat/clear/', views.api_clear_chat_history, name='api_clear_chat_history'),
+    
     # CRUD Véhicules
     path('creer/', views.creer_vehicule, name='creer_vehicule'),
     path('<int:vehicule_id>/', views.detail_vehicule, name='detail_vehicule'),

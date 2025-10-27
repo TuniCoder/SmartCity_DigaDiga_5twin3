@@ -886,10 +886,19 @@ def api_chat_with_ai(request):
     """API pour chatter avec l'assistant IA"""
     try:
         from django.conf import settings
-        import openai
+        from openai import OpenAI
         
-        # Configuration OpenAI
-        openai.api_key = settings.OPENAI_API_KEY
+        # Vérifier que la clé API est configurée
+        api_key = settings.OPENAI_API_KEY
+        if not api_key:
+            logger.error("OPENAI_API_KEY n'est pas configurée dans les paramètres")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'La clé API OpenAI n\'est pas configurée. Veuillez configurer OPENAI_API_KEY dans votre fichier .env'
+            }, status=500)
+        
+        # Initialiser le client OpenAI
+        client = OpenAI(api_key=api_key)
         
         # Récupérer le message de l'utilisateur
         data = json.loads(request.body)
@@ -900,64 +909,82 @@ def api_chat_with_ai(request):
             return JsonResponse({
                 'status': 'error',
                 'message': 'Le message ne peut pas être vide'
-            })
+            }, status=400)
         
         # Récupérer l'assistant IA
         try:
             assistant = AIAssistant.objects.get(is_active=True)
             system_prompt = assistant.system_prompt
         except AIAssistant.DoesNotExist:
-            system_prompt = "Tu es un assistant spécialisé dans la gestion de véhicules et la maintenance automobile."
+            system_prompt = "Tu es un assistant spécialisé dans la gestion de véhicules et la maintenance automobile. Réponds en français de manière claire et professionnelle."
         
         # Récupérer l'historique récent pour le contexte
-        recent_messages = ChatMessage.objects.filter(user=request.user)[:5]
+        recent_messages = ChatMessage.objects.filter(user=request.user).order_by('-timestamp')[:5]
         
         # Construire le contexte de conversation
         messages = [{"role": "system", "content": system_prompt}]
         
+        # Ajouter l'historique de conversation (ordre inversé pour avoir les plus récents en dernier)
         for msg in reversed(recent_messages):
             messages.append({"role": "user", "content": msg.message})
             messages.append({"role": "assistant", "content": msg.response})
         
+        # Ajouter le message actuel
         messages.append({"role": "user", "content": user_message})
         
+        # Obtenir le modèle depuis les paramètres
+        model = getattr(settings, 'OPENAI_MODEL', 'gpt-4')
+        
         # Appel à l'API OpenAI
-        response = openai.ChatCompletion.create(
-            model=settings.OPENAI_MODEL,
-            messages=messages,
-            max_tokens=500,
-            temperature=0.7
-        )
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                max_tokens=500,
+                temperature=0.7
+            )
+            
+            ai_response = response.choices[0].message.content.strip()
+            
+            # Sauvegarder la conversation
+            chat_message = ChatMessage.objects.create(
+                user=request.user,
+                message=user_message,
+                response=ai_response,
+                message_type=message_type
+            )
+            
+            return JsonResponse({
+                'status': 'success',
+                'response': ai_response,
+                'message_id': chat_message.id,
+                'timestamp': chat_message.timestamp.isoformat()
+            })
+            
+        except Exception as api_error:
+            # Gestion spécifique des erreurs OpenAI
+            error_message = str(api_error)
+            if 'insufficient_quota' in error_message or 'rate_limit' in error_message:
+                user_friendly_message = "Limite de quota atteinte. Veuillez réessayer plus tard."
+            elif 'invalid_api_key' in error_message or 'authentication' in error_message:
+                user_friendly_message = "Erreur d'authentification. Vérifiez votre clé API."
+            elif 'model' in error_message and 'not found' in error_message:
+                user_friendly_message = f"Le modèle {model} n'est pas disponible. Veuillez vérifier votre configuration."
+            else:
+                user_friendly_message = f"Erreur lors de la communication avec l'API: {error_message}"
+            
+            logger.error(f"Erreur OpenAI API: {error_message}")
+            return JsonResponse({
+                'status': 'error',
+                'message': user_friendly_message
+            }, status=500)
         
-        ai_response = response.choices[0].message.content.strip()
-        
-        # Sauvegarder la conversation
-        chat_message = ChatMessage.objects.create(
-            user=request.user,
-            message=user_message,
-            response=ai_response,
-            message_type=message_type
-        )
-        
-        return JsonResponse({
-            'status': 'success',
-            'response': ai_response,
-            'message_id': chat_message.id,
-            'timestamp': chat_message.timestamp.isoformat()
-        })
-        
-    except openai.error.OpenAIError as e:
-        logger.error(f"Erreur OpenAI: {e}")
-        return JsonResponse({
-            'status': 'error',
-            'message': f'Erreur de l\'assistant IA: {str(e)}'
-        })
     except Exception as e:
-        logger.error(f"Erreur dans api_chat_with_ai: {e}")
+        logger.error(f"Erreur dans api_chat_with_ai: {e}", exc_info=True)
         return JsonResponse({
             'status': 'error',
             'message': f'Erreur lors de la communication avec l\'IA: {str(e)}'
-        })
+        }, status=500)
 
 
 @login_required

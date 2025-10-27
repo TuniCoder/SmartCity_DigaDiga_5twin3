@@ -8,9 +8,9 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-gradient-primary text-white">
                     <h3 class="mb-0">
-                        <i class="fas fa-robot me-2"></i>Assistant IA - Véhicules
+                        <i class="fas fa-robot me-2"></i>Assistant IA - SmartCity
                     </h3>
-                    <p class="mb-0 mt-2 small opacity-75">Posez vos questions sur la gestion de véhicules et la maintenance automobile</p>
+                    <p class="mb-0 mt-2 small opacity-75">Posez vos questions sur la ville intelligente</p>
                 </div>
                 <div class="card-body p-0">
                     <!-- Chat Box -->
@@ -165,7 +165,6 @@
         const icon = isUser ? 'fa-user' : 'fa-robot';
         const label = isUser ? 'Vous' : 'Assistant IA';
         const bgColor = isUser ? 'bg-primary text-white' : 'bg-white text-dark border';
-        const alignment = isUser ? 'justify-content-end' : 'justify-content-start';
         const timestamp = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         
         messageWrapper.innerHTML = `
@@ -216,7 +215,7 @@
         scrollToBottom();
         
         try {
-            const response = await fetch('{% url "gestion_vehicules:api_chat_with_ai" %}', {
+            const response = await fetch('{% url "chatbot:api_chat" %}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -253,7 +252,7 @@
         clearChatBtn.addEventListener('click', async function() {
             if (confirm('Êtes-vous sûr de vouloir effacer tout l\'historique de la conversation ?')) {
                 try {
-                    const response = await fetch('{% url "gestion_vehicules:api_clear_chat_history" %}', {
+                    const response = await fetch('{% url "chatbot:api_clear" %}', {
                         method: 'DELETE',
                         headers: {
                             'X-CSRFToken': '{{ csrf_token }}'
@@ -279,3 +278,4 @@
 })();
 </script>
 {% endblock %}
+

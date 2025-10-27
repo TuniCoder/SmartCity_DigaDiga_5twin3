@@ -228,6 +228,23 @@
     <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Arrêt"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
   </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Vélo Test20251027004142_357">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+    <rdfs:label xml:lang="fr"> </rdfs:label>
+    <mobility:marque rdf:datatype="http://www.w3.org/2001/XMLSchema#string"></mobility:marque>
+    <mobility:modèle rdf:datatype="http://www.w3.org/2001/XMLSchema#string"></mobility:modèle>
+    <mobility:couleur rdf:datatype="http://www.w3.org/2001/XMLSchema#string"></mobility:couleur>
+    <mobility:statut rdf:datatype="http://www.w3.org/2001/XMLSchema#string">maintenance</mobility:statut>
+    <mobility:localisation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">garage</mobility:localisation>
+    <mobility:latitude rdf:datatype="http://www.w3.org/2001/XMLSchema#float">55.0</mobility:latitude>
+    <mobility:longitude rdf:datatype="http://www.w3.org/2001/XMLSchema#float">55.0</mobility:longitude>
+    <mobility:niveauBatterie rdf:datatype="http://www.w3.org/2001/XMLSchema#float">55.0</mobility:niveauBatterie>
+    <mobility:capacité rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</mobility:capacité>
+    <mobility:emissionCO2 rdf:datatype="http://www.w3.org/2001/XMLSchema#float">0.0</mobility:emissionCO2>
+    <mobility:accessiblePMR rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</mobility:accessiblePMR>
+    <mobility:typeVéhicule rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Vélo Test</mobility:typeVéhicule>
+    <mobility:dateCreation rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-27T00:41:42.022357</mobility:dateCreation>
+  </rdf:Description>
   <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#effectuéPar">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
     <rdfs:label xml:lang="fr">effectué par</rdfs:label>
@@ -624,6 +641,21 @@
     <rdfs:comment xml:lang="fr">Mode de transport utilisé pour le trajet</rdfs:comment>
     <rdfs:domain rdf:resource="http://example.org/mobility-ontology/2025/09#Trajet"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#Vélo Test20251027004203_612">
+    <rdf:type rdf:resource="http://example.org/mobility-ontology/2025/09#Véhicule"/>
+    <rdfs:label xml:lang="fr"> </rdfs:label>
+    <mobility:marque rdf:datatype="http://www.w3.org/2001/XMLSchema#string"></mobility:marque>
+    <mobility:modèle rdf:datatype="http://www.w3.org/2001/XMLSchema#string"></mobility:modèle>
+    <mobility:couleur rdf:datatype="http://www.w3.org/2001/XMLSchema#string"></mobility:couleur>
+    <mobility:statut rdf:datatype="http://www.w3.org/2001/XMLSchema#string">maintenance</mobility:statut>
+    <mobility:localisation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">TEST</mobility:localisation>
+    <mobility:niveauBatterie rdf:datatype="http://www.w3.org/2001/XMLSchema#float">50.0</mobility:niveauBatterie>
+    <mobility:capacité rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</mobility:capacité>
+    <mobility:emissionCO2 rdf:datatype="http://www.w3.org/2001/XMLSchema#float">0.0</mobility:emissionCO2>
+    <mobility:accessiblePMR rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</mobility:accessiblePMR>
+    <mobility:typeVéhicule rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Vélo Test</mobility:typeVéhicule>
+    <mobility:dateCreation rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2025-10-27T00:42:03.906612</mobility:dateCreation>
   </rdf:Description>
   <rdf:Description rdf:about="http://example.org/mobility-ontology/2025/09#heureDebut">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
