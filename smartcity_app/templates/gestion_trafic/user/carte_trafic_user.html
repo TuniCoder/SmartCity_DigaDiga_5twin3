@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0">
+                <i class="bi bi-map"></i> Carte du Trafic
+            </h1>
+            <p class="text-muted">Visualisez le trafic en temps réel</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'gestion_trafic:dashboard_trafic' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <!-- Contrôles -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-primary w-100" id="btnTous">
+                                <i class="bi bi-eye"></i> Tous les Capteurs
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-warning w-100" id="btnDense">
+                                <i class="bi bi-exclamation-triangle"></i> Zones Denses
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-info w-100" id="btnFavoris">
+                                <i class="bi bi-star"></i> Mes Favoris
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-success w-100" id="btnHeatmap">
+                                <i class="bi bi-fire"></i> Heatmap
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carte -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-0">
+                    <div id="map" style="height: 600px; border-radius: 0.25rem;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Légende -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Légende
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-2">
+                                <span class="badge bg-success me-2">●</span> Trafic Fluide
+                            </div>
+                            <div class="mb-2">
+                                <span class="badge bg-warning me-2">●</span> Trafic Dense
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-2">
+                                <span class="badge bg-danger me-2">●</span> Trafic Ralenti
+                            </div>
+                            <div class="mb-2">
+                                <span class="badge bg-dark me-2">●</span> Trafic Bloqué
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-2">
+                                <i class="bi bi-radar text-primary"></i> Radar
+                            </div>
+                            <div class="mb-2">
+                                <i class="bi bi-camera-video text-info"></i> Caméra
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-2">
+                                <i class="bi bi-star-fill text-warning"></i> Zone Favorite
+                            </div>
+                            <div class="mb-2">
+                                <i class="bi bi-exclamation-triangle text-danger"></i> Alerte
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informations Zones -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list"></i> Zones Disponibles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Zone</th>
+                                    <th>Type</th>
+                                    <th>Vitesse Limite</th>
+                                    <th>Capteurs</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for zone in zones %}
+                                <tr>
+                                    <td>{{ zone.nom }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ zone.get_type_zone_display }}</span>
+                                    </td>
+                                    <td>{{ zone.vitesse_limite }} km/h</td>
+                                    <td>{{ zone.capteurs.count }}</td>
+                                    <td>
+                                        <a href="{% url 'gestion_trafic:detail_zone_user' zone.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Détails
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<!-- Leaflet Heatmap -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-heatmap/1.0.0/leaflet-heatmap.min.css" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-heatmap/1.0.0/leaflet-heatmap.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialiser la carte
+    const map = L.map('map').setView([35.8, 10.5], 8);
+    
+    // Ajouter le fond de carte
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+    
+    // Charger les données du trafic
+    fetch('{% url "gestion_trafic:api_trafic_temps_reel" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Traiter chaque capteur
+                data.capteurs.forEach(capteur => {
+                    // Déterminer la couleur selon la congestion
+                    let color = '#28a745'; // Vert - Fluide
+                    if (!capteur.congestion || capteur.congestion === 0) {
+                        color = '#6c757d'; // Gris - Pas de données
+                    } else if (capteur.congestion === 'bloque' || capteur.congestion === 4) {
+                        color = '#dc3545'; // Rouge - Bloqué
+                    } else if (capteur.congestion === 'bouchon' || capteur.congestion === 3) {
+                        color = '#ff6b6b'; // Rouge clair - Bouchon
+                    } else if (capteur.congestion === 'ralenti' || capteur.congestion === 2) {
+                        color = '#ffc107'; // Jaune - Ralenti
+                    } else if (capteur.congestion === 'dense' || capteur.congestion === 1) {
+                        color = '#fd7e14'; // Orange - Dense
+                    }
+                    
+                    // Ajouter un marqueur
+                    const marker = L.circleMarker([capteur.latitude, capteur.longitude], {
+                        radius: 8,
+                        fillColor: color,
+                        color: '#000',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    });
+                    
+                    const congestionText = typeof capteur.congestion === 'number' 
+                        ? capteur.congestion + ' véhicules' 
+                        : capteur.congestion || 'N/A';
+                    
+                    marker.bindPopup(`
+                        <strong>${capteur.nom}</strong><br>
+                        Type: ${capteur.type}<br>
+                        Zone: ${capteur.zone}<br>
+                        Congestion: ${congestionText}<br>
+                        Vitesse: ${capteur.vitesse || 'N/A'} km/h<br>
+                        Véhicules: ${capteur.vehicules || 0}
+                    `).addTo(map);
+                });
+            }
+        })
+        .catch(error => console.error('Erreur:', error));
+    
+    // Boutons de contrôle
+    document.getElementById('btnTous').addEventListener('click', function() {
+        console.log('Afficher tous les capteurs');
+    });
+    
+    document.getElementById('btnDense').addEventListener('click', function() {
+        console.log('Afficher zones denses');
+    });
+    
+    document.getElementById('btnFavoris').addEventListener('click', function() {
+        console.log('Afficher favoris');
+    });
+    
+    document.getElementById('btnHeatmap').addEventListener('click', function() {
+        console.log('Afficher heatmap');
+    });
+});
+</script>
+{% endblock %}
+

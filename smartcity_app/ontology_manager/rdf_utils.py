@@ -224,16 +224,15 @@ class RDFManager:
     def get_stations_data(self) -> List[Dict]:
         """Récupère les données des stations"""
         query = """
-        SELECT ?station ?nomStation ?latitude ?longitude ?adresse ?capacité ?typeStation ?heuresOuverture
+        SELECT ?station ?nomStation ?latitude ?longitude ?adresse ?capacite ?typeStation
         WHERE {
             ?station rdf:type mobility:Station .
             OPTIONAL { ?station mobility:nomStation ?nomStation }
             OPTIONAL { ?station mobility:latitude ?latitude }
             OPTIONAL { ?station mobility:longitude ?longitude }
             OPTIONAL { ?station mobility:adresse ?adresse }
-            OPTIONAL { ?station mobility:capacité ?capacité }
+            OPTIONAL { ?station mobility:capacité ?capacite }
             OPTIONAL { ?station mobility:typeStation ?typeStation }
-            OPTIONAL { ?station mobility:heuresOuverture ?heuresOuverture }
         }
         ORDER BY ?nomStation
         """

@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0">
+                <i class="bi bi-route"></i> Mes Trajets
+            </h1>
+            <p class="text-muted">Gérez vos trajets planifiés</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'gestion_trafic:planifier_trajet' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nouveau Trajet
+            </a>
+        </div>
+    </div>
+
+    <!-- Onglets -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="tab-planifies" data-bs-toggle="tab" data-bs-target="#planifies" type="button" role="tab">
+                        <i class="bi bi-calendar-check"></i> Planifiés
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-historique" data-bs-toggle="tab" data-bs-target="#historique" type="button" role="tab">
+                        <i class="bi bi-clock-history"></i> Historique
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-favoris" data-bs-toggle="tab" data-bs-target="#favoris" type="button" role="tab">
+                        <i class="bi bi-star"></i> Favoris
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Contenu des Onglets -->
+    <div class="tab-content">
+        <!-- Trajets Planifiés -->
+        <div class="tab-pane fade show active" id="planifies" role="tabpanel">
+            <div class="row">
+                <div class="col-12">
+                    {% if trajets %}
+                        <div class="row">
+                            {% for trajet in trajets %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div>
+                                                <h5 class="card-title mb-1">{{ trajet.lieu_depart }} → {{ trajet.lieu_arrivee }}</h5>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar"></i> {{ trajet.date_creation|date:"d/m/Y H:i" }}
+                                                </small>
+                                            </div>
+                                            <span class="badge bg-primary">Planifié</span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <p class="mb-1"><strong>Heure de départ:</strong> {{ trajet.heure_depart }}</p>
+                                            <p class="mb-0"><strong>Critères:</strong> {{ trajet.criteres|join:", " }}</p>
+                                        </div>
+                                        <div class="btn-group w-100" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i> Modifier
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i> Supprimer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Aucun trajet planifié. 
+                            <a href="{% url 'gestion_trafic:planifier_trajet' %}">Planifiez un trajet</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Historique -->
+        <div class="tab-pane fade" id="historique" role="tabpanel">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">Tunis Centre → Sfax</h6>
+                                            <small class="text-muted">25/10/2025 08:30 - 11:45</small>
+                                        </div>
+                                        <div>
+                                            <span class="badge bg-success me-2">Complété</span>
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-repeat"></i> Répéter
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">Gare → Aéroport</h6>
+                                            <small class="text-muted">24/10/2025 14:20 - 15:10</small>
+                                        </div>
+                                        <div>
+                                            <span class="badge bg-success me-2">Complété</span>
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-repeat"></i> Répéter
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trajets Favoris -->
+        <div class="tab-pane fade" id="favoris" role="tabpanel">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                <i class="bi bi-star-fill text-warning"></i> Domicile → Travail
+                                            </h6>
+                                            <small class="text-muted">Tunis Centre → Zone Industrielle</small>
+                                        </div>
+                                        <button class="btn btn-sm btn-primary">
+                                            <i class="bi bi-play"></i> Démarrer
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                <i class="bi bi-star-fill text-warning"></i> Travail → Gare
+                                            </h6>
+                                            <small class="text-muted">Zone Industrielle → Gare Centrale</small>
+                                        </div>
+                                        <button class="btn btn-sm btn-primary">
+                                            <i class="bi bi-play"></i> Démarrer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="mb-0">{{ trajets|length }}</h3>
+                    <small class="text-muted">Trajets Planifiés</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="mb-0">2</h3>
+                    <small class="text-muted">Trajets Favoris</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="mb-0">15</h3>
+                    <small class="text-muted">Trajets Complétés</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="mb-0">4h 30m</h3>
+                    <small class="text-muted">Temps Total</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

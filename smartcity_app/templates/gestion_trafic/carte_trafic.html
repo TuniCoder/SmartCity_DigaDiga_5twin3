@@ -1,0 +1,734 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Carte du Trafic - Gestion Trafic{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<!-- Leaflet Heatmap -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.css" />
+
+<style>
+    #map {
+        height: 600px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        z-index: 1;
+    }
+
+    .map-controls {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .control-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .control-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .control-group label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+        color: #333;
+    }
+
+    .control-group select,
+    .control-group input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 0.95rem;
+    }
+
+    .control-group select:focus,
+    .control-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-group-map {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-map {
+        flex: 1;
+        min-width: 120px;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background: white;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-map:hover {
+        background: #f8f9fa;
+        border-color: #667eea;
+    }
+
+    .btn-map.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    .legend {
+        background: white;
+        padding: 1rem;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-top: 1rem;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+    }
+
+    .stats-mini {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .stat-box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .stat-box.warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .stat-box.success {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .stat-box.info {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+
+    .stat-number {
+        font-size: 1.8rem;
+        font-weight: bold;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .loading-spinner.active {
+        display: block;
+    }
+
+    .marker-popup {
+        font-size: 0.9rem;
+    }
+
+    .marker-popup strong {
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-panel {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-top: 2rem;
+    }
+
+    .info-panel h5 {
+        margin-bottom: 1rem;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .info-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .info-list li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .info-list li:last-child {
+        border-bottom: none;
+    }
+
+    .info-list strong {
+        color: #667eea;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1">🗺️ Carte du Trafic</h1>
+                    <p class="text-muted mb-0">Visualisation interactive des capteurs et du trafic en temps réel</p>
+                </div>
+                <div>
+                    <a href="{% url 'gestion_trafic:index_trafic' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Retour
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contrôles -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="map-controls">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="control-group">
+                            <label for="filterZone">Filtrer par Zone</label>
+                            <select id="filterZone" class="form-select">
+                                <option value="">Toutes les zones</option>
+                                {% for zone in zones %}
+                                <option value="{{ zone.id }}">{{ zone.nom }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="control-group">
+                            <label for="filterStatut">Filtrer par Statut</label>
+                            <select id="filterStatut" class="form-select">
+                                <option value="">Tous les statuts</option>
+                                <option value="actif">Actif</option>
+                                <option value="inactif">Inactif</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="defaillant">Défaillant</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="control-group">
+                            <label for="filterType">Filtrer par Type</label>
+                            <select id="filterType" class="form-select">
+                                <option value="">Tous les types</option>
+                                <option value="boucle_magnetique">Boucle Magnétique</option>
+                                <option value="camera_ia">Caméra IA</option>
+                                <option value="radar">Radar</option>
+                                <option value="lidar">LiDAR</option>
+                                <option value="capteur_bluetooth">Bluetooth</option>
+                                <option value="capteur_wifi">Wi-Fi</option>
+                                <option value="gps_flottant">GPS Flottant</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="control-group">
+                            <label>&nbsp;</label>
+                            <div class="btn-group-map">
+                                <button class="btn-map active" data-view="capteurs" title="Afficher tous les capteurs">
+                                    <i class="bi bi-pin-map"></i> Tous
+                                </button>
+                                <button class="btn-map" data-view="radars" title="Afficher les radars">
+                                    <i class="bi bi-radar"></i> Radars
+                                </button>
+                                <button class="btn-map" data-view="cameras" title="Afficher les caméras">
+                                    <i class="bi bi-camera-video"></i> Caméras
+                                </button>
+                                <button class="btn-map" data-view="trafic" title="Afficher le trafic">
+                                    <i class="bi bi-fire"></i> Trafic
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistiques -->
+                <div class="stats-mini">
+                    <div class="stat-box">
+                        <div class="stat-number" id="totalCapteurs">0</div>
+                        <div class="stat-label">Capteurs Total</div>
+                    </div>
+                    <div class="stat-box success">
+                        <div class="stat-number" id="capteurActifs">0</div>
+                        <div class="stat-label">Capteurs Actifs</div>
+                    </div>
+                    <div class="stat-box warning">
+                        <div class="stat-number" id="capteurInactifs">0</div>
+                        <div class="stat-label">Capteurs Inactifs</div>
+                    </div>
+                    <div class="stat-box info">
+                        <div class="stat-number" id="congestionLevel">-</div>
+                        <div class="stat-label">Niveau Congestion</div>
+                    </div>
+                </div>
+
+                <!-- Légende -->
+                <div class="legend">
+                    <strong style="display: block; margin-bottom: 0.5rem;">Légende</strong>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.85rem;">Capteurs</div>
+                            <div class="legend-item">
+                                <span style="font-size: 1.2rem; margin-right: 0.5rem;">📍</span>
+                                <span>Capteur Actif</span>
+                            </div>
+                            <div class="legend-item">
+                                <span style="font-size: 1.2rem; margin-right: 0.5rem;">📍</span>
+                                <span>Capteur Inactif</span>
+                            </div>
+                            <div class="legend-item">
+                                <span style="font-size: 1.2rem; margin-right: 0.5rem;">📍</span>
+                                <span>Capteur Maintenance</span>
+                            </div>
+                            <div class="legend-item">
+                                <span style="font-size: 1.2rem; margin-right: 0.5rem;">📡</span>
+                                <span>Radar</span>
+                            </div>
+                            <div class="legend-item">
+                                <span style="font-size: 1.2rem; margin-right: 0.5rem;">📹</span>
+                                <span>Caméra Surveillance</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.85rem;">Trafic</div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #0066ff; width: 20px; height: 20px; border-radius: 50%;"></div>
+                                <span>Trafic Fluide</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #ffff00; width: 20px; height: 20px; border-radius: 50%;"></div>
+                                <span>Trafic Modéré</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #ff9900; width: 20px; height: 20px; border-radius: 50%;"></div>
+                                <span>Trafic Dense</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #ff0000; width: 20px; height: 20px; border-radius: 50%;"></div>
+                                <span>Trafic Bloqué</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carte -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Chargement...</span>
+                </div>
+                <p class="mt-2">Chargement de la carte...</p>
+            </div>
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <!-- Informations -->
+    <div class="row">
+        <div class="col-12">
+            <div class="info-panel">
+                <h5>ℹ️ Informations</h5>
+                <ul class="info-list">
+                    <li><strong>Capteur sélectionné:</strong> <span id="selectedCapteur">Aucun</span></li>
+                    <li><strong>Coordonnées:</strong> <span id="selectedCoords">-</span></li>
+                    <li><strong>Zone:</strong> <span id="selectedZone">-</span></li>
+                    <li><strong>Statut:</strong> <span id="selectedStatut">-</span></li>
+                    <li><strong>Précision:</strong> <span id="selectedPrecision">-</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<!-- Leaflet Heatmap -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+
+<script>
+    // Configuration initiale
+    const mapConfig = {
+        center: [36.8070, 10.1820],
+        zoom: 13,
+        currentView: 'capteurs',
+        markers: [],
+        heatmapLayer: null
+    };
+
+    // Initialiser la carte
+    const map = L.map('map').setView(mapConfig.center, mapConfig.zoom);
+
+    // Ajouter le fond de carte
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    // Fonction pour charger les capteurs
+    function loadCapteurs() {
+        const zoneId = document.getElementById('filterZone').value;
+        const statut = document.getElementById('filterStatut').value;
+        const type = document.getElementById('filterType').value;
+
+        let url = '/trafic/api/maps/capteurs/';
+        const params = new URLSearchParams();
+        if (zoneId) params.append('zone_id', zoneId);
+        if (statut) params.append('statut', statut);
+        if (type) params.append('type_capteur', type);
+        if (params.toString()) url += '?' + params.toString();
+
+        document.getElementById('loadingSpinner').classList.add('active');
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                clearMarkers();
+                if (data.success && data.data.features) {
+                    data.data.features.forEach(feature => {
+                        addMarker(feature);
+                    });
+                    updateStats(data.data.features);
+                }
+                document.getElementById('loadingSpinner').classList.remove('active');
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                document.getElementById('loadingSpinner').classList.remove('active');
+            });
+    }
+
+    // Fonction pour charger les radars
+    function loadRadars() {
+        const zoneId = document.getElementById('filterZone').value;
+        const statut = document.getElementById('filterStatut').value;
+
+        let url = '/trafic/api/maps/capteurs/?type_capteur=radar';
+        if (zoneId) url += '&zone_id=' + zoneId;
+        if (statut) url += '&statut=' + statut;
+
+        document.getElementById('loadingSpinner').classList.add('active');
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                clearMarkers();
+                if (data.success && data.data.features) {
+                    data.data.features.forEach(feature => {
+                        addRadarMarker(feature);
+                    });
+                    updateStats(data.data.features);
+                }
+                document.getElementById('loadingSpinner').classList.remove('active');
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                document.getElementById('loadingSpinner').classList.remove('active');
+            });
+    }
+
+    // Fonction pour charger les caméras
+    function loadCameras() {
+        const zoneId = document.getElementById('filterZone').value;
+        const statut = document.getElementById('filterStatut').value;
+
+        let url = '/trafic/api/maps/capteurs/?type_capteur=camera_ia';
+        if (zoneId) url += '&zone_id=' + zoneId;
+        if (statut) url += '&statut=' + statut;
+
+        document.getElementById('loadingSpinner').classList.add('active');
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                clearMarkers();
+                if (data.success && data.data.features) {
+                    data.data.features.forEach(feature => {
+                        addCameraMarker(feature);
+                    });
+                    updateStats(data.data.features);
+                }
+                document.getElementById('loadingSpinner').classList.remove('active');
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                document.getElementById('loadingSpinner').classList.remove('active');
+            });
+    }
+
+    // Fonction pour charger la heatmap de trafic
+    function loadTrafic() {
+        const zoneId = document.getElementById('filterZone').value;
+
+        let url = '/trafic/api/maps/heatmap/?heures=1';
+        if (zoneId) url += '&zone_id=' + zoneId;
+
+        document.getElementById('loadingSpinner').classList.add('active');
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (mapConfig.heatmapLayer) {
+                    map.removeLayer(mapConfig.heatmapLayer);
+                }
+                clearMarkers();
+
+                if (data.success && data.data) {
+                    const heatmapData = data.data.map(point => [
+                        point.latitude,
+                        point.longitude,
+                        point.intensity
+                    ]);
+
+                    if (heatmapData.length > 0) {
+                        mapConfig.heatmapLayer = L.heatLayer(heatmapData, {
+                            radius: 25,
+                            blur: 15,
+                            maxZoom: 17
+                        }).addTo(map);
+                    }
+                }
+                document.getElementById('loadingSpinner').classList.remove('active');
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                document.getElementById('loadingSpinner').classList.remove('active');
+            });
+    }
+
+    // Alias pour compatibilité
+    function loadHeatmap() {
+        loadTrafic();
+    }
+
+    // Ajouter un marqueur générique
+    function addMarker(feature) {
+        const coords = feature.geometry.coordinates;
+        const props = feature.properties;
+
+        const color = props.color === 'green' ? '#28a745' : props.color === 'red' ? '#dc3545' : '#ffc107';
+
+        const marker = L.circleMarker([coords[1], coords[0]], {
+            radius: 8,
+            fillColor: color,
+            color: '#fff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+        }).addTo(map);
+
+        const popupContent = `
+            <div class="marker-popup">
+                <strong>${props.nom}</strong>
+                <div>Type: ${props.type}</div>
+                <div>Zone: ${props.zone}</div>
+                <div>Statut: ${props.statut}</div>
+                <div>Précision: ${props.precision}%</div>
+            </div>
+        `;
+
+        marker.bindPopup(popupContent);
+        marker.on('click', function() {
+            updateSelectedInfo(props);
+        });
+
+        mapConfig.markers.push(marker);
+    }
+
+    // Ajouter un marqueur radar
+    function addRadarMarker(feature) {
+        const coords = feature.geometry.coordinates;
+        const props = feature.properties;
+
+        const color = props.color === 'green' ? '#28a745' : props.color === 'red' ? '#dc3545' : '#ffc107';
+
+        // Créer un marqueur avec icône radar
+        const radarIcon = L.divIcon({
+            html: `<div style="font-size: 1.5rem; text-align: center;">📡</div>`,
+            iconSize: [30, 30],
+            className: 'radar-marker'
+        });
+
+        const marker = L.marker([coords[1], coords[0]], { icon: radarIcon }).addTo(map);
+
+        const popupContent = `
+            <div class="marker-popup">
+                <strong>📡 ${props.nom}</strong>
+                <div>Type: Radar</div>
+                <div>Zone: ${props.zone}</div>
+                <div>Statut: ${props.statut}</div>
+                <div>Précision: ${props.precision}%</div>
+            </div>
+        `;
+
+        marker.bindPopup(popupContent);
+        marker.on('click', function() {
+            updateSelectedInfo(props);
+        });
+
+        mapConfig.markers.push(marker);
+    }
+
+    // Ajouter un marqueur caméra
+    function addCameraMarker(feature) {
+        const coords = feature.geometry.coordinates;
+        const props = feature.properties;
+
+        const color = props.color === 'green' ? '#28a745' : props.color === 'red' ? '#dc3545' : '#ffc107';
+
+        // Créer un marqueur avec icône caméra
+        const cameraIcon = L.divIcon({
+            html: `<div style="font-size: 1.5rem; text-align: center;">📹</div>`,
+            iconSize: [30, 30],
+            className: 'camera-marker'
+        });
+
+        const marker = L.marker([coords[1], coords[0]], { icon: cameraIcon }).addTo(map);
+
+        const popupContent = `
+            <div class="marker-popup">
+                <strong>📹 ${props.nom}</strong>
+                <div>Type: Caméra IA</div>
+                <div>Zone: ${props.zone}</div>
+                <div>Statut: ${props.statut}</div>
+                <div>Précision: ${props.precision}%</div>
+            </div>
+        `;
+
+        marker.bindPopup(popupContent);
+        marker.on('click', function() {
+            updateSelectedInfo(props);
+        });
+
+        mapConfig.markers.push(marker);
+    }
+
+    // Effacer les marqueurs
+    function clearMarkers() {
+        mapConfig.markers.forEach(marker => map.removeLayer(marker));
+        mapConfig.markers = [];
+    }
+
+    // Mettre à jour les statistiques
+    function updateStats(features) {
+        const total = features.length;
+        const actifs = features.filter(f => f.properties.statut === 'actif').length;
+        const inactifs = features.filter(f => f.properties.statut === 'inactif').length;
+
+        document.getElementById('totalCapteurs').textContent = total;
+        document.getElementById('capteurActifs').textContent = actifs;
+        document.getElementById('capteurInactifs').textContent = inactifs;
+    }
+
+    // Mettre à jour les informations du capteur sélectionné
+    function updateSelectedInfo(props) {
+        document.getElementById('selectedCapteur').textContent = props.nom;
+        document.getElementById('selectedCoords').textContent = `${props.latitude}, ${props.longitude}`;
+        document.getElementById('selectedZone').textContent = props.zone;
+        document.getElementById('selectedStatut').textContent = props.statut;
+        document.getElementById('selectedPrecision').textContent = props.precision + '%';
+    }
+
+    // Événements
+    document.getElementById('filterZone').addEventListener('change', () => {
+        if (mapConfig.currentView === 'capteurs') loadCapteurs();
+        else if (mapConfig.currentView === 'radars') loadRadars();
+        else if (mapConfig.currentView === 'cameras') loadCameras();
+        else loadTrafic();
+    });
+
+    document.getElementById('filterStatut').addEventListener('change', () => {
+        if (mapConfig.currentView === 'capteurs') loadCapteurs();
+        else if (mapConfig.currentView === 'radars') loadRadars();
+        else if (mapConfig.currentView === 'cameras') loadCameras();
+    });
+
+    document.getElementById('filterType').addEventListener('change', () => {
+        if (mapConfig.currentView === 'capteurs') loadCapteurs();
+    });
+
+    document.querySelectorAll('[data-view]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            mapConfig.currentView = this.dataset.view;
+
+            if (mapConfig.currentView === 'capteurs') {
+                loadCapteurs();
+            } else if (mapConfig.currentView === 'radars') {
+                loadRadars();
+            } else if (mapConfig.currentView === 'cameras') {
+                loadCameras();
+            } else if (mapConfig.currentView === 'trafic') {
+                loadTrafic();
+            }
+        });
+    });
+
+    // Charger les capteurs au démarrage
+    loadCapteurs();
+
+    // Actualiser automatiquement toutes les 30 secondes
+    setInterval(() => {
+        if (mapConfig.currentView === 'capteurs') {
+            loadCapteurs();
+        } else if (mapConfig.currentView === 'radars') {
+            loadRadars();
+        } else if (mapConfig.currentView === 'cameras') {
+            loadCameras();
+        } else if (mapConfig.currentView === 'trafic') {
+            loadTrafic();
+        }
+    }, 30000);
+
+    // Actualiser toutes les 30 secondes
+    setInterval(() => {
+        if (mapConfig.currentView === 'capteurs') loadCapteurs();
+        else loadHeatmap();
+    }, 30000);
+</script>
+{% endblock %}
+

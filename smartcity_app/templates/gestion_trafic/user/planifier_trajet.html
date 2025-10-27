@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0">
+                <i class="bi bi-route"></i> Planifier un Trajet
+            </h1>
+            <p class="text-muted">Optimisez votre trajet selon vos préférences</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'gestion_trafic:mes_trajets' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Lieu de Départ -->
+                        <div class="mb-3">
+                            <label for="lieuDepart" class="form-label">
+                                <i class="bi bi-geo-alt"></i> Lieu de Départ
+                            </label>
+                            <input type="text" class="form-control" id="lieuDepart" name="lieu_depart" 
+                                   placeholder="Ex: Tunis Centre" required>
+                            <div class="invalid-feedback">
+                                Veuillez entrer un lieu de départ.
+                            </div>
+                        </div>
+
+                        <!-- Lieu d'Arrivée -->
+                        <div class="mb-3">
+                            <label for="lieuArrivee" class="form-label">
+                                <i class="bi bi-geo-alt-fill"></i> Lieu d'Arrivée
+                            </label>
+                            <input type="text" class="form-control" id="lieuArrivee" name="lieu_arrivee" 
+                                   placeholder="Ex: Sfax" required>
+                            <div class="invalid-feedback">
+                                Veuillez entrer un lieu d'arrivée.
+                            </div>
+                        </div>
+
+                        <!-- Heure de Départ -->
+                        <div class="mb-3">
+                            <label for="heureDepart" class="form-label">
+                                <i class="bi bi-clock"></i> Heure de Départ
+                            </label>
+                            <input type="datetime-local" class="form-control" id="heureDepart" 
+                                   name="heure_depart" required>
+                            <div class="invalid-feedback">
+                                Veuillez entrer une heure de départ.
+                            </div>
+                        </div>
+
+                        <!-- Critères d'Optimisation -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="bi bi-sliders"></i> Critères d'Optimisation
+                            </label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="critereTemps" 
+                                               name="criteres" value="temps">
+                                        <label class="form-check-label" for="critereTemps">
+                                            <i class="bi bi-hourglass-split"></i> Temps Minimum
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="critereCout" 
+                                               name="criteres" value="cout">
+                                        <label class="form-check-label" for="critereCout">
+                                            <i class="bi bi-wallet2"></i> Coût Minimum
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="critereEco" 
+                                               name="criteres" value="ecologie">
+                                        <label class="form-check-label" for="critereEco">
+                                            <i class="bi bi-leaf"></i> Écologie
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="critereConfort" 
+                                               name="criteres" value="confort">
+                                        <label class="form-check-label" for="critereConfort">
+                                            <i class="bi bi-chair"></i> Confort
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="critereSante" 
+                                               name="criteres" value="sante">
+                                        <label class="form-check-label" for="critereSante">
+                                            <i class="bi bi-heart"></i> Santé
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="critereSurete" 
+                                               name="criteres" value="surete">
+                                        <label class="form-check-label" for="critereSurete">
+                                            <i class="bi bi-shield-check"></i> Sûreté
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Options Avancées -->
+                        <div class="mb-4">
+                            <div class="accordion" id="optionsAvancees">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                                data-bs-target="#collapseOptions">
+                                            <i class="bi bi-gear"></i> Options Avancées
+                                        </button>
+                                    </h2>
+                                    <div id="collapseOptions" class="accordion-collapse collapse" data-bs-parent="#optionsAvancees">
+                                        <div class="accordion-body">
+                                            <div class="mb-3">
+                                                <label for="budgetMax" class="form-label">Budget Maximum (€)</label>
+                                                <input type="number" class="form-control" id="budgetMax" 
+                                                       name="budget_max" step="0.01" min="0">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="dureeMax" class="form-label">Durée Maximum (minutes)</label>
+                                                <input type="number" class="form-control" id="dureeMax" 
+                                                       name="duree_max" min="0">
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="accessiblePMR" 
+                                                       name="accessible_pmr">
+                                                <label class="form-check-label" for="accessiblePMR">
+                                                    <i class="bi bi-wheelchair"></i> Accessible PMR
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="eviterCirculation" 
+                                                       name="eviter_circulation">
+                                                <label class="form-check-label" for="eviterCirculation">
+                                                    <i class="bi bi-exclamation-triangle"></i> Éviter la Circulation
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'gestion_trafic:mes_trajets' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Planifier le Trajet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conseils -->
+    <div class="row mt-4">
+        <div class="col-lg-8 mx-auto">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-lightbulb"></i> Conseils pour Planifier votre Trajet
+                    </h5>
+                    <ul class="mb-0">
+                        <li>Sélectionnez plusieurs critères pour obtenir les meilleures recommandations</li>
+                        <li>Consultez les alertes de trafic avant de planifier</li>
+                        <li>Planifiez vos trajets en dehors des heures de pointe (7h-9h, 17h-19h)</li>
+                        <li>Utilisez les transports en commun pour réduire la congestion</li>
+                        <li>Sauvegardez vos trajets favoris pour un accès rapide</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validation du formulaire
+    const form = document.querySelector('.needs-validation');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    }, false);
+    
+    // Définir l'heure minimale à maintenant
+    const heureDepart = document.getElementById('heureDepart');
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    heureDepart.min = now.toISOString().slice(0, 16);
+});
+</script>
+{% endblock %}
+

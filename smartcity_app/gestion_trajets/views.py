@@ -240,7 +240,6 @@ def index_trajets_view(request):
                 'active': True
             })
         ]
-    
     # Préférences utilisateur
     preferences = PreferenceUtilisateurIA.objects.filter(utilisateur=request.user).first()
     
