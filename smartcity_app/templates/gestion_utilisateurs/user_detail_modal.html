@@ -1,0 +1,114 @@
+<div class="modal-header">
+    <h5 class="modal-title">
+        <i class="fas fa-user me-2"></i>Détails de l'utilisateur
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<div class="modal-body">
+    <div class="row">
+        <div class="col-md-6">
+            <h6 class="text-primary mb-3">
+                <i class="fas fa-info-circle me-2"></i>Informations générales
+            </h6>
+            <div class="mb-3">
+                <label class="form-label text-muted">Nom d'utilisateur</label>
+                <div class="form-control-plaintext">{{ user_detail.username }}</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-muted">Nom complet</label>
+                <div class="form-control-plaintext">
+                    {{ user_detail.get_full_name|default:"Non défini" }}
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-muted">Email</label>
+                <div class="form-control-plaintext">{{ user_detail.email|default:"Non défini" }}</div>
+            </div>
+            {% if profil and profil.telephone %}
+            <div class="mb-3">
+                <label class="form-label text-muted">Téléphone</label>
+                <div class="form-control-plaintext">{{ profil.telephone }}</div>
+            </div>
+            {% endif %}
+            <div class="mb-3">
+                <label class="form-label text-muted">Statut</label>
+                <div class="form-control-plaintext">
+                    <span class="badge bg-{% if user_detail.is_active %}success{% else %}warning{% endif %}">
+                        {% if user_detail.is_active %}Actif{% else %}Inactif{% endif %}
+                    </span>
+                </div>
+            </div>
+            {% if profil %}
+            <div class="mb-3">
+                <label class="form-label text-muted">Rôle</label>
+                <div class="form-control-plaintext">
+                    <span class="badge bg-{% if profil.est_administrateur %}danger{% else %}primary{% endif %}">
+                        {{ profil.role|default:"user" }}
+                    </span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-6">
+            <h6 class="text-success mb-3">
+                <i class="fas fa-calendar me-2"></i>Dates importantes
+            </h6>
+            <div class="mb-3">
+                <label class="form-label text-muted">Date d'inscription</label>
+                <div class="form-control-plaintext">{{ user_detail.date_joined|date:"d/m/Y à H:i" }}</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-muted">Dernière connexion</label>
+                <div class="form-control-plaintext">
+                    {% if user_detail.last_login %}
+                        {{ user_detail.last_login|date:"d/m/Y à H:i" }}
+                    {% else %}
+                        <span class="text-muted">Jamais connecté</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if profil %}
+            <h6 class="text-info mb-3">
+                <i class="fas fa-cogs me-2"></i>Permissions
+            </h6>
+            <div class="mb-2">
+                <span class="badge bg-{% if profil.peut_acceder_dashboard %}success{% else %}secondary{% endif %}">
+                    {% if profil.peut_acceder_dashboard %}✓{% else %}✗{% endif %} Dashboard
+                </span>
+            </div>
+            <div class="mb-2">
+                <span class="badge bg-{% if profil.peut_acceder_ontologie %}success{% else %}secondary{% endif %}">
+                    {% if profil.peut_acceder_ontologie %}✓{% else %}✗{% endif %} Ontologie
+                </span>
+            </div>
+            <div class="mb-2">
+                <span class="badge bg-{% if profil.est_administrateur %}success{% else %}secondary{% endif %}">
+                    {% if profil.est_administrateur %}✓{% else %}✗{% endif %} Administration
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if rdf_data %}
+    <hr>
+    <h6 class="text-warning mb-3">
+        <i class="fas fa-database me-2"></i>Données RDF
+    </h6>
+    <div class="row">
+        <div class="col-12">
+            <div class="bg-light p-3 rounded">
+                <pre class="mb-0 small">{{ rdf_data|pprint }}</pre>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+    <button type="button" class="btn btn-primary" onclick="editUser({{ user_detail.id }})">
+        <i class="fas fa-edit me-1"></i>Modifier
+    </button>
+</div>

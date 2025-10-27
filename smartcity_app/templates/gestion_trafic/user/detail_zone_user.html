@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0">
+                <i class="bi bi-geo-alt"></i> {{ zone.nom }}
+            </h1>
+            <p class="text-muted">{{ zone.get_type_zone_display }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if est_favorite %}
+                <a href="{% url 'gestion_trafic:retirer_zone_favorite' zone.id %}" class="btn btn-warning">
+                    <i class="bi bi-star-fill"></i> Retirer des Favoris
+                </a>
+            {% else %}
+                <a href="{% url 'gestion_trafic:ajouter_zone_favorite' zone.id %}" class="btn btn-outline-warning">
+                    <i class="bi bi-star"></i> Ajouter aux Favoris
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Informations Principales -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="text-muted mb-1">Vitesse Limite</h6>
+                    <h3 class="mb-0">{{ zone.vitesse_limite }} km/h</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="text-muted mb-1">Nombre de Voies</h6>
+                    <h3 class="mb-0">{{ zone.nombre_voies }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="text-muted mb-1">Capteurs Actifs</h6>
+                    <h3 class="mb-0">{{ capteurs|length }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="text-muted mb-1">Sens de Circulation</h6>
+                    <h3 class="mb-0">{{ zone.sens_circulation }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenu Principal -->
+    <div class="row">
+        <!-- Capteurs -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-radar"></i> Capteurs ({{ capteurs|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if capteurs %}
+                        <div class="list-group">
+                            {% for capteur in capteurs %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ capteur.nom }}</h6>
+                                        <small class="text-muted">
+                                            {{ capteur.get_type_capteur_display }} | 
+                                            {{ capteur.latitude }}, {{ capteur.longitude }}
+                                        </small>
+                                    </div>
+                                    <span class="badge bg-success">{{ capteur.get_statut_display }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3">Aucun capteur actif</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Données Récentes -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up"></i> Données Récentes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if donnees_recentes %}
+                        <div class="list-group">
+                            {% for donnee in donnees_recentes %}
+                            <div class="list-group-item">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">{{ donnee.timestamp|date:"d/m/Y H:i" }}</small>
+                                    </div>
+                                    <div class="col-md-6 text-end">
+                                        <span class="badge bg-{% if donnee.niveau_congestion >= 70 %}danger{% elif donnee.niveau_congestion >= 50 %}warning{% else %}success{% endif %}">
+                                            {{ donnee.niveau_congestion }}% congestion
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-6">
+                                        <small>Vitesse: <strong>{{ donnee.vitesse_moyenne }} km/h</strong></small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small>Véhicules: <strong>{{ donnee.nombre_vehicules }}</strong></small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3">Aucune donnée disponible</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Événements -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bell"></i> Événements Récents
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if evenements %}
+                        <div class="list-group">
+                            {% for evt in evenements %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ evt.get_type_evenement_display }}</h6>
+                                        <p class="mb-1">{{ evt.description }}</p>
+                                        <small class="text-muted">{{ evt.date_creation|date:"d/m/Y H:i" }}</small>
+                                    </div>
+                                    <span class="badge bg-{% if evt.severite == 'critique' %}danger{% elif evt.severite == 'majeure' %}warning{% else %}info{% endif %}">
+                                        {{ evt.get_severite_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3">Aucun événement récent</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="d-flex gap-2">
+                <a href="{% url 'gestion_trafic:carte_trafic_user' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-map"></i> Voir sur la Carte
+                </a>
+                <a href="{% url 'gestion_trafic:planifier_trajet' %}" class="btn btn-outline-success">
+                    <i class="bi bi-route"></i> Planifier un Trajet
+                </a>
+                <a href="{% url 'gestion_trafic:dashboard_trafic' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

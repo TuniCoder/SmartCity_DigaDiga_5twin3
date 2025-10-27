@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0">
+                <i class="bi bi-speedometer2"></i> Mon Tableau de Bord Trafic
+            </h1>
+            <p class="text-muted">Suivi personnalisé du trafic en temps réel</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'gestion_trafic:carte_trafic_user' %}" class="btn btn-primary">
+                <i class="bi bi-map"></i> Voir la Carte
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistiques Rapides -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-left-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Capteurs Actifs</h6>
+                            <h3 class="mb-0">{{ total_capteurs }}</h3>
+                        </div>
+                        <i class="bi bi-radar text-primary" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-left-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Zones Actives</h6>
+                            <h3 class="mb-0">{{ zones_actives }}</h3>
+                        </div>
+                        <i class="bi bi-geo-alt text-success" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-left-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Alertes Récentes</h6>
+                            <h3 class="mb-0">{{ evenements_recents|length }}</h3>
+                        </div>
+                        <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-left-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Trajets Planifiés</h6>
+                            <h3 class="mb-0">0</h3>
+                        </div>
+                        <i class="bi bi-route text-info" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenu Principal -->
+    <div class="row">
+        <!-- Zones avec Trafic Dense -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-circle"></i> Zones Congestionnées
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if zones_denses %}
+                        <div class="list-group">
+                            {% for zone in zones_denses %}
+                                <a href="{% url 'gestion_trafic:detail_zone_user' zone.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">{{ zone.nom }}</h6>
+                                            <small class="text-muted">{{ zone.get_type_zone_display }}</small>
+                                        </div>
+                                        <span class="badge bg-danger">{{ zone.capteurs_count }} capteur(s)</span>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3">Aucune zone congestionnée</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Événements Récents -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bell"></i> Événements Récents
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if evenements_recents %}
+                        <div class="list-group">
+                            {% for evt in evenements_recents %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">{{ evt.titre }}</h6>
+                                            <p class="mb-1 small">{{ evt.description|truncatewords:15 }}</p>
+                                            <small class="text-muted">{{ evt.get_type_evenement_display }}</small>
+                                        </div>
+                                        <span class="badge bg-{% if evt.niveau_impact == 'majeur' %}danger{% elif evt.niveau_impact == 'important' %}warning{% else %}info{% endif %}">
+                                            {{ evt.get_niveau_impact_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3">Aucun événement récent</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Rapides -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning"></i> Actions Rapides
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'gestion_trafic:planifier_trajet' %}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-route"></i> Planifier un Trajet
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'gestion_trafic:mes_alertes' %}" class="btn btn-outline-warning w-100">
+                                <i class="bi bi-bell"></i> Mes Alertes
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'gestion_trafic:mes_statistiques' %}" class="btn btn-outline-info w-100">
+                                <i class="bi bi-graph-up"></i> Mes Statistiques
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'gestion_trafic:carte_trafic_user' %}" class="btn btn-outline-success w-100">
+                                <i class="bi bi-map"></i> Voir la Carte
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Capteurs Proches -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-radar"></i> Capteurs Proches
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if capteurs_proches %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>Type</th>
+                                        <th>Zone</th>
+                                        <th>Statut</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for capteur in capteurs_proches %}
+                                        <tr>
+                                            <td>{{ capteur.nom }}</td>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ capteur.get_type_capteur_display }}</span>
+                                            </td>
+                                            <td>{{ capteur.zone_trafic.nom }}</td>
+                                            <td>
+                                                <span class="badge bg-{% if capteur.statut == 'actif' %}success{% else %}danger{% endif %}">
+                                                    {{ capteur.get_statut_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'gestion_trafic:detail_zone_user' capteur.zone_trafic.id %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3">Aucun capteur disponible</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-left-primary {
+        border-left: 4px solid #0d6efd;
+    }
+    .border-left-success {
+        border-left: 4px solid #198754;
+    }
+    .border-left-warning {
+        border-left: 4px solid #ffc107;
+    }
+    .border-left-info {
+        border-left: 4px solid #0dcaf0;
+    }
+</style>
+{% endblock %}
+

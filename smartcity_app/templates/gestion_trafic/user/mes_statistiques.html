@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0">
+                <i class="bi bi-graph-up"></i> Mes Statistiques
+            </h1>
+            <p class="text-muted">Suivi de vos trajets et préférences</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'gestion_trafic:dashboard_trafic' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistiques Rapides -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ nombre_trajets }}</h3>
+                    <small class="text-muted">Trajets Planifiés</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ nombre_zones_favoris }}</h3>
+                    <small class="text-muted">Zones Favorites</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">15</h3>
+                    <small class="text-muted">Trajets Complétés</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">45 kg</h3>
+                    <small class="text-muted">CO2 Économisé</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onglets -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="tab-zones" data-bs-toggle="tab" data-bs-target="#zones" type="button" role="tab">
+                        <i class="bi bi-geo-alt"></i> Zones Favorites
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-trajets" data-bs-toggle="tab" data-bs-target="#trajets" type="button" role="tab">
+                        <i class="bi bi-route"></i> Trajets
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-eco" data-bs-toggle="tab" data-bs-target="#eco" type="button" role="tab">
+                        <i class="bi bi-leaf"></i> Écologie
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Contenu des Onglets -->
+    <div class="tab-content">
+        <!-- Zones Favorites -->
+        <div class="tab-pane fade show active" id="zones" role="tabpanel">
+            <div class="row">
+                <div class="col-12">
+                    {% if zones_stats %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Zone</th>
+                                        <th>Congestion Moyenne</th>
+                                        <th>Vitesse Moyenne</th>
+                                        <th>Capteurs</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for zone in zones_stats %}
+                                    <tr>
+                                        <td>{{ zone.nom }}</td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar {% if zone.congestion_moyenne >= 70 %}bg-danger{% elif zone.congestion_moyenne >= 50 %}bg-warning{% else %}bg-success{% endif %}" 
+                                                     role="progressbar" style="width: {{ zone.congestion_moyenne }}%">
+                                                    {{ zone.congestion_moyenne }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ zone.vitesse_moyenne }} km/h</td>
+                                        <td>{{ zone.nombre_capteurs }}</td>
+                                        <td>
+                                            <a href="{% url 'gestion_trafic:detail_zone_user' zone.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Aucune zone favorite. Ajoutez des zones pour voir les statistiques.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Trajets -->
+        <div class="tab-pane fade" id="trajets" role="tabpanel">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Trajets par Mois</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartTrajets"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Modes de Transport</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartModes"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Trajets Récents</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="mb-1">Tunis Centre → Sfax</h6>
+                                            <small class="text-muted">25/10/2025 - 3h 15m</small>
+                                        </div>
+                                        <span class="badge bg-success">Complété</span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="mb-1">Gare → Aéroport</h6>
+                                            <small class="text-muted">24/10/2025 - 50m</small>
+                                        </div>
+                                        <span class="badge bg-success">Complété</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Écologie -->
+        <div class="tab-pane fade" id="eco" role="tabpanel">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">CO2 Économisé</h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <h2 class="mb-2">45 kg</h2>
+                            <p class="text-muted mb-0">Équivalent à {{ 45|add:"0" }} km en voiture</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Modes Écologiques</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Transports en Commun</span>
+                                    <span>60%</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" style="width: 60%"></div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Vélo</span>
+                                    <span>25%</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-info" style="width: 25%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>À Pied</span>
+                                    <span>15%</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-warning" style="width: 15%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-star"></i> Votre Impact Écologique
+                            </h5>
+                            <p class="mb-0">
+                                Vous avez économisé <strong>45 kg de CO2</strong> en utilisant des modes de transport écologiques. 
+                                Continuez ainsi pour contribuer à un environnement plus sain!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Graphique Trajets par Mois
+    const ctxTrajets = document.getElementById('chartTrajets')?.getContext('2d');
+    if (ctxTrajets) {
+        new Chart(ctxTrajets, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'],
+                datasets: [{
+                    label: 'Trajets',
+                    data: [5, 8, 12, 10, 15, 18],
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+    
+    // Graphique Modes de Transport
+    const ctxModes = document.getElementById('chartModes')?.getContext('2d');
+    if (ctxModes) {
+        new Chart(ctxModes, {
+            type: 'doughnut',
+            data: {
+                labels: ['Transports', 'Vélo', 'À Pied', 'Voiture'],
+                datasets: [{
+                    data: [60, 25, 15, 0],
+                    backgroundColor: [
+                        '#198754',
+                        '#0dcaf0',
+                        '#ffc107',
+                        '#dc3545'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

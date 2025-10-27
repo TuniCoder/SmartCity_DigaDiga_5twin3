@@ -1,0 +1,1 @@
+# Fichier init pour marquer smartcity_app comme package Python

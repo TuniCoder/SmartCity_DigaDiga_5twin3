@@ -1,0 +1,399 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-section h5 {
+        color: #495057;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+    
+    .form-floating {
+        margin-bottom: 1rem;
+    }
+    
+    .btn-group-actions {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 1rem;
+        border-top: 1px solid #dee2e6;
+        margin: 2rem -2rem -2rem -2rem;
+        border-radius: 0 0 15px 15px;
+    }
+    
+    .current-value {
+        background: #e3f2fd;
+        border-radius: 5px;
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1">✏️ {{ page_title }}</h1>
+                    <p class="text-muted mb-0">Modifier les informations du capteur</p>
+                </div>
+                <div>
+                    <a href="{% url 'gestion_trafic:detail_capteur' capteur.id %}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-left"></i> Retour aux détails
+                    </a>
+                    <a href="{% url 'gestion_trafic:liste_capteurs' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-list-ul"></i> Liste des capteurs
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-container">
+                <form method="POST" id="capteurForm">
+                    {% csrf_token %}
+                    
+                    <!-- Section Identification -->
+                    <div class="form-section">
+                        <h5><i class="bi bi-tag"></i> Identification</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="nom" name="nom" 
+                                           value="{{ capteur.nom }}" placeholder="Nom du capteur" required>
+                                    <label for="nom" class="required-field">Nom du capteur</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="code_capteur" name="code_capteur" 
+                                           value="{{ capteur.code_capteur }}" placeholder="Code unique" readonly>
+                                    <label for="code_capteur">Code unique (non modifiable)</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select class="form-select" id="type_capteur" name="type_capteur" required>
+                                        {% for value, label in types_capteur %}
+                                        <option value="{{ value }}" {% if capteur.type_capteur == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <label for="type_capteur" class="required-field">Type de capteur</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select class="form-select" id="statut" name="statut">
+                                        {% for value, label in statuts %}
+                                        <option value="{{ value }}" {% if capteur.statut == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <label for="statut">Statut</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Localisation -->
+                    <div class="form-section">
+                        <h5><i class="bi bi-geo-alt"></i> Localisation</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select class="form-select" id="zone_trafic" name="zone_trafic" required>
+                                        {% for zone in zones_trafic %}
+                                        <option value="{{ zone.id }}" {% if capteur.zone_trafic.id == zone.id %}selected{% endif %}>
+                                            {{ zone.nom }} ({{ zone.get_type_zone_display }})
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <label for="zone_trafic" class="required-field">Zone de trafic</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="direction_mesure" name="direction_mesure" 
+                                           value="{{ capteur.direction_mesure }}" placeholder="Direction de mesure">
+                                    <label for="direction_mesure">Direction de mesure</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="number" step="0.000001" class="form-control" id="latitude" name="latitude" 
+                                           value="{{ capteur.latitude }}" placeholder="Latitude" required>
+                                    <label for="latitude" class="required-field">Latitude</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="number" step="0.000001" class="form-control" id="longitude" name="longitude" 
+                                           value="{{ capteur.longitude }}" placeholder="Longitude" required>
+                                    <label for="longitude" class="required-field">Longitude</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Configuration Technique -->
+                    <div class="form-section">
+                        <h5><i class="bi bi-gear"></i> Configuration Technique</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control" id="frequence_mesure" name="frequence_mesure" 
+                                           value="{{ capteur.frequence_mesure }}" placeholder="Fréquence">
+                                    <label for="frequence_mesure">Fréquence de mesure (sec)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="number" step="0.1" class="form-control" id="precision_detection" name="precision_detection" 
+                                           value="{{ capteur.precision_detection }}" placeholder="Précision">
+                                    <label for="precision_detection">Précision de détection (%)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control" id="vitesse_min_detection" name="vitesse_min_detection" 
+                                           value="{{ capteur.vitesse_min_detection }}" placeholder="Vitesse min">
+                                    <label for="vitesse_min_detection">Vitesse min détection (km/h)</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control" id="vitesse_max_detection" name="vitesse_max_detection" 
+                                           value="{{ capteur.vitesse_max_detection }}" placeholder="Vitesse max">
+                                    <label for="vitesse_max_detection">Vitesse max détection (km/h)</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Informations Supplémentaires -->
+                    <div class="form-section">
+                        <h5><i class="bi bi-info-circle"></i> Informations Supplémentaires</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="fournisseur" name="fournisseur" 
+                                           value="{{ capteur.fournisseur }}" placeholder="Fournisseur">
+                                    <label for="fournisseur">Fournisseur</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="modele" name="modele" 
+                                           value="{{ capteur.modele }}" placeholder="Modèle">
+                                    <label for="modele">Modèle</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Maintenance -->
+                    <div class="form-section">
+                        <h5><i class="bi bi-tools"></i> Maintenance</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="current-value">
+                                    <strong>Dernière calibration:</strong> 
+                                    {{ capteur.derniere_calibration|date:"d/m/Y à H:i"|default:"Jamais" }}
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="recalibrer" name="recalibrer">
+                                    <label class="form-check-label" for="recalibrer">
+                                        Recalibrer maintenant
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="current-value">
+                                    <strong>Prochaine maintenance:</strong> 
+                                    {{ capteur.prochaine_maintenance|date:"d/m/Y"|default:"Non planifiée" }}
+                                </div>
+                                <div class="form-floating">
+                                    <input type="date" class="form-control" id="prochaine_maintenance" name="prochaine_maintenance" 
+                                           value="{{ capteur.prochaine_maintenance|date:'Y-m-d'|default:'' }}" placeholder="Prochaine maintenance">
+                                    <label for="prochaine_maintenance">Prochaine maintenance</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="btn-group-actions">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'gestion_trafic:detail_capteur' capteur.id %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Annuler
+                            </a>
+                            <div>
+                                <button type="button" class="btn btn-outline-info me-2" onclick="previewCapteur()">
+                                    <i class="bi bi-eye"></i> Aperçu
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i> Sauvegarder
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal d'aperçu -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel">Aperçu des modifications</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="previewContent">
+                    <!-- Contenu généré par JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validation du formulaire
+document.getElementById('capteurForm').addEventListener('submit', function(e) {
+    const requiredFields = ['nom', 'type_capteur', 'zone_trafic', 'latitude', 'longitude'];
+    let isValid = true;
+    
+    requiredFields.forEach(function(fieldName) {
+        const field = document.getElementById(fieldName);
+        if (!field.value.trim()) {
+            field.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert('Veuillez remplir tous les champs obligatoires.');
+    }
+});
+
+// Fonction d'aperçu
+function previewCapteur() {
+    const formData = new FormData(document.getElementById('capteurForm'));
+    const previewContent = document.getElementById('previewContent');
+    
+    previewContent.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Identification</h6>
+                <p><strong>Nom:</strong> ${formData.get('nom')}</p>
+                <p><strong>Code:</strong> ${formData.get('code_capteur')}</p>
+                <p><strong>Type:</strong> ${formData.get('type_capteur')}</p>
+                <p><strong>Statut:</strong> ${formData.get('statut')}</p>
+            </div>
+            <div class="col-md-6">
+                <h6>Localisation</h6>
+                <p><strong>Zone:</strong> ${formData.get('zone_trafic')}</p>
+                <p><strong>Direction:</strong> ${formData.get('direction_mesure') || 'Non renseigné'}</p>
+                <p><strong>Coordonnées:</strong> ${formData.get('latitude')}, ${formData.get('longitude')}</p>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <h6>Configuration</h6>
+                <p><strong>Fréquence:</strong> ${formData.get('frequence_mesure')} sec</p>
+                <p><strong>Précision:</strong> ${formData.get('precision_detection')}%</p>
+                <p><strong>Vitesse min:</strong> ${formData.get('vitesse_min_detection')} km/h</p>
+                <p><strong>Vitesse max:</strong> ${formData.get('vitesse_max_detection')} km/h</p>
+            </div>
+            <div class="col-md-6">
+                <h6>Informations</h6>
+                <p><strong>Fournisseur:</strong> ${formData.get('fournisseur') || 'Non renseigné'}</p>
+                <p><strong>Modèle:</strong> ${formData.get('modele') || 'Non renseigné'}</p>
+                <p><strong>Recalibration:</strong> ${formData.get('recalibrer') ? 'Oui' : 'Non'}</p>
+                <p><strong>Prochaine maintenance:</strong> ${formData.get('prochaine_maintenance') || 'Non planifiée'}</p>
+            </div>
+        </div>
+    `;
+    
+    var previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+    previewModal.show();
+}
+
+// Validation en temps réel
+document.querySelectorAll('input[required], select[required]').forEach(function(field) {
+    field.addEventListener('blur', function() {
+        if (!this.value.trim()) {
+            this.classList.add('is-invalid');
+        } else {
+            this.classList.remove('is-invalid');
+        }
+    });
+});
+
+// Confirmation avant de quitter si des modifications ont été faites
+let formChanged = false;
+document.querySelectorAll('input, select, textarea').forEach(function(field) {
+    field.addEventListener('change', function() {
+        formChanged = true;
+    });
+});
+
+window.addEventListener('beforeunload', function(e) {
+    if (formChanged) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+</script>
+{% endblock %}

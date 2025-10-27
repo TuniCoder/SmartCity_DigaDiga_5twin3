@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-filters {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .capteur-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease;
+        border-left: 4px solid #28a745;
+    }
+    
+    .capteur-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .capteur-card.inactif {
+        border-left-color: #dc3545;
+    }
+    
+    .capteur-card.maintenance {
+        border-left-color: #ffc107;
+    }
+    
+    .capteur-card.defaillant {
+        border-left-color: #6c757d;
+    }
+    
+    .statut-badge {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .actions-dropdown {
+        min-width: 120px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1">📡 {{ page_title }}</h1>
+                    <p class="text-muted mb-0">Gestion complète des capteurs de trafic</p>
+                </div>
+                <div>
+                    <a href="{% url 'gestion_trafic:creer_capteur' %}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Nouveau Capteur
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres et Recherche -->
+    <div class="search-filters">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Rechercher</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="{{ search_query }}" placeholder="Nom, code, zone...">
+            </div>
+            <div class="col-md-2">
+                <label for="statut" class="form-label">Statut</label>
+                <select class="form-select" id="statut" name="statut">
+                    <option value="">Tous</option>
+                    {% for value, label in statuts %}
+                    <option value="{{ value }}" {% if statut_filter == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="type" class="form-label">Type</label>
+                <select class="form-select" id="type" name="type">
+                    <option value="">Tous</option>
+                    {% for value, label in types_capteur %}
+                    <option value="{{ value }}" {% if type_filter == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="sort" class="form-label">Tri</label>
+                <select class="form-select" id="sort" name="sort">
+                    <option value="nom" {% if sort_by == 'nom' %}selected{% endif %}>Nom</option>
+                    <option value="-date_creation" {% if sort_by == '-date_creation' %}selected{% endif %}>Date création</option>
+                    <option value="zone_trafic__nom" {% if sort_by == 'zone_trafic__nom' %}selected{% endif %}>Zone</option>
+                    <option value="statut" {% if sort_by == 'statut' %}selected{% endif %}>Statut</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-search"></i> Filtrer
+                </button>
+                <a href="{% url 'gestion_trafic:liste_capteurs' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Résultats -->
+    <div class="row">
+        <div class="col-12">
+            {% if page_obj %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <p class="text-muted mb-0">
+                        {{ page_obj.paginator.count }} capteur{{ page_obj.paginator.count|pluralize }} trouvé{{ page_obj.paginator.count|pluralize }}
+                    </p>
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'gestion_trafic:api_capteurs' %}" class="btn btn-sm btn-outline-info" target="_blank">
+                            <i class="bi bi-download"></i> Export JSON
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Liste des capteurs -->
+                {% for capteur in page_obj %}
+                <div class="capteur-card {{ capteur.statut }}">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3">
+                                    <i class="bi bi-camera-video text-primary" style="font-size: 2rem;"></i>
+                                </div>
+                                <div>
+                                    <h5 class="mb-1">{{ capteur.nom }}</h5>
+                                    <p class="text-muted mb-1">
+                                        <strong>Code:</strong> {{ capteur.code_capteur }} | 
+                                        <strong>Zone:</strong> {{ capteur.zone_trafic.nom }} |
+                                        <strong>Direction:</strong> {{ capteur.direction_mesure }}
+                                    </p>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge statut-badge bg-{% if capteur.statut == 'actif' %}success{% elif capteur.statut == 'maintenance' %}warning{% else %}danger{% endif %} me-2">
+                                            {{ capteur.get_statut_display }}
+                                        </span>
+                                        <span class="badge bg-secondary me-2">{{ capteur.get_type_capteur_display }}</span>
+                                        <small class="text-muted">
+                                            <i class="bi bi-geo-alt"></i> {{ capteur.latitude|floatformat:4 }}, {{ capteur.longitude|floatformat:4 }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary dropdown-toggle" type="button" 
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    Actions
+                                </button>
+                                <ul class="dropdown-menu actions-dropdown">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'gestion_trafic:detail_capteur' capteur.id %}">
+                                            <i class="bi bi-eye"></i> Voir détails
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'gestion_trafic:modifier_capteur' capteur.id %}">
+                                            <i class="bi bi-pencil"></i> Modifier
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#" 
+                                           onclick="confirmDelete({{ capteur.id }}, '{{ capteur.nom }}')">
+                                            <i class="bi bi-trash"></i> Supprimer
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="Pagination des capteurs">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-camera-video text-muted" style="font-size: 4rem;"></i>
+                    <h3 class="text-muted mt-3">Aucun capteur trouvé</h3>
+                    <p class="text-muted">
+                        {% if search_query or statut_filter or type_filter %}
+                            Aucun capteur ne correspond à vos critères de recherche.
+                        {% else %}
+                            Aucun capteur n'a encore été créé.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'gestion_trafic:creer_capteur' %}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Créer le premier capteur
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer le capteur <strong id="capteurName"></strong> ?</p>
+                <p class="text-danger"><small>Cette action est irréversible.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(capteurId, capteurName) {
+    document.getElementById('capteurName').textContent = capteurName;
+    document.getElementById('deleteForm').action = '{% url "gestion_trafic:supprimer_capteur" 0 %}'.replace('0', capteurId);
+    
+    var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+}
+
+// Auto-submit du formulaire de recherche après 1 seconde d'inactivité
+let searchTimeout;
+document.getElementById('search').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        this.form.submit();
+    }, 1000);
+});
+</script>
+{% endblock %}

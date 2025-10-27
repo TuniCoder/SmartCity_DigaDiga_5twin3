@@ -1,0 +1,341 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1">
+                        <i class="fas fa-route text-success"></i> Dashboard Trajets
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Gérez vos déplacements intelligents avec l'IA
+                    </p>
+                </div>
+                <div>
+                    <a href="{% url 'gestion_trajets:planificateur_trajet' %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-brain"></i> Planifier un Trajet
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-left-success h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Trajets Total
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ demandes_totales }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-route fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-left-primary h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Aujourd'hui
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ demandes_recentes }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-left-info h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Véhicules Dispo
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ vehicules_stats.total }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-car fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-left-warning h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Alertes Actives
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ alertes_actives|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Rapides -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt"></i> Actions Rapides
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <a href="{% url 'gestion_trajets:planificateur_trajet' %}" class="btn btn-outline-success w-100 h-100 d-flex flex-column justify-content-center">
+                                <i class="fas fa-brain fa-2x mb-2"></i>
+                                <span>Planifier Trajet IA</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <a href="{% url 'gestion_trajets:mes_trajets' %}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column justify-content-center">
+                                <i class="fas fa-history fa-2x mb-2"></i>
+                                <span>Mes Trajets</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <a href="{% url 'gestion_trajets:temps_reel_transport' %}" class="btn btn-outline-info w-100 h-100 d-flex flex-column justify-content-center">
+                                <i class="fas fa-clock fa-2x mb-2"></i>
+                                <span>Temps Réel</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <a href="{% url 'gestion_trajets:preferences_trajet' %}" class="btn btn-outline-secondary w-100 h-100 d-flex flex-column justify-content-center">
+                                <i class="fas fa-cog fa-2x mb-2"></i>
+                                <span>Préférences</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Derniers Trajets -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history"></i> Derniers Trajets
+                    </h5>
+                    <a href="{% url 'gestion_trajets:mes_trajets' %}" class="btn btn-sm btn-outline-primary">
+                        Voir tout
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if dernieres_demandes %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Départ</th>
+                                        <th>Arrivée</th>
+                                        <th>Date</th>
+                                        <th>Priorité</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for demande in dernieres_demandes %}
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-map-marker-alt text-success"></i> 
+                                            {{ demande.lieu_depart|truncatechars:20 }}
+                                        </td>
+                                        <td>
+                                            <i class="fas fa-flag-checkered text-danger"></i> 
+                                            {{ demande.lieu_arrivee|truncatechars:20 }}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {{ demande.date_creation|date:"d/m H:i" }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            {% if demande.priorite == 'rapidite' %}
+                                                <span class="badge bg-primary">⚡ Rapide</span>
+                                            {% elif demande.priorite == 'economie' %}
+                                                <span class="badge bg-success">💰 Économie</span>
+                                            {% elif demande.priorite == 'ecologie' %}
+                                                <span class="badge bg-success">🌿 Écologie</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'gestion_trajets:resultats_trajet' demande.id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-route fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Aucun trajet encore</h5>
+                            <p class="text-muted">Commencez par planifier votre premier trajet !</p>
+                            <a href="{% url 'gestion_trajets:planificateur_trajet' %}" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Planifier maintenant
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar - Alertes et Infos -->
+        <div class="col-lg-4">
+            <!-- Alertes Transport -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-exclamation-triangle text-warning"></i> Alertes Transport
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if alertes_actives %}
+                        {% for alerte in alertes_actives %}
+                        <div class="alert alert-{% if alerte.severite == 'high' %}danger{% elif alerte.severite == 'medium' %}warning{% else %}info{% endif %} alert-sm" role="alert">
+                            <strong>{{ alerte.type_transport }}</strong><br>
+                            <small>{{ alerte.message|truncatechars:80 }}</small>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-check-circle text-success"></i> 
+                            Aucune alerte en cours
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Véhicules Disponibles -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-car"></i> Véhicules Disponibles
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="border-right">
+                                <div class="h4 mb-0 text-primary">{{ vehicules_stats.bus }}</div>
+                                <small class="text-muted">
+                                    <i class="fas fa-bus"></i> Bus
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border-right">
+                                <div class="h4 mb-0 text-success">{{ vehicules_stats.velo }}</div>
+                                <small class="text-muted">
+                                    <i class="fas fa-bicycle"></i> Vélos
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="h4 mb-0 text-info">{{ vehicules_stats.voiture }}</div>
+                            <small class="text-muted">
+                                <i class="fas fa-car"></i> Auto
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Préférences Utilisateur -->
+            {% if preferences %}
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-user-cog"></i> Mes Préférences
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <strong>Priorité:</strong> 
+                            {% if preferences.priorite_defaut == 'rapidite' %}
+                                <span class="badge bg-primary">⚡ Rapidité</span>
+                            {% elif preferences.priorite_defaut == 'economie' %}
+                                <span class="badge bg-success">💰 Économie</span>
+                            {% elif preferences.priorite_defaut == 'ecologie' %}
+                                <span class="badge bg-success">🌿 Écologie</span>
+                            {% endif %}
+                        </li>
+                        <li class="mb-2">
+                            <strong>Budget max:</strong> {{ preferences.budget_defaut }}€
+                        </li>
+                        <li class="mb-2">
+                            <strong>Durée max:</strong> {{ preferences.duree_max_defaut }} min
+                        </li>
+                    </ul>
+                    <a href="{% url 'gestion_trajets:preferences_trajet' %}" class="btn btn-sm btn-outline-secondary w-100">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-success {
+    border-left: .25rem solid #1cc88a!important;
+}
+.border-left-primary {
+    border-left: .25rem solid #4e73df!important;
+}
+.border-left-info {
+    border-left: .25rem solid #36b9cc!important;
+}
+.border-left-warning {
+    border-left: .25rem solid #f6c23e!important;
+}
+.text-xs {
+    font-size: .7rem;
+}
+.text-gray-800 {
+    color: #5a5c69!important;
+}
+.text-gray-300 {
+    color: #dddfeb!important;
+}
+</style>
+{% endblock %}

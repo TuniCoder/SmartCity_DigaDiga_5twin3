@@ -1,0 +1,1 @@
+# Fichier init pour le module views_manager

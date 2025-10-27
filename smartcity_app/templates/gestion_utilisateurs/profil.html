@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+{% load smartcity_filters %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- En-tête du Profil -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="avatar-lg bg-primary rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="fas fa-user fa-2x text-white"></i>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h1 class="h3 mb-1">{{ user.get_full_name|default:user.username }}</h1>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-envelope me-2"></i>{{ user.email }}
+                            </p>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-calendar-alt me-2"></i>Membre depuis {{ user.date_joined|date:"d F Y" }}
+                            </p>
+                        </div>
+                        <div class="col-auto">
+                            {% if est_admin %}
+                                <span class="badge bg-danger fs-6">
+                                    <i class="fas fa-crown me-1"></i>Administrateur
+                                </span>
+                            {% else %}
+                                <span class="badge bg-primary fs-6">
+                                    <i class="fas fa-user me-1"></i>Utilisateur
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informations du Profil -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-edit me-2 text-primary"></i>Informations Personnelles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nom d'utilisateur</label>
+                            <p class="form-control-plaintext">{{ user.username }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email</label>
+                            <p class="form-control-plaintext">{{ user.email }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Prénom</label>
+                            <p class="form-control-plaintext">{{ user.first_name|default:"Non renseigné" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nom</label>
+                            <p class="form-control-plaintext">{{ user.last_name|default:"Non renseigné" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Dernière connexion</label>
+                            <p class="form-control-plaintext">{{ user.last_login|date:"d F Y à H:i"|default:"Jamais" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Statut du compte</label>
+                            <p class="form-control-plaintext">
+                                {% if user.is_active %}
+                                    <span class="badge bg-success">Actif</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactif</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex gap-2">
+                        <a href="#" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Modifier le Profil
+                        </a>
+                        <a href="#" class="btn btn-outline-secondary">
+                            <i class="fas fa-key me-2"></i>Changer le Mot de Passe
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lieux Favoris -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-map-marker-alt me-2 text-danger"></i>Lieux Favoris
+                    </h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-plus me-1"></i>Ajouter
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if lieux_favoris %}
+                        <div class="row g-3">
+                            {% for lieu in lieux_favoris %}
+                                <div class="col-md-6">
+                                    <div class="border rounded p-3 h-100">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">{{ lieu.nom }}</h6>
+                                                <p class="text-muted small mb-2">{{ lieu.adresse }}</p>
+                                                <span class="badge bg-light text-dark">{{ lieu.type_lieu }}</span>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Aucun lieu favori enregistré</p>
+                            <a href="#" class="btn btn-outline-primary">
+                                <i class="fas fa-plus me-2"></i>Ajouter votre premier lieu favori
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Panneau Latéral -->
+        <div class="col-md-4">
+            <!-- Permissions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-shield-alt me-2 text-success"></i>Permissions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Accès Dashboard</span>
+                        {% if peut_dashboard %}
+                            <i class="fas fa-check-circle text-success"></i>
+                        {% else %}
+                            <i class="fas fa-times-circle text-danger"></i>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Accès Ontologie</span>
+                        {% if peut_ontologie %}
+                            <i class="fas fa-check-circle text-success"></i>
+                        {% else %}
+                            <i class="fas fa-times-circle text-danger"></i>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Administrateur</span>
+                        {% if est_admin %}
+                            <i class="fas fa-check-circle text-success"></i>
+                        {% else %}
+                            <i class="fas fa-times-circle text-danger"></i>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activités Récentes -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clock me-2 text-info"></i>Activités Récentes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if activites_recentes %}
+                        <div class="timeline">
+                            {% for activite in activites_recentes %}
+                                <div class="d-flex mb-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-info rounded-circle p-2">
+                                            <i class="fas fa-circle fa-xs text-white"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ms-3">
+                                        <p class="mb-1 small">{{ activite.description }}</p>
+                                        <small class="text-muted">{{ activite.date_creation|timesince }} ago</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-clock fa-2x text-muted mb-2"></i>
+                            <p class="text-muted small">Aucune activité récente</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions Rapides -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2 text-warning"></i>Actions Rapides
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if est_admin %}
+                            <a href="{% url 'gestion_utilisateurs:dashboard_admin' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-tachometer-alt me-2"></i>Dashboard Admin
+                            </a>
+                            <a href="{% url 'smartcity_app:ontology_view' %}" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-project-diagram me-2"></i>Ontologie
+                            </a>
+                        {% else %}
+                            <a href="{% url 'gestion_utilisateurs:dashboard_user' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-tachometer-alt me-2"></i>Mon Dashboard
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'smartcity_app:search' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-search me-2"></i>Recherche
+                        </a>
+                        <a href="{% url 'smartcity_app:entities_list' %}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-list me-2"></i>Entités
+                        </a>
+                        
+                        <hr class="my-2">
+                        
+                        <a href="{% url 'gestion_utilisateurs:deconnexion' %}" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-sign-out-alt me-2"></i>Se Déconnecter
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-lg {
+    width: 80px;
+    height: 80px;
+}
+
+.timeline .bg-info {
+    width: 12px;
+    height: 12px;
+}
+
+.form-control-plaintext {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+    padding: 0.375rem 0.75rem;
+}
+</style>
+{% endblock %}

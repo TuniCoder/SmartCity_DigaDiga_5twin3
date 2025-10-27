@@ -1,0 +1,617 @@
+{% extends 'base.html' %}
+{% load smartcity_filters %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.trajet-recommande {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.trajet-recommande:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.trajet-recommande.selected {
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.25);
+}
+
+.trajet-badge {
+    position: absolute;
+    top: -10px;
+    right: 15px;
+    z-index: 10;
+}
+
+.score-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+}
+
+.score-excellent { background: linear-gradient(135deg, #28a745, #20c997); }
+.score-bon { background: linear-gradient(135deg, #17a2b8, #20c997); }
+.score-moyen { background: linear-gradient(135deg, #ffc107, #fd7e14); }
+.score-faible { background: linear-gradient(135deg, #dc3545, #e83e8c); }
+
+.etape-trajet {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 3px solid #007bff;
+}
+
+.circulation-indicator {
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.circulation-faible { background: linear-gradient(90deg, #28a745, #20c997); }
+.circulation-moyen { background: linear-gradient(90deg, #ffc107, #fd7e14); }
+.circulation-fort { background: linear-gradient(90deg, #dc3545, #e83e8c); }
+
+.temps-reel-info {
+    background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+    border: 1px solid #bbdefb;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.horaire-passage {
+    background: #007bff;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.9em;
+    margin-right: 8px;
+    display: inline-block;
+    margin-bottom: 5px;
+}
+
+.alerte-badge {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.comparaison-chart {
+    height: 200px;
+    margin: 20px 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête des résultats -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm bg-gradient bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h3 class="mb-1">
+                                <i class="fas fa-route me-2"></i>
+                                {{ demande.lieu_depart }} → {{ demande.lieu_arrivee }}
+                            </h3>
+                            <p class="mb-0 opacity-75">
+                                <i class="fas fa-clock me-1"></i>
+                                Recherche effectuée {{ demande.date_creation|timesince }}
+                                • Priorité: {{ demande.get_priorite_display }}
+                                {% if demande.budget_maximum %}
+                                    • Budget max: {{ demande.budget_maximum }}€
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-light me-2" onclick="actualiserTempsReel()">
+                                <i class="fas fa-sync-alt me-1"></i>
+                                Actualiser
+                            </button>
+                            <a href="{% url 'gestion_trajets:planificateur_trajet' %}" class="btn btn-outline-light">
+                                <i class="fas fa-plus me-1"></i>
+                                Nouveau trajet
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Trajets recommandés -->
+        <div class="col-lg-8">
+            {% if trajets_recommandes %}
+                {% for trajet in trajets_recommandes %}
+                <div class="card trajet-recommande mb-4 position-relative" 
+                     data-trajet-id="{% if trajet.id %}{{ trajet.id }}{% else %}{{ forloop.counter }}{% endif %}"
+                     data-trajet-rang="{{ trajet.rang|default:forloop.counter }}">
+                    <!-- Badge de classement -->
+                    <div class="trajet-badge">
+                        {% if trajet.rang == 1 %}
+                            <span class="badge bg-warning text-dark fs-6">
+                                <i class="fas fa-crown me-1"></i>
+                                RECOMMANDÉ
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary fs-6">
+                                #{{ trajet.rang|default:forloop.counter }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Score et véhicule -->
+                            <div class="col-md-2 text-center">
+                                <div class="score-circle mx-auto mb-2 
+                                    {% if trajet.score_ia >= 8 %}score-excellent
+                                    {% elif trajet.score_ia >= 6 %}score-bon
+                                    {% elif trajet.score_ia >= 4 %}score-moyen
+                                    {% else %}score-faible{% endif %}">
+                                    {{ trajet.score_ia|floatformat:1 }}
+                                </div>
+                                
+                                {% if trajet.vehicules_utilises.all %}
+                                    {% for vehicule in trajet.vehicules_utilises.all %}
+                                    <div class="text-center mb-2">
+                                        <i class="{{ vehicule.icone }} fa-2x mb-1" style="color: {{ vehicule.couleur }};"></i>
+                                        <div class="small fw-semibold">{{ vehicule.nom }}</div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center mb-2">
+                                        <i class="fas fa-route fa-2x mb-1 text-primary"></i>
+                                        <div class="small fw-semibold">{{ trajet.vehicule_nom|default:"Transport" }}</div>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Informations principales -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">
+                                    {% if trajet.vehicules_utilises.all %}
+                                        {% for vehicule in trajet.vehicules_utilises.all %}
+                                            {{ vehicule.nom }}{% if not forloop.last %} + {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        {{ trajet.vehicule_nom|default:"Trajet recommandé" }}
+                                    {% endif %}
+                                </h5>
+
+                                <!-- Métriques principales -->
+                                <div class="row mb-3">
+                                    <div class="col-3 text-center">
+                                        <div class="h4 text-primary mb-0">{{ trajet.duree_minutes }}</div>
+                                        <small class="text-muted">minutes</small>
+                                    </div>
+                                    <div class="col-3 text-center">
+                                        <div class="h4 text-success mb-0">{{ trajet.cout_total|floatformat:1 }}€</div>
+                                        <small class="text-muted">coût</small>
+                                    </div>
+                                    <div class="col-3 text-center">
+                                        <div class="h4 text-info mb-0">{{ trajet.distance_km|floatformat:1 }}</div>
+                                        <small class="text-muted">km</small>
+                                    </div>
+                                    <div class="col-3 text-center">
+                                        <div class="h4 text-warning mb-0">{{ trajet.empreinte_carbone_g|floatformat:0 }}</div>
+                                        <small class="text-muted">g CO2</small>
+                                    </div>
+                                </div>
+
+                                <!-- Indicateur de circulation -->
+                                <div class="mb-2">
+                                    <small class="text-muted">Circulation:</small>
+                                    <div class="circulation-indicator circulation-{{ trajet.niveau_circulation }} mt-1"></div>
+                                </div>
+
+                                <!-- Étapes du trajet -->
+                                <div class="mb-2">
+                                    <small class="text-muted d-block mb-2">Étapes du trajet:</small>
+                                    {% for etape in trajet.etapes_json %}
+                                    <div class="etape-trajet">
+                                        <i class="fas fa-arrow-right text-primary me-2"></i>
+                                        <span>{{ etape }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Informations temps réel -->
+                            <div class="col-md-4">
+                                <div class="temps-reel-info">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-broadcast-tower me-1"></i>
+                                        Temps Réel
+                                        <span class="alerte-badge badge bg-success ms-2">LIVE</span>
+                                    </h6>
+
+                                    <!-- Retard estimé -->
+                                    {% if trajet.retard_estime > 0 %}
+                                    <div class="alert alert-warning py-2 mb-2">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        Retard estimé: {{ trajet.retard_estime }} min
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-success py-2 mb-2">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        À l'heure
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Score de fiabilité -->
+                                    <div class="mb-2">
+                                        <small class="text-muted">Fiabilité:</small>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-info" 
+                                                 style="width: {{ trajet.fiabilite_score }}0%"></div>
+                                        </div>
+                                        <small class="text-muted">{{ trajet.fiabilite_score|floatformat:1 }}/10</small>
+                                    </div>
+
+                                    <!-- Prochains horaires (pour transport public) -->
+                                    {% if trajet.horaires_transport.prochains_passages %}
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block mb-1">Prochains passages:</small>
+                                        {% for horaire in trajet.horaires_transport.prochains_passages %}
+                                        <span class="horaire-passage">{{ horaire }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Score de confort -->
+                                    <div class="mb-2">
+                                        <small class="text-muted">Confort:</small>
+                                        <div class="d-flex align-items-center">
+                                            {% for i in "12345678910"|make_list %}
+                                                {% if forloop.counter <= trajet.score_confort %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <small class="ms-2 text-muted">{{ trajet.score_confort }}/10</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Bouton de sélection -->
+                                <div class="d-grid mt-3">
+                                    <button class="btn btn-primary" 
+                                            onclick="selectionnerTrajet('{% if trajet.id %}{{ trajet.id }}{% else %}{{ forloop.counter }}{% endif %}')">
+                                        <i class="fas fa-check me-1"></i>
+                                        Choisir ce trajet
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Facteurs de décision IA -->
+                        {% if trajet.facteurs_decision %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="border-top pt-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-robot me-1"></i>
+                                        Facteurs de décision IA: 
+                                        {% for facteur in trajet.facteurs_decision %}
+                                            <span class="badge bg-light text-dark me-1">{{ facteur }}</span>
+                                        {% endfor %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Comparaison rapide -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Comparaison Rapide
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="comparaisonChart" class="comparaison-chart"></canvas>
+                    </div>
+                </div>
+
+            {% else %}
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <h4>Aucun trajet trouvé</h4>
+                        <p class="text-muted">
+                            Nous n'avons pas pu trouver de trajet correspondant à vos critères.
+                            Essayez de modifier vos préférences ou vérifiez vos lieux de départ et d'arrivée.
+                        </p>
+                        <a href="{% url 'gestion_trajets:planificateur_trajet' %}" class="btn btn-primary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Retour au planificateur
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Panneau latéral -->
+        <div class="col-lg-4">
+            <!-- Résumé de la demande -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Résumé de votre demande
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <strong>Trajet:</strong><br>
+                            <span class="text-muted">{{ demande.lieu_depart }} → {{ demande.lieu_arrivee }}</span>
+                        </div>
+                        <div class="col-6">
+                            <strong>Priorité:</strong><br>
+                            <span class="badge bg-primary">{{ demande.get_priorite_display }}</span>
+                        </div>
+                        <div class="col-6">
+                            <strong>Statut:</strong><br>
+                            {% if demande.statut == 'complete' %}
+                                <span class="badge bg-success">Complété</span>
+                            {% else %}
+                                <span class="badge bg-warning">{{ demande.get_statut_display }}</span>
+                            {% endif %}
+                        </div>
+                        {% if demande.budget_maximum %}
+                        <div class="col-6">
+                            <strong>Budget max:</strong><br>
+                            <span class="text-muted">{{ demande.budget_maximum }}€</span>
+                        </div>
+                        {% endif %}
+                        {% if demande.duree_maximum %}
+                        <div class="col-6">
+                            <strong>Durée max:</strong><br>
+                            <span class="text-muted">{{ demande.duree_maximum }} min</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alertes pertinentes -->
+            {% if alertes_pertinentes %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Alertes en cours
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    {% for alerte in alertes_pertinentes %}
+                    <div class="p-3 border-bottom">
+                        <div class="d-flex align-items-start">
+                            <div class="me-2">
+                                {% if alerte.severite == 'critique' %}
+                                    <i class="fas fa-exclamation-circle text-danger"></i>
+                                {% elif alerte.severite == 'important' %}
+                                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle text-info"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold">{{ alerte.titre }}</div>
+                                <small class="text-muted">{{ alerte.description|truncatewords:15 }}</small>
+                                {% if alerte.ligne_transport %}
+                                    <div class="mt-1">
+                                        <span class="badge bg-secondary">{{ alerte.ligne_transport }}</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-tools me-2"></i>
+                        Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary" onclick="sauvegarderTrajet()">
+                            <i class="fas fa-bookmark me-1"></i>
+                            Sauvegarder trajet
+                        </button>
+                        <button class="btn btn-outline-info" onclick="partagerTrajet()">
+                            <i class="fas fa-share me-1"></i>
+                            Partager
+                        </button>
+                        <a href="{% url 'gestion_trajets:planificateur_trajet' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-edit me-1"></i>
+                            Modifier critères
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Créer le graphique de comparaison
+    const ctx = document.getElementById('comparaisonChart').getContext('2d');
+    
+    const trajetsData = [
+        {% for trajet in trajets_recommandes %}
+        {
+            label: '{% if trajet.vehicules_utilises.all %}{% for vehicule in trajet.vehicules_utilises.all %}{{ vehicule.nom }}{% if not forloop.last %} + {% endif %}{% endfor %}{% else %}{{ trajet.vehicule_nom|default:"Transport" }}{% endif %}',
+            duree: {{ trajet.duree_minutes|default:0 }},
+            cout: {{ trajet.cout_total|default:0 }},
+            score: {{ trajet.score_ia|default:0 }},
+            carbone: {{ trajet.empreinte_carbone_g|default:0 }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Rapidité', 'Économie', 'Score IA', 'Écologie'],
+            datasets: trajetsData.map((trajet, index) => ({
+                label: trajet.label,
+                data: [
+                    Math.max(0, 10 - trajet.duree / 6),  // Rapidité (inversé)
+                    Math.max(0, 10 - trajet.cout),       // Économie (inversé)
+                    trajet.score,                         // Score IA
+                    Math.max(0, 10 - trajet.carbone / 50) // Écologie (inversé)
+                ],
+                borderColor: `hsl(${index * 120}, 70%, 50%)`,
+                backgroundColor: `hsla(${index * 120}, 70%, 50%, 0.2)`,
+                pointBackgroundColor: `hsl(${index * 120}, 70%, 50%)`,
+            }))
+        },
+        options: {
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 10
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+
+function actualiserTempsReel() {
+    const btn = document.querySelector('button[onclick="actualiserTempsReel()"]');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Actualisation...';
+    btn.disabled = true;
+    
+    fetch(`{% url 'gestion_trajets:ajax_actualiser_temps_reel' demande.id %}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.statut === 'success') {
+                // Actualiser les informations affichées
+                location.reload(); // Simple rechargement pour la démo
+            } else {
+                alert('Erreur lors de l\'actualisation: ' + data.erreur);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Erreur lors de l\'actualisation des données');
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+}
+
+function selectionnerTrajet(trajetId) {
+    // Désélectionner tous les trajets
+    document.querySelectorAll('.trajet-recommande').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // Sélectionner le trajet choisi
+    const trajetCard = document.querySelector(`[data-trajet-id="${trajetId}"]`);
+    
+    if (!trajetCard) {
+        console.error('Trajet non trouvé:', trajetId);
+        alert('Erreur: Trajet introuvable. Veuillez rafraîchir la page.');
+        return;
+    }
+    
+    trajetCard.classList.add('selected');
+    
+    // Afficher une confirmation
+    const notification = document.createElement('div');
+    notification.className = 'alert alert-success position-fixed';
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>
+        Trajet sélectionné ! Vous pouvez maintenant le sauvegarder ou le partager.
+        <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+    `;
+    document.body.appendChild(notification);
+    
+    // Supprimer la notification après 5 secondes
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+function sauvegarderTrajet() {
+    const selectedTrajet = document.querySelector('.trajet-recommande.selected');
+    if (!selectedTrajet) {
+        alert('Veuillez d\'abord sélectionner un trajet');
+        return;
+    }
+    
+    // Ici vous pouvez implémenter la sauvegarde
+    alert('Trajet sauvegardé dans vos favoris !');
+}
+
+function partagerTrajet() {
+    const selectedTrajet = document.querySelector('.trajet-recommande.selected');
+    if (!selectedTrajet) {
+        alert('Veuillez d\'abord sélectionner un trajet');
+        return;
+    }
+    
+    // Partage simple avec URL
+    const url = window.location.href;
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ page_title }}',
+            text: 'Découvrez ce trajet recommandé par SmartCity',
+            url: url
+        });
+    } else {
+        // Fallback: copier dans le presse-papier
+        navigator.clipboard.writeText(url).then(() => {
+            alert('Lien copié dans le presse-papier !');
+        });
+    }
+}
+</script>
+{% endblock %}

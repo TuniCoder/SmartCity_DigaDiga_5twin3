@@ -1,0 +1,467 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="fas fa-city"></i> SmartCity Platform
+                </h1>
+                <p class="lead mb-4">
+                    Plateforme sémantique pour la gestion intelligente de la mobilité urbaine.
+                    Explorez, interrogez et analysez les données de transport en utilisant les technologies du web sémantique.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{% url 'smartcity_app:query' %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-search"></i> Interroger l'IA
+                    </a>
+                    <a href="{% url 'smartcity_app:ontology_view' %}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-project-diagram"></i> Explorer l'Ontologie
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <i class="fas fa-brain fa-10x opacity-75"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Statistiques -->
+    {% if statistics %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-chart-bar"></i> Aperçu des Données
+            </h2>
+        </div>
+        
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-number">{{ statistics.total_triples|default:0 }}</div>
+                <div class="stat-label">Triplets RDF</div>
+                <i class="fas fa-database fa-2x mt-2"></i>
+            </div>
+        </div>
+        
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-number">{{ statistics.classes|default:0 }}</div>
+                <div class="stat-label">Classes</div>
+                <i class="fas fa-sitemap fa-2x mt-2"></i>
+            </div>
+        </div>
+        
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-number">{{ statistics.properties|default:0 }}</div>
+                <div class="stat-label">Propriétés</div>
+                <i class="fas fa-link fa-2x mt-2"></i>
+            </div>
+        </div>
+        
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-number">{{ statistics.individuals|default:0 }}</div>
+                <div class="stat-label">Individus</div>
+                <i class="fas fa-users fa-2x mt-2"></i>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Modules SmartCity - Accès Rapide -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-cubes"></i> Modules SmartCity
+            </h2>
+            <p class="text-center text-muted mb-4">
+                Accédez rapidement aux différents modules de gestion de la mobilité urbaine
+            </p>
+        </div>
+
+        <!-- Module Trajets - Opérationnel -->
+        <div class="col-lg-6 col-md-6 mb-4">
+            <div class="card h-100 border-success">
+                <div class="card-header bg-success text-white text-center">
+                    <i class="fas fa-route fa-2x"></i>
+                    <h5 class="mt-2 mb-0">Gestion des Trajets</h5>
+                    <span class="badge bg-light text-success">✅ Opérationnel</span>
+                </div>
+                <div class="card-body text-center">
+                    <p class="card-text">
+                        <strong>Planificateur IA intelligent</strong><br>
+                        • Recommandations multi-critères<br>
+                        • Optimisation temps/coût/écologie<br>
+                        • Données temps réel<br>
+                        • Interface moderne avec cartes
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'gestion_trajets:index_trajets' %}" class="btn btn-success">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard Trajets
+                        </a>
+                        <a href="{% url 'gestion_trajets:planificateur_trajet' %}" class="btn btn-outline-success">
+                            <i class="fas fa-brain"></i> Planificateur IA
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modules en Développement -->
+        <div class="col-lg-6 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white text-center">
+                    <i class="fas fa-tools fa-2x"></i>
+                    <h5 class="mt-2 mb-0">5 Gestions Métier</h5>
+                    <span class="badge bg-light text-primary">🚧 Ready to Code</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <a href="{% url 'gestion_stations:index_stations' %}" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-subway"></i><br>
+                                <small>Stations</small>
+                            </a>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <a href="{% url 'gestion_trafic:index_trafic' %}" class="btn btn-outline-danger w-100">
+                                <i class="fas fa-traffic-light"></i><br>
+                                <small>Trafic IA</small>
+                            </a>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <a href="{% url 'gestion_vehicules:index_vehicules' %}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-car"></i><br>
+                                <small>Véhicules</small>
+                            </a>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <a href="{% url 'gestion_utilisateurs:dashboard_user' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-users"></i><br>
+                                <small>Utilisateurs</small>
+                            </a>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="text-center">
+                        <small class="text-muted mb-2 d-block"><strong>Infrastructure Technique :</strong></small>
+                        <a href="{% url 'api_manager:index_api_manager' %}" class="btn btn-sm btn-outline-secondary me-2">
+                            <i class="fas fa-plug"></i> API Hub
+                        </a>
+                        <a href="#" onclick="window.open('/static/docs/GUIDE_DEMARRAGE.md', '_blank')" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-book"></i> Guide Équipe
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fonctionnalités Principales -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-rocket"></i> Fonctionnalités
+            </h2>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header text-center">
+                    <i class="fas fa-brain fa-2x"></i>
+                    <h5 class="mt-2 mb-0">Intelligence Artificielle</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="card-text">
+                        Posez des questions en langage naturel et obtenez automatiquement 
+                        des requêtes SPARQL générées par l'IA.
+                    </p>
+                    <a href="{% url 'smartcity_app:query' %}" class="btn btn-primary">
+                        <i class="fas fa-comments"></i> Interroger l'IA
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header text-center">
+                    <i class="fas fa-project-diagram fa-2x"></i>
+                    <h5 class="mt-2 mb-0">Ontologie RDF</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="card-text">
+                        Explorez la structure de l'ontologie : classes, propriétés, 
+                        individus et leurs relations sémantiques.
+                    </p>
+                    <a href="{% url 'smartcity_app:ontology_view' %}" class="btn btn-primary">
+                        <i class="fas fa-eye"></i> Explorer l'Ontologie
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header text-center">
+                    <i class="fas fa-search fa-2x"></i>
+                    <h5 class="mt-2 mb-0">Recherche Avancée</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="card-text">
+                        Recherchez dans toute l'ontologie par mots-clés 
+                        et filtrez les résultats par type d'entité.
+                    </p>
+                    <a href="{% url 'smartcity_app:search' %}" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Rechercher
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gestions Métier -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-layer-group"></i> Gestions Métier
+            </h2>
+            <p class="text-center text-muted mb-4">
+                Le projet est organisé en 5 domaines de gestion principaux pour faciliter le travail en équipe
+            </p>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card entity-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-users fa-3x text-primary me-3"></i>
+                        <div>
+                            <h5 class="card-title mb-1">Utilisateurs</h5>
+                            {% if statistics.entities_by_type.Utilisateur %}
+                                <span class="badge bg-info">{{ statistics.entities_by_type.Utilisateur }} enregistré(s)</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p class="card-text">
+                        Profils, habitudes, préférences de transport, historique des déplacements.
+                    </p>
+                    <a href="{% url 'smartcity_app:entities' 'users' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-eye"></i> Voir les Utilisateurs
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card entity-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-car fa-3x text-success me-3"></i>
+                        <div>
+                            <h5 class="card-title mb-1">Véhicules</h5>
+                            {% if statistics.entities_by_type.Véhicule %}
+                                <span class="badge bg-success">{{ statistics.entities_by_type.Véhicule }} disponible(s)</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p class="card-text">
+                        Types (vélos, voitures), disponibilités, localisation, état des batteries.
+                    </p>
+                    <a href="{% url 'smartcity_app:entities' 'vehicles' %}" class="btn btn-outline-success">
+                        <i class="fas fa-eye"></i> Voir les Véhicules
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card entity-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-map-marker-alt fa-3x text-warning me-3"></i>
+                        <div>
+                            <h5 class="card-title mb-1">Stations</h5>
+                            {% if statistics.entities_by_type.Station %}
+                                <span class="badge bg-warning">{{ statistics.entities_by_type.Station }} station(s)</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p class="card-text">
+                        Lieux de départ/arrivée, parkings, arrêts de transport en commun.
+                    </p>
+                    <a href="{% url 'smartcity_app:entities' 'stations' %}" class="btn btn-outline-warning">
+                        <i class="fas fa-eye"></i> Voir les Stations
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card entity-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-traffic-light fa-3x text-danger me-3"></i>
+                        <div>
+                            <h5 class="card-title mb-1">Trafic</h5>
+                            {% if statistics.entities_by_type.Route %}
+                                <span class="badge bg-danger">{{ statistics.entities_by_type.Route }} route(s)</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p class="card-text">
+                        Événements (accidents, travaux), conditions routières en temps réel.
+                    </p>
+                    <a href="{% url 'smartcity_app:entities' 'traffic' %}" class="btn btn-outline-danger">
+                        <i class="fas fa-eye"></i> Voir le Trafic
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card entity-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-route fa-3x text-info me-3"></i>
+                        <div>
+                            <h5 class="card-title mb-1">Trajets</h5>
+                            {% if statistics.entities_by_type.Trajet %}
+                                <span class="badge bg-info">{{ statistics.entities_by_type.Trajet }} trajet(s)</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p class="card-text">
+                        Planification, optimisation, et recommandations d'itinéraires.
+                    </p>
+                    <a href="{% url 'smartcity_app:entities' 'trips' %}" class="btn btn-outline-info">
+                        <i class="fas fa-eye"></i> Voir les Trajets
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card entity-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-code fa-3x text-secondary me-3"></i>
+                        <div>
+                            <h5 class="card-title mb-1">API & Développement</h5>
+                            <span class="badge bg-secondary">REST API</span>
+                        </div>
+                    </div>
+                    <p class="card-text">
+                        Interface de programmation pour intégrer les fonctionnalités dans d'autres applications.
+                    </p>
+                    <a href="/api/status/" target="_blank" class="btn btn-outline-secondary">
+                        <i class="fas fa-external-link-alt"></i> Voir l'API
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exemples de Questions IA -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-lightbulb"></i> Exemples de Questions
+            </h2>
+            <p class="text-center text-muted mb-4">
+                Essayez ces questions avec notre système d'intelligence artificielle
+            </p>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-question-circle"></i> Questions Simples
+                </div>
+                <div class="card-body">
+                    <div class="question-example" onclick="askQuestion('Liste tous les utilisateurs')">
+                        <i class="fas fa-arrow-right text-primary"></i> "Liste tous les utilisateurs"
+                    </div>
+                    <div class="question-example" onclick="askQuestion('Combien de véhicules sont disponibles?')">
+                        <i class="fas fa-arrow-right text-primary"></i> "Combien de véhicules sont disponibles?"
+                    </div>
+                    <div class="question-example" onclick="askQuestion('Montre-moi les stations')">
+                        <i class="fas fa-arrow-right text-primary"></i> "Montre-moi les stations"
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-search-plus"></i> Questions Avancées
+                </div>
+                <div class="card-body">
+                    <div class="question-example" onclick="askQuestion('Trouve les véhicules électriques disponibles')">
+                        <i class="fas fa-arrow-right text-success"></i> "Trouve les véhicules électriques disponibles"
+                    </div>
+                    <div class="question-example" onclick="askQuestion('Où se trouvent les stations avec leurs coordonnées?')">
+                        <i class="fas fa-arrow-right text-success"></i> "Où se trouvent les stations avec leurs coordonnées?"
+                    </div>
+                    <div class="question-example" onclick="askQuestion('Quel est le coût moyen des trajets?')">
+                        <i class="fas fa-arrow-right text-success"></i> "Quel est le coût moyen des trajets?"
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if error %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-warning text-center">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Attention :</strong> {{ error }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function askQuestion(question) {
+        // Rediriger vers la page de requête avec la question préremplie
+        const url = new URL('{% url "smartcity_app:query" %}', window.location.origin);
+        url.searchParams.set('q', question);
+        window.location.href = url.toString();
+    }
+
+    // Animation des cartes au scroll
+    $(document).ready(function() {
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        $('.card').each(function() {
+            this.style.opacity = '0';
+            this.style.transform = 'translateY(20px)';
+            this.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(this);
+        });
+    });
+</script>
+{% endblock %}

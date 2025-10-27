@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load smartcity_filters %}
+
+{% block title %}Mes Trajets - SmartCity{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+    .trajet-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-left: 4px solid #007bff;
+    }
+    .trajet-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+    }
+    .metric-item {
+        padding: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin: 0.2rem 0;
+    }
+    .score-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    .filter-section {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- En-tête -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-clock-history text-primary"></i>
+                        Mes Trajets
+                    </h1>
+                    <p class="text-muted mb-0">Historique de vos trajets planifiés et effectués</p>
+                </div>
+                <div>
+                    <a href="{% url 'gestion_trajets:planificateur_trajet' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Nouveau Trajet
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filtres -->
+            <div class="filter-section">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Statut</label>
+                        <select name="statut" class="form-select">
+                            <option value="">Tous les statuts</option>
+                            <option value="planifie" {% if request.GET.statut == 'planifie' %}selected{% endif %}>Planifié</option>
+                            <option value="en_cours" {% if request.GET.statut == 'en_cours' %}selected{% endif %}>En cours</option>
+                            <option value="termine" {% if request.GET.statut == 'termine' %}selected{% endif %}>Terminé</option>
+                            <option value="annule" {% if request.GET.statut == 'annule' %}selected{% endif %}>Annulé</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Type de trajet</label>
+                        <select name="type" class="form-select">
+                            <option value="">Tous les types</option>
+                            <option value="domicile_travail" {% if request.GET.type == 'domicile_travail' %}selected{% endif %}>Domicile-Travail</option>
+                            <option value="loisirs" {% if request.GET.type == 'loisirs' %}selected{% endif %}>Loisirs</option>
+                            <option value="courses" {% if request.GET.type == 'courses' %}selected{% endif %}>Courses</option>
+                            <option value="professionnel" {% if request.GET.type == 'professionnel' %}selected{% endif %}>Professionnel</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Date début</label>
+                        <input type="date" name="date_debut" class="form-control" value="{{ request.GET.date_debut }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Date fin</label>
+                        <input type="date" name="date_fin" class="form-control" value="{{ request.GET.date_fin }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="bi bi-funnel"></i> Filtrer
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Statistiques rapides -->
+            {% if demandes %}
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">{{ total_trajets }}</h5>
+                                    <p class="card-text mb-0">Trajets Planifiés</p>
+                                </div>
+                                <i class="bi bi-geo-alt-fill fs-2"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">{{ distance_totale|floatformat:1 }} km</h5>
+                                    <p class="card-text mb-0">Distance Totale</p>
+                                </div>
+                                <i class="bi bi-speedometer2 fs-2"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">{{ temps_total }}h</h5>
+                                    <p class="card-text mb-0">Temps Total</p>
+                                </div>
+                                <i class="bi bi-clock fs-2"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">{{ cout_total|floatformat:2 }}€</h5>
+                                    <p class="card-text mb-0">Coût Total</p>
+                                </div>
+                                <i class="bi bi-wallet2 fs-2"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Liste des trajets -->
+            {% if demandes %}
+                <div class="row">
+                    {% for demande in demandes %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card trajet-card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">
+                                    <i class="bi bi-arrow-right-circle text-primary"></i>
+                                    {{ demande.created_at|date:"d/m/Y H:i" }}
+                                </span>
+                                <span class="badge status-badge 
+                                    {% if demande.statut == 'planifie' %}bg-info
+                                    {% elif demande.statut == 'en_cours' %}bg-warning
+                                    {% elif demande.statut == 'termine' %}bg-success
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ demande.get_statut_display }}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <!-- Itinéraire -->
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-record-circle text-success me-2"></i>
+                                        <small class="text-muted">Départ:</small>
+                                    </div>
+                                    <p class="mb-2 ms-3">{{ demande.lieu_depart|truncatechars:40 }}</p>
+                                    
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+                                        <small class="text-muted">Arrivée:</small>
+                                    </div>
+                                    <p class="mb-3 ms-3">{{ demande.lieu_arrivee|truncatechars:40 }}</p>
+                                </div>
+
+                                <!-- Véhicules préférés -->
+                                {% if demande.vehicules_preferes.all %}
+                                <div class="mb-3">
+                                    <small class="text-muted">Véhicules préférés:</small>
+                                    <div class="mt-1">
+                                        {% for vehicule in demande.vehicules_preferes.all %}
+                                        <span class="badge bg-light text-dark me-1">
+                                            {{ vehicule.nom }}
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Métriques du meilleur trajet -->
+                                {% if demande.trajets_ia.first %}
+                                {% with meilleur_trajet=demande.trajets_ia.first %}
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <div class="metric-item text-center">
+                                            <i class="bi bi-clock text-primary"></i>
+                                            <div class="fw-bold">{{ meilleur_trajet.duree_minutes }}min</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="metric-item text-center">
+                                            <i class="bi bi-speedometer text-info"></i>
+                                            <div class="fw-bold">{{ meilleur_trajet.distance_km|floatformat:1 }}km</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="metric-item text-center">
+                                            <i class="bi bi-wallet text-warning"></i>
+                                            <div class="fw-bold">{{ meilleur_trajet.cout_total|floatformat:2 }}€</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="metric-item text-center">
+                                            <i class="bi bi-leaf text-success"></i>
+                                            <div class="fw-bold">{{ meilleur_trajet.empreinte_carbone_g|floatformat:0 }}g</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Score IA -->
+                                <div class="d-flex justify-content-center mb-3">
+                                    <div class="score-circle" style="background: linear-gradient(45deg, #007bff, #0056b3);">
+                                        {{ meilleur_trajet.score_ia|floatformat:1 }}
+                                    </div>
+                                </div>
+                                {% endwith %}
+                                {% endif %}
+                            </div>
+                            
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'gestion_trajets:resultats_trajet' demande.id %}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-eye"></i> Voir détails
+                                    </a>
+                                    <small class="text-muted align-self-center">
+                                        {{ demande.trajets_ia.count }} option{{ demande.trajets_ia.count|pluralize }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav aria-label="Navigation des trajets">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédent</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:-3 and num < page_obj.number|add:3 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivant</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% else %}
+                <!-- État vide -->
+                <div class="empty-state">
+                    <i class="bi bi-geo-alt display-1 text-muted"></i>
+                    <h3 class="mt-3">Aucun trajet planifié</h3>
+                    <p class="text-muted mb-4">
+                        Vous n'avez pas encore planifié de trajets avec notre IA.<br>
+                        Commencez dès maintenant pour optimiser vos déplacements !
+                    </p>
+                    <a href="{% url 'gestion_trajets:planificateur_trajet' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle"></i> Planifier mon Premier Trajet
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Animation d'entrée pour les cartes
+    $('.trajet-card').each(function(index) {
+        $(this).css('opacity', '0').css('transform', 'translateY(20px)');
+        $(this).delay(index * 100).animate({
+            opacity: 1
+        }, 500, function() {
+            $(this).css('transform', 'translateY(0)');
+        });
+    });
+
+    // Tooltip pour les badges de statut
+    $('[data-bs-toggle="tooltip"]').tooltip();
+});
+</script>
+{% endblock %}

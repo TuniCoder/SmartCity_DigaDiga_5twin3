@@ -1,0 +1,946 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load smartcity_filters %}
+
+{% block title %}Entités - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    <i class="fas fa-database text-primary"></i>
+                    Entités de l'Ontologie SmartCity
+                </h1>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-success" onclick="openAddTripModal()">
+                        <i class="fas fa-plus"></i> Ajouter un Trajet
+                    </button>
+                    <a href="{% url 'smartcity_app:ontology_view' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-project-diagram"></i> Vue Ontologie
+                    </a>
+                    <a href="{% url 'smartcity_app:query' %}" class="btn btn-outline-success">
+                        <i class="fas fa-search"></i> Requêtes SPARQL
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques générales -->
+    {% if statistics %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar"></i> Statistiques de l'Ontologie
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number">{{ statistics.total_triples|default:0 }}</div>
+                                <div class="stat-label">Triplets RDF</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number">{{ statistics.total_classes|default:0 }}</div>
+                                <div class="stat-label">Classes</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number">{{ statistics.total_properties|default:0 }}</div>
+                                <div class="stat-label">Propriétés</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number">{{ statistics.total_individuals|default:0 }}</div>
+                                <div class="stat-label">Individus</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Entités par catégorie -->
+    <div class="row">
+        <!-- Véhicules -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-car text-success"></i> Véhicules
+                    </h5>
+                    <span class="badge bg-success">{{ entities_sample.vehicles|length|default:0 }}</span>
+                </div>
+                <div class="card-body">
+                    {% if entities_sample.vehicles %}
+                        <div class="list-group list-group-flush">
+                            {% for vehicle in entities_sample.vehicles %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ vehicle.vehicle|default:"Véhicule"|slice:":30" }}...</strong>
+                                        <br><small class="text-muted">{{ vehicle.marque|default:"" }} {{ vehicle.modele|default:"" }}</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="showEntityDetails('{{ vehicle.vehicle }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'smartcity_app:entities' 'vehicles' %}" class="btn btn-success">
+                                Voir tous les véhicules
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-car fa-2x mb-2"></i>
+                            <p>Aucun véhicule trouvé</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Stations -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-map-marker-alt text-warning"></i> Stations
+                    </h5>
+                    <span class="badge bg-warning">{{ entities_sample.stations|length|default:0 }}</span>
+                </div>
+                <div class="card-body">
+                    {% if entities_sample.stations %}
+                        <div class="list-group list-group-flush">
+                            {% for station in entities_sample.stations %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ station.nomStation|default:station.station|slice:":30" }}...</strong>
+                                        <br><small class="text-muted">{{ station.adresse|default:"Station"|slice:":40" }}</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="showEntityDetails('{{ station.station }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'smartcity_app:entities' 'stations' %}" class="btn btn-warning">
+                                Voir toutes les stations
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-map-marker-alt fa-2x mb-2"></i>
+                            <p>Aucune station trouvée</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Trajets -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-route text-info"></i> Trajets
+                    </h5>
+                    <span class="badge bg-info">{{ entities_sample.trips|length|default:0 }}</span>
+                </div>
+                <div class="card-body">
+                    {% if entities_sample.trips %}
+                        <div class="list-group list-group-flush">
+                            {% for trip in entities_sample.trips %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ trip.trajet|default:"Trajet"|slice:":30" }}...</strong>
+                                        <br><small class="text-muted">{{ trip.pointDepart|default:"" }} → {{ trip.pointArrivee|default:"" }}</small>
+                                    </div>
+                                    {% if is_admin %}
+                                        <button class="btn btn-sm btn-outline-danger me-2" onclick="deleteTrip('{{ trip.trajet }}', this)">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    {% endif %}
+                                    <button class="btn btn-sm btn-outline-primary" onclick="showEntityDetails('{{ trip.trajet }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'smartcity_app:entities' 'trips' %}" class="btn btn-info">
+                                Voir tous les trajets
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-route fa-2x mb-2"></i>
+                            <p>Aucun trajet trouvé</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sections admin uniquement -->
+        {% if is_admin %}
+        <!-- Utilisateurs -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users text-primary"></i> Utilisateurs
+                    </h5>
+                    <span class="badge bg-primary">{{ entities_sample.users|length|default:0 }}</span>
+                </div>
+                <div class="card-body">
+                    {% if entities_sample.users %}
+                        <div class="list-group list-group-flush">
+                            {% for user in entities_sample.users %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ user.nom|default:user.user|slice:":30" }}...</strong>
+                                        <br><small class="text-muted">{{ user.email|default:"Utilisateur" }}</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="showEntityDetails('{{ user.user }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'smartcity_app:entities' 'users' %}" class="btn btn-primary">
+                                Voir tous les utilisateurs
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-users fa-2x mb-2"></i>
+                            <p>Aucun utilisateur trouvé</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Message si aucune entité -->
+    {% if not entities_sample.vehicles and not entities_sample.stations and not entities_sample.trips %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-warning text-center">
+                <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                <h4>Aucune entité disponible</h4>
+                <p class="mb-3">Il semble qu'il n'y ait pas d'entités chargées dans l'ontologie.</p>
+                <div class="btn-group">
+                    <a href="{% url 'smartcity_app:ontology_view' %}" class="btn btn-primary">
+                        <i class="fas fa-project-diagram"></i> Vérifier l'ontologie
+                    </a>
+                    <a href="{% url 'smartcity_app:query' %}" class="btn btn-success">
+                        <i class="fas fa-search"></i> Exécuter une requête
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal pour les détails d'entité -->
+<div class="modal fade" id="entityDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle"></i> Détails de l'Entité
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="entityDetailsContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour ajouter un trajet -->
+<div class="modal fade" id="addTripModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle"></i> Ajouter un Nouveau Trajet
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTripForm" method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <!-- Informations de base -->
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-info-circle"></i> Informations de Base</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="tripName" class="form-label">Nom du Trajet</label>
+                                        <input type="text" class="form-control" id="tripName" name="tripName" required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="utilisateurUsername" class="form-label">Nom d'utilisateur</label>
+                                        <input type="text" class="form-control" id="utilisateurUsername" name="utilisateurUsername" value="{{ request.user.username }}" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Points de départ et d'arrivée -->
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-map-marker-alt"></i> Itinéraire</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="pointDepart" class="form-label">Point de Départ</label>
+                                        <input type="text" class="form-control" id="pointDepart" name="pointDepart" placeholder="Ex: Tunis" required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="pointArrivee" class="form-label">Point d'Arrivée</label>
+                                        <input type="text" class="form-control" id="pointArrivee" name="pointArrivee" placeholder="Ex: Sfax" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Détails du trajet -->
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-route"></i> Détails du Trajet</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label for="duree" class="form-label">Durée (minutes)</label>
+                                                <input type="number" class="form-control" id="duree" name="duree" min="1" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label for="distance" class="form-label">Distance (km)</label>
+                                                <input type="number" class="form-control" id="distance" name="distance" step="0.01" min="0" required>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label for="cout" class="form-label">Coût (€)</label>
+                                                <input type="number" class="form-control" id="cout" name="cout" step="0.01" min="0" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label for="scoreConfort" class="form-label">Score Confort (1-10)</label>
+                                                <input type="number" class="form-control" id="scoreConfort" name="scoreConfort" min="1" max="10" value="5" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mode de transport et environnement -->
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-car"></i> Transport & Environnement</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="mode" class="form-label">Mode de Transport</label>
+                                        <select class="form-select" id="mode" name="mode" required>
+                                            <option value="">Sélectionnez un mode</option>
+                                            <!-- Les options seront chargées dynamiquement depuis l'ontologie -->
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="vehiculeType" class="form-label">Type de Véhicule</label>
+                                        <select class="form-select" id="vehiculeType" name="vehiculeType" required>
+                                            <option value="">Sélectionnez un type</option>
+                                            <!-- Les options seront chargées dynamiquement depuis l'ontologie -->
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="empreinteCarbone" class="form-label">Empreinte Carbone (g CO2)</label>
+                                        <input type="number" class="form-control" id="empreinteCarbone" name="empreinteCarbone" min="0" step="0.1" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Paramètres avancés -->
+                        <div class="col-12">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-cogs"></i> Paramètres Avancés</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="niveauCirculation" class="form-label">Niveau de Circulation</label>
+                                                <select class="form-select" id="niveauCirculation" name="niveauCirculation">
+                                                    <option value="faible">Faible</option>
+                                                    <option value="moyen" selected>Moyen</option>
+                                                    <option value="fort">Fort</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="scoreIA" class="form-label">Score IA</label>
+                                                <input type="number" class="form-control" id="scoreIA" name="scoreIA" step="0.01" min="0" max="10" value="5.0">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="fiabiliteScore" class="form-label">Score Fiabilité</label>
+                                                <input type="number" class="form-control" id="fiabiliteScore" name="fiabiliteScore" step="0.1" min="0" max="10" value="8.0">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="zoneGeographique" class="form-label">Zone Géographique</label>
+                                        <input type="text" class="form-control" id="zoneGeographique" name="zoneGeographique" placeholder="Ex: Inter-villes Tunisie">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="etapesJson" class="form-label">Étapes du Trajet (JSON)</label>
+                                        <textarea class="form-control" id="etapesJson" name="etapesJson" rows="3" placeholder='["Étape 1", "Étape 2"]'>["Trajet direct"]</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Annuler
+                </button>
+                <button type="button" class="btn btn-success" onclick="submitTripForm()">
+                    <i class="fas fa-save"></i> Ajouter le Trajet
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-card {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #495057;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+.list-group-item {
+    border-left: none;
+    border-right: none;
+}
+
+.list-group-item:first-child {
+    border-top: none;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+/* Styles pour le modal d'ajout de trajet */
+#addTripModal .modal-dialog {
+    max-width: 90%;
+    width: 1000px;
+}
+
+#addTripModal .card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+#addTripModal .card:hover {
+    border-color: #28a745;
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.1);
+}
+
+#addTripModal .card-header {
+    background: linear-gradient(135deg, #056ed6 0%, #003a74 100%);
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+}
+
+#addTripModal .form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+#addTripModal .form-control, 
+#addTripModal .form-select {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+#addTripModal .form-control:focus, 
+#addTripModal .form-select:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* Fix pour les options des selects - couleurs et visibilité */
+#addTripModal .form-select option {
+    background-color: #ffffff !important;
+    color: #212529 !important;
+    padding: 8px 12px;
+    font-weight: 400;
+}
+
+#addTripModal .form-select option:hover {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+}
+
+#addTripModal .form-select option:checked,
+#addTripModal .form-select option:selected {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+}
+
+/* Styles spécifiques pour les selects de transport */
+#mode, #vehiculeType {
+    background-color: #ffffff;
+    color: #212529;
+    border: 2px solid #ced4da;
+}
+
+#mode:focus, #vehiculeType:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    background-color: #ffffff;
+}
+
+/* Force la couleur des options pour tous les navigateurs */
+select option {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+select option:checked {
+    background-color: #007bff !important;
+    color: #ffffff !important;
+}
+
+#addTripModal .btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    font-weight: 500;
+    padding: 0.5rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+#addTripModal .btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+/* Toast notifications */
+.toast {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toast-body {
+    font-weight: 500;
+}
+
+/* Animation pour le bouton d'ajout */
+.btn-success[onclick="openAddTripModal()"] {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-success[onclick="openAddTripModal()"]:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: width 0.6s, height 0.6s, top 0.6s, left 0.6s;
+    transform: translate(-50%, -50%);
+}
+
+.btn-success[onclick="openAddTripModal()"]:active:before {
+    width: 300px;
+    height: 300px;
+    top: 50%;
+    left: 50%;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showEntityDetails(entityUri) {
+    // Ouvrir le modal et charger les détails de l'entité
+    const modal = new bootstrap.Modal(document.getElementById('entityDetailsModal'));
+    const content = document.getElementById('entityDetailsContent');
+    
+    // Afficher le spinner
+    content.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+            <p class="mt-2">Chargement des détails...</p>
+        </div>
+    `;
+    
+    modal.show();
+    
+    // Simuler le chargement des détails (à implémenter)
+    setTimeout(() => {
+        content.innerHTML = `
+            <div class="alert alert-info">
+                <h6>URI de l'entité :</h6>
+                <code>${entityUri}</code>
+            </div>
+            <p>Les détails complets de cette entité seront bientôt disponibles via une requête SPARQL.</p>
+            <div class="text-center">
+                <a href="{% url 'smartcity_app:query' %}" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Interroger maintenant
+                </a>
+            </div>
+        `;
+    }, 1000);
+}
+
+function openAddTripModal() {
+    const modal = new bootstrap.Modal(document.getElementById('addTripModal'));
+    
+    // Charger les options de transport depuis l'ontologie
+    loadTransportOptions();
+    
+    modal.show();
+}
+
+function loadTransportOptions() {
+    // Afficher un indicateur de chargement dans les selects
+    const modeSelect = document.getElementById('mode');
+    const vehicleTypeSelect = document.getElementById('vehiculeType');
+    
+    modeSelect.innerHTML = '<option value="">Chargement...</option>';
+    vehicleTypeSelect.innerHTML = '<option value="">Chargement...</option>';
+    
+    // Récupérer les options depuis l'API
+    fetch('/api/transport/options/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remplir le select des modes de transport
+                modeSelect.innerHTML = '<option value="">Sélectionnez un mode</option>';
+                data.data.transport_modes.forEach(mode => {
+                    const option = document.createElement('option');
+                    option.value = mode;
+                    option.textContent = mode;
+                    modeSelect.appendChild(option);
+                });
+                
+                // Remplir le select des types de véhicules avec des labels plus lisibles
+                vehicleTypeSelect.innerHTML = '<option value="">Sélectionnez un type</option>';
+                const typeLabels = {
+                    'prive': 'Privé',
+                    'public': 'Public',
+                    'partage': 'Partagé',
+                    'multimodal': 'Multimodal'
+                };
+                
+                data.data.vehicle_types.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = typeLabels[type] || type;
+                    vehicleTypeSelect.appendChild(option);
+                });
+                
+                console.log('Options de transport chargées depuis l\'ontologie:', data.data.sources);
+            } else {
+                console.error('Erreur lors du chargement des options:', data.error);
+                // Charger les options par défaut en cas d'erreur
+                loadDefaultTransportOptions();
+            }
+        })
+        .catch(error => {
+            console.error('Erreur de connexion:', error);
+            // Charger les options par défaut en cas d'erreur
+            loadDefaultTransportOptions();
+        });
+}
+
+function loadDefaultTransportOptions() {
+    // Options par défaut en cas d'erreur de chargement depuis l'ontologie
+    const defaultModes = [
+        "Voiture Personnelle", "Autolib (Voiture Partagée)", "Moto", 
+        "Vélo", "Métro", "Bus", "Vélo + Métro", "Marche"
+    ];
+    
+    const defaultTypes = [
+        {value: "prive", label: "Privé"},
+        {value: "public", label: "Public"},
+        {value: "partage", label: "Partagé"},
+        {value: "multimodal", label: "Multimodal"}
+    ];
+    
+    const modeSelect = document.getElementById('mode');
+    const vehicleTypeSelect = document.getElementById('vehiculeType');
+    
+    // Remplir les modes de transport
+    modeSelect.innerHTML = '<option value="">Sélectionnez un mode</option>';
+    defaultModes.forEach(mode => {
+        const option = document.createElement('option');
+        option.value = mode;
+        option.textContent = mode;
+        modeSelect.appendChild(option);
+    });
+    
+    // Remplir les types de véhicules
+    vehicleTypeSelect.innerHTML = '<option value="">Sélectionnez un type</option>';
+    defaultTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type.value;
+        option.textContent = type.label;
+        vehicleTypeSelect.appendChild(option);
+    });
+}
+
+function submitTripForm() {
+    const form = document.getElementById('addTripForm');
+    const formData = new FormData(form);
+    
+    // Validation de base
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Afficher un indicateur de chargement
+    const submitBtn = event.target;
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ajout en cours...';
+    submitBtn.disabled = true;
+    
+    // Préparer les données du trajet
+    const tripData = {
+        nom: formData.get('tripName'),
+        utilisateurUsername: formData.get('utilisateurUsername'),
+        pointDepart: formData.get('pointDepart'),
+        pointArrivee: formData.get('pointArrivee'),
+        duree: parseFloat(formData.get('duree')),
+        distance: parseFloat(formData.get('distance')),
+        cout: parseFloat(formData.get('cout')),
+        scoreConfort: parseInt(formData.get('scoreConfort')),
+        mode: formData.get('mode'),
+        vehiculeType: formData.get('vehiculeType'),
+        empreinteCarbone: parseFloat(formData.get('empreinteCarbone')),
+        niveauCirculation: formData.get('niveauCirculation'),
+        scoreIA: parseFloat(formData.get('scoreIA')),
+        fiabiliteScore: parseFloat(formData.get('fiabiliteScore')),
+        zoneGeographique: formData.get('zoneGeographique') || 'Non déterminée',
+        etapesJson: formData.get('etapesJson') || '["Trajet direct"]'
+    };
+    
+    // Envoyer les données au serveur
+    fetch('/api/trips/add/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(tripData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Succès
+            showNotification('Trajet ajouté avec succès !', 'success');
+            
+            // Fermer le modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addTripModal'));
+            modal.hide();
+            
+            // Réinitialiser le formulaire
+            form.reset();
+            
+            // Recharger la page après un délai
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            // Erreur
+            showNotification(data.error || 'Erreur lors de l\'ajout du trajet', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur de connexion au serveur', 'error');
+    })
+    .finally(() => {
+        // Restaurer le bouton
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+function deleteTrip(trajetUri, btn) {
+    if (!trajetUri) {
+        showNotification('Identifiant du trajet invalide', 'error');
+        return;
+    }
+
+    if (!confirm('Confirmer la suppression de ce trajet ? Cette action est irréversible.')) {
+        return;
+    }
+
+    try {
+        btn.disabled = true;
+    } catch (e) {
+        // ignore if btn not provided
+    }
+
+    fetch('/api/trips/delete/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ trajet_uri: trajetUri })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Trajet supprimé avec succès', 'success');
+            // Retirer l'élément de la liste du DOM si possible
+            if (btn && btn.closest) {
+                const item = btn.closest('.list-group-item');
+                if (item) item.remove();
+            }
+        } else {
+            showNotification(data.error || 'Erreur lors de la suppression', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur suppression trajet:', error);
+        showNotification('Erreur de connexion au serveur', 'error');
+    })
+    .finally(() => {
+        try { if (btn) btn.disabled = false; } catch (e) {}
+    });
+}
+
+function showNotification(message, type = 'info') {
+    // Créer une notification toast
+    const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+    
+    const toastId = 'toast-' + Date.now();
+    const toastHTML = `
+        <div id="${toastId}" class="toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+    
+    const toast = new bootstrap.Toast(document.getElementById(toastId));
+    toast.show();
+    
+    // Supprimer le toast après fermeture
+    document.getElementById(toastId).addEventListener('hidden.bs.toast', function() {
+        this.remove();
+    });
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container position-fixed top-0 end-0 p-3';
+    container.style.zIndex = '1055';
+    document.body.appendChild(container);
+    return container;
+}
+</script>
+{% endblock %}

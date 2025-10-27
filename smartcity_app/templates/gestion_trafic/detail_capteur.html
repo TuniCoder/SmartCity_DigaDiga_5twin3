@@ -1,0 +1,352 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-container {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .detail-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .detail-section h5 {
+        color: #495057;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .info-value {
+        color: #6c757d;
+    }
+    
+    .statut-badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+    
+    .stats-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stats-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .donnee-item {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        border-left: 4px solid #28a745;
+    }
+    
+    .donnee-item.bouchon {
+        border-left-color: #dc3545;
+    }
+    
+    .donnee-item.ralenti {
+        border-left-color: #ffc107;
+    }
+    
+    .donnee-item.dense {
+        border-left-color: #fd7e14;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1">📡 {{ page_title }}</h1>
+                    <p class="text-muted mb-0">{{ capteur.code_capteur }} - {{ capteur.zone_trafic.nom }}</p>
+                </div>
+                <div>
+                    <a href="{% url 'gestion_trafic:liste_capteurs' %}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-left"></i> Retour à la liste
+                    </a>
+                    <a href="{% url 'gestion_trafic:modifier_capteur' capteur.id %}" class="btn btn-primary">
+                        <i class="bi bi-pencil"></i> Modifier
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informations principales -->
+        <div class="col-lg-8">
+            <div class="detail-container">
+                <!-- Statut et actions -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center">
+                            <span class="badge statut-badge bg-{% if capteur.statut == 'actif' %}success{% elif capteur.statut == 'maintenance' %}warning{% else %}danger{% endif %} me-3">
+                                {{ capteur.get_statut_display }}
+                            </span>
+                            <span class="badge bg-secondary me-2">{{ capteur.get_type_capteur_display }}</span>
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> Créé le {{ capteur.date_creation|date:"d/m/Y à H:i" }}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-info dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="bi bi-gear"></i> Actions
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'gestion_trafic:modifier_capteur' capteur.id %}">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportData({{ capteur.id }})">
+                                    <i class="bi bi-download"></i> Exporter données
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="confirmDelete({{ capteur.id }}, '{{ capteur.nom }}')">
+                                    <i class="bi bi-trash"></i> Supprimer
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Identification -->
+                <div class="detail-section">
+                    <h5><i class="bi bi-tag"></i> Identification</h5>
+                    <div class="info-row">
+                        <span class="info-label">Nom</span>
+                        <span class="info-value">{{ capteur.nom }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Code capteur</span>
+                        <span class="info-value">{{ capteur.code_capteur }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Type de capteur</span>
+                        <span class="info-value">{{ capteur.get_type_capteur_display }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Statut</span>
+                        <span class="info-value">
+                            <span class="badge bg-{% if capteur.statut == 'actif' %}success{% elif capteur.statut == 'maintenance' %}warning{% else %}danger{% endif %}">
+                                {{ capteur.get_statut_display }}
+                            </span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Section Localisation -->
+                <div class="detail-section">
+                    <h5><i class="bi bi-geo-alt"></i> Localisation</h5>
+                    <div class="info-row">
+                        <span class="info-label">Zone de trafic</span>
+                        <span class="info-value">{{ capteur.zone_trafic.nom }} ({{ capteur.zone_trafic.get_type_zone_display }})</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Direction de mesure</span>
+                        <span class="info-value">{{ capteur.direction_mesure|default:"Non renseigné" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Coordonnées GPS</span>
+                        <span class="info-value">{{ capteur.latitude|floatformat:6 }}, {{ capteur.longitude|floatformat:6 }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Date d'installation</span>
+                        <span class="info-value">{{ capteur.date_installation|date:"d/m/Y" }}</span>
+                    </div>
+                </div>
+
+                <!-- Section Configuration -->
+                <div class="detail-section">
+                    <h5><i class="bi bi-gear"></i> Configuration Technique</h5>
+                    <div class="info-row">
+                        <span class="info-label">Fréquence de mesure</span>
+                        <span class="info-value">{{ capteur.frequence_mesure }} secondes</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Précision de détection</span>
+                        <span class="info-value">{{ capteur.precision_detection }}%</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Vitesse min détection</span>
+                        <span class="info-value">{{ capteur.vitesse_min_detection }} km/h</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Vitesse max détection</span>
+                        <span class="info-value">{{ capteur.vitesse_max_detection }} km/h</span>
+                    </div>
+                </div>
+
+                <!-- Section Informations -->
+                <div class="detail-section">
+                    <h5><i class="bi bi-info-circle"></i> Informations Supplémentaires</h5>
+                    <div class="info-row">
+                        <span class="info-label">Fournisseur</span>
+                        <span class="info-value">{{ capteur.fournisseur|default:"Non renseigné" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Modèle</span>
+                        <span class="info-value">{{ capteur.modele|default:"Non renseigné" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Dernière calibration</span>
+                        <span class="info-value">{{ capteur.derniere_calibration|date:"d/m/Y à H:i"|default:"Jamais" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Prochaine maintenance</span>
+                        <span class="info-value">{{ capteur.prochaine_maintenance|date:"d/m/Y"|default:"Non planifiée" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiques et données -->
+        <div class="col-lg-4">
+            <!-- Statistiques -->
+            <div class="detail-container">
+                <h5 class="mb-3"><i class="bi bi-graph-up"></i> Statistiques</h5>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ stats.total_mesures }}</div>
+                            <div class="stats-label">Mesures totales</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ stats.vitesse_moyenne|floatformat:0|default:"N/A" }}</div>
+                            <div class="stats-label">Vitesse moy. (km/h)</div>
+                        </div>
+                    </div>
+                </div>
+                {% if stats.derniere_mesure %}
+                <div class="alert alert-info">
+                    <small>
+                        <i class="bi bi-clock"></i> Dernière mesure: {{ stats.derniere_mesure.timestamp|date:"d/m/Y à H:i" }}
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Données récentes -->
+            <div class="detail-container">
+                <h5 class="mb-3"><i class="bi bi-clock-history"></i> Données Récentes</h5>
+                {% if donnees_recentes %}
+                    {% for donnee in donnees_recentes %}
+                    <div class="donnee-item {{ donnee.niveau_congestion }}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">{{ donnee.timestamp|date:"H:i" }}</h6>
+                                <p class="mb-1 small">
+                                    <strong>{{ donnee.nombre_vehicules }}</strong> véhicules | 
+                                    <strong>{{ donnee.vitesse_moyenne|floatformat:0|default:"N/A" }}</strong> km/h
+                                </p>
+                                <span class="badge bg-{% if donnee.niveau_congestion == 'fluide' %}success{% elif donnee.niveau_congestion == 'dense' %}warning{% elif donnee.niveau_congestion == 'ralenti' %}warning{% else %}danger{% endif %}">
+                                    {{ donnee.get_niveau_congestion_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-graph-down" style="font-size: 2rem;"></i>
+                        <p class="mt-2">Aucune donnée disponible</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer le capteur <strong id="capteurName"></strong> ?</p>
+                <p class="text-danger"><small>Cette action est irréversible et supprimera toutes les données associées.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(capteurId, capteurName) {
+    document.getElementById('capteurName').textContent = capteurName;
+    document.getElementById('deleteForm').action = '{% url "gestion_trafic:supprimer_capteur" 0 %}'.replace('0', capteurId);
+    
+    var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+}
+
+function exportData(capteurId) {
+    window.open('{% url "gestion_trafic:api_donnees_capteur" 0 %}'.replace('0', capteurId), '_blank');
+}
+
+// Auto-refresh des données toutes les 30 secondes
+setInterval(function() {
+    // Ici on pourrait ajouter du JavaScript pour actualiser les données
+    console.log('Actualisation des données du capteur...');
+}, 30000);
+</script>
+{% endblock %}

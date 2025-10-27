@@ -1,0 +1,1 @@
+# Fichier init pour marquer smartcity_core comme package Python

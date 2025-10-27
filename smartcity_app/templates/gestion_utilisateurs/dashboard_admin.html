@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load smartcity_filters %}
+
+{% block title %}Dashboard Admin - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Dashboard -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h1 class="h3 mb-0">
+                                <i class="fas fa-user-cog me-2"></i>
+                                Dashboard Administrateur
+                            </h1>
+                            <p class="mb-0">Bienvenue, {{ user.first_name|default:user.username }}</p>
+                        </div>
+                        <div class="col-auto">
+                            <div class="text-end">
+                                <small>Rôle : <strong>{{ user.profilutilisateur.role.nom }}</strong></small><br>
+                                <small>Dernière connexion : {{ user.last_login|date:"d/m/Y H:i" }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-left-primary">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Utilisateurs Total
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-left-success">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Utilisateurs Actifs
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.active_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-left-info">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Administrateurs
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.admin_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-shield fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-left-warning">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Entités RDF
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.rdf_entities|default:"N/A" }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-database fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tools me-2"></i>
+                        Actions Rapides
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                            <a href="{% url 'gestion_utilisateurs:liste_utilisateurs' %}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                                <i class="fas fa-users fa-2x mb-2"></i>
+                                <span>Gérer Utilisateurs</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                            <a href="{% url 'gestion_trajets:planificateur_trajet' %}" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                                <i class="fas fa-route fa-2x mb-2"></i>
+                                <span>Planificateur IA</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                            <a href="{% url 'smartcity_app:ontology_view' %}" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                                <i class="fas fa-sitemap fa-2x mb-2"></i>
+                                <span>Ontologie RDF</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                            <a href="{% url 'smartcity_app:query' %}" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                                <i class="fas fa-search fa-2x mb-2"></i>
+                                <span>Requêtes SPARQL</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                            <a href="{% url 'smartcity_app:entities_list' %}" class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                                <i class="fas fa-list fa-2x mb-2"></i>
+                                <span>Liste Entités</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                            <a href="{% url 'gestion_trajets:temps_reel_transport' %}" class="btn btn-outline-danger w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                                <i class="fas fa-broadcast-tower fa-2x mb-2"></i>
+                                <span>Transport Live</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                            <a href="#" class="btn btn-outline-dark w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                                <i class="fas fa-cog fa-2x mb-2"></i>
+                                <span>Configuration</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gestion des utilisateurs -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users me-2"></i>
+                        Utilisateurs Récents
+                    </h5>
+                    <a href="{% url 'gestion_utilisateurs:liste_utilisateurs' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-eye me-1"></i>Voir Tous
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_users %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Utilisateur</th>
+                                        <th>Rôle</th>
+                                        <th>Statut</th>
+                                        <th>Inscription</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in recent_users %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm me-2">
+                                                    <div class="avatar-title rounded-circle bg-soft-primary text-primary">
+                                                        {{ user.first_name|first|default:user.username|first|upper }}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0">{{ user.first_name|default:user.username }}</h6>
+                                                    <small class="text-muted">{{ user.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{% if user.profilutilisateur.est_administrateur %}danger{% else %}primary{% endif %}">
+                                                {{ user.profilutilisateur.role.nom }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{% if user.is_active %}success{% else %}warning{% endif %}">
+                                                {% if user.is_active %}Actif{% else %}Inactif{% endif %}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small>{{ user.date_joined|date:"d/m/Y" }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary btn-sm" title="Voir profil">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-warning btn-sm" title="Modifier">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-users fa-3x mb-3"></i>
+                            <p>Aucun utilisateur trouvé</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Répartition des Rôles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="rolesChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.border-left-primary {
+    border-left: 0.25rem solid #007bff !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #28a745 !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #17a2b8 !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #ffc107 !important;
+}
+
+.avatar-sm {
+    width: 2rem;
+    height: 2rem;
+}
+
+.avatar-title {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.bg-soft-primary {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Dashboard chargé');
+    
+    // Vérifier si Chart.js est disponible
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js n\'est pas chargé');
+        return;
+    }
+    
+    const chartElement = document.getElementById('rolesChart');
+    if (!chartElement) {
+        console.error('Élément rolesChart non trouvé');
+        return;
+    }
+    
+    console.log('Chart.js disponible, élément trouvé');
+    
+    const ctx = chartElement.getContext('2d');
+    
+    const adminCount = {{ stats.admin_users|default:0 }};
+    const normalCount = {{ stats.normal_users|default:0 }};
+    
+    console.log('Données du graphique:', { adminCount, normalCount });
+    
+    // Vérifier que nous avons des données
+    if (adminCount === 0 && normalCount === 0) {
+        console.warn('Aucune donnée à afficher');
+        chartElement.style.display = 'none';
+        chartElement.parentElement.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-chart-pie fa-3x mb-3"></i><p>Aucune donnée à afficher</p></div>';
+        return;
+    }
+    
+    try {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Administrateurs', 'Utilisateurs Standard'],
+                datasets: [{
+                    data: [adminCount, normalCount],
+                    backgroundColor: [
+                        '#dc3545',
+                        '#007bff'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = adminCount + normalCount;
+                                const percentage = Math.round((context.parsed / total) * 100);
+                                return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        console.log('Graphique créé avec succès');
+    } catch (error) {
+        console.error('Erreur lors de la création du graphique:', error);
+    }
+});
+</script>
+{% endblock %}

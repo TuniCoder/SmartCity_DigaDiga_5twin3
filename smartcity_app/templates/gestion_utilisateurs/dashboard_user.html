@@ -1,0 +1,392 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load smartcity_filters %}
+
+{% block title %}Dashboard Utilisateur - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Dashboard -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-info text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h1 class="h3 mb-0">
+                                <i class="fas fa-user me-2"></i>
+                                Dashboard Utilisateur
+                            </h1>
+                            <p class="mb-0">Bienvenue, {{ user.first_name|default:user.username }}</p>
+                        </div>
+                        <div class="col-auto">
+                            <div class="text-end">
+                                <small>Rôle : <strong>{{ user.profilutilisateur.role.nom }}</strong></small><br>
+                                <small>Dernière connexion : {{ user.last_login|date:"d/m/Y H:i" }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions disponibles pour l'utilisateur -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-compass me-2"></i>
+                        Fonctionnalités Disponibles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{% url 'gestion_trajets:planificateur_trajet' %}" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center p-4">
+                                <i class="fas fa-route fa-3x mb-3 text-warning"></i>
+                                <h6 class="mb-1">Planificateur IA</h6>
+                                <small class="text-muted">Trajets intelligents</small>
+                            </a>
+                        </div>
+                       
+                       
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <button class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center p-4" onclick="showProfile()">
+                                <i class="fas fa-user-edit fa-3x mb-3 text-info"></i>
+                                <h6 class="mb-1">Mon Profil</h6>
+                                <small class="text-muted">Modifier mes informations</small>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <button class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-4" onclick="showHelp()">
+                                <i class="fas fa-question-circle fa-3x mb-3 text-secondary"></i>
+                                <h6 class="mb-1">Aide</h6>
+                                <small class="text-muted">Documentation</small>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informations récentes -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Informations Récentes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Astuce :</strong> Utilisez la fonction de recherche pour explorer les données de mobilité urbaine disponibles dans le système.
+                    </div>
+                    
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Statut :</strong> Votre compte est actif et vous avez accès aux fonctionnalités de consultation.
+                    </div>
+
+                    <div class="list-group">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-database text-primary me-2"></i>
+                                <strong>Base de données RDF</strong>
+                                <p class="mb-0 text-muted small">Ontologie de mobilité urbaine chargée</p>
+                            </div>
+                            <span class="badge bg-success">Disponible</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-search text-success me-2"></i>
+                                <strong>Recherche Sémantique</strong>
+                                <p class="mb-0 text-muted small">Recherche avancée dans les entités</p>
+                            </div>
+                            <span class="badge bg-success">Actif</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-eye text-info me-2"></i>
+                                <strong>Consultation des Données</strong>
+                                <p class="mb-0 text-muted small">Accès en lecture aux entités RDF</p>
+                            </div>
+                            <span class="badge bg-success">Autorisé</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-circle me-2"></i>
+                        Mon Profil
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="avatar-xl mx-auto mb-3">
+                            <div class="avatar-title rounded-circle bg-soft-primary text-primary fs-1">
+                                {{ user.first_name|first|default:user.username|first|upper }}
+                            </div>
+                        </div>
+                        <h5 class="mb-1">{{ user.first_name|default:user.username }} {{ user.last_name|default:"" }}</h5>
+                        <p class="text-muted mb-3">{{ user.email }}</p>
+                    </div>
+                    
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item px-0 d-flex justify-content-between">
+                            <span class="text-muted">Nom d'utilisateur :</span>
+                            <strong>{{ user.username }}</strong>
+                        </div>
+                        <div class="list-group-item px-0 d-flex justify-content-between">
+                            <span class="text-muted">Rôle :</span>
+                            <span class="badge bg-primary">{{ user.profilutilisateur.role.nom }}</span>
+                        </div>
+                        <div class="list-group-item px-0 d-flex justify-content-between">
+                            <span class="text-muted">Membre depuis :</span>
+                            <strong>{{ user.date_joined|date:"d/m/Y" }}</strong>
+                        </div>
+                        <div class="list-group-item px-0 d-flex justify-content-between">
+                            <span class="text-muted">Statut :</span>
+                            <span class="badge bg-success">
+                                {% if user.is_active %}Actif{% else %}Inactif{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid mt-3">
+                        <button class="btn btn-outline-primary" onclick="showProfile()">
+                            <i class="fas fa-edit me-2"></i>Modifier le profil
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Profil -->
+<div class="modal fade" id="profileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-edit me-2"></i>Modifier le Profil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Prénom</label>
+                        <input type="text" class="form-control" value="{{ user.first_name }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nom</label>
+                        <input type="text" class="form-control" value="{{ user.last_name }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" value="{{ user.email }}">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary">Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Aide -->
+<div class="modal fade" id="helpModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-question-circle me-2"></i>Guide d'Utilisation
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#help1">
+                                <i class="fas fa-route me-2"></i>Comment planifier un trajet intelligent ?
+                            </button>
+                        </h2>
+                        <div id="help1" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+                                <strong>Planificateur IA :</strong> Accédez au module "Gestion des Trajets" pour planifier vos déplacements.
+                                <br><br>
+                                <strong>Étapes :</strong>
+                                <ol>
+                                    <li>Saisissez votre <strong>point de départ</strong> et votre <strong>destination</strong></li>
+                                    <li>Choisissez vos <strong>critères d'optimisation</strong> : rapidité, économie ou écologie</li>
+                                    <li>Sélectionnez vos <strong>types de véhicules</strong> préférés (bus, vélo, voiture, marche)</li>
+                                    <li>L'IA vous propose <strong>plusieurs options optimisées</strong> avec temps, coût et impact écologique</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help2">
+                                <i class="fas fa-tachometer-alt me-2"></i>Utiliser votre Dashboard Trajets
+                            </button>
+                        </h2>
+                        <div id="help2" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <strong>Tableau de bord personnel :</strong> Accédez à <code>/trajets/</code> pour voir :
+                                <br><br>
+                                <ul>
+                                    <li><strong>Statistiques</strong> : Vos trajets totaux, trajets du jour, véhicules disponibles</li>
+                                    <li><strong>Actions rapides</strong> : Planifier, consulter l'historique, voir les infos temps réel</li>
+                                    <li><strong>Derniers trajets</strong> : Historique avec possibilité de répéter un trajet</li>
+                                    <li><strong>Alertes transport</strong> : Perturbations en cours</li>
+                                    <li><strong>Préférences</strong> : Vos critères d'optimisation par défaut</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help3">
+                                <i class="fas fa-clock me-2"></i>Infos Transport Temps Réel
+                            </button>
+                        </h2>
+                        <div id="help3" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <strong>Données Live :</strong> Consultez les informations en temps réel pour optimiser vos déplacements.
+                                <br><br>
+                                <strong>Disponible :</strong>
+                                <ul>
+                                    <li><strong>Horaires bus/métro</strong> : Passages en temps réel</li>
+                                    <li><strong>Alertes trafic</strong> : Embouteillages, accidents, travaux</li>
+                                    <li><strong>Véhicules partagés</strong> : Disponibilité vélos, trottinettes</li>
+                                    <li><strong>Perturbations</strong> : Retards, annulations, déviations</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help4">
+                                <i class="fas fa-cog me-2"></i>Configurer vos Préférences
+                            </button>
+                        </h2>
+                        <div id="help4" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <strong>Personnalisation :</strong> Configurez vos préférences pour des recommandations plus précises.
+                                <br><br>
+                                <strong>Paramètres disponibles :</strong>
+                                <ul>
+                                    <li><strong>Priorité par défaut</strong> : Rapidité, économie ou écologie</li>
+                                    <li><strong>Budget maximum</strong> : Limite de coût acceptée</li>
+                                    <li><strong>Durée maximale</strong> : Temps de trajet limite</li>
+                                    <li><strong>Types de véhicules</strong> : Vos préférences de transport</li>
+                                    <li><strong>Lieux favoris</strong> : Domicile, travail, autres lieux fréquents</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#help5">
+                                <i class="fas fa-mobile-alt me-2"></i>Navigation dans l'Interface
+                            </button>
+                        </h2>
+                        <div id="help5" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <strong>Navigation facile :</strong> Trouvez rapidement ce que vous cherchez.
+                                <br><br>
+                                <strong>Éléments d'interface :</strong>
+                                <ul>
+                                    <li><strong>Menu principal</strong> : "Modules SmartCity" → Accès aux fonctionnalités</li>
+                                    <li><strong>Dashboard</strong> : Votre tableau de bord personnel</li>
+                                    <li><strong>Bouton flottant</strong> (coin droit) : Accès rapide aux modules</li>
+                                    <li><strong>Footer</strong> : Liens directs vers chaque gestion</li>
+                                </ul>
+                                <br>
+                                <strong>Modules disponibles :</strong>
+                                <span class="badge bg-success">Trajets (Opérationnel)</span>
+                                <span class="badge bg-warning">Autres modules (En développement)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-gradient-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+}
+
+.avatar-xl {
+    width: 4rem;
+    height: 4rem;
+}
+
+.avatar-title {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.bg-soft-primary {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+    transition: box-shadow 0.3s ease;
+}
+</style>
+
+<script>
+function showProfile() {
+    var profileModal = new bootstrap.Modal(document.getElementById('profileModal'));
+    profileModal.show();
+}
+
+function showHelp() {
+    var helpModal = new bootstrap.Modal(document.getElementById('helpModal'));
+    helpModal.show();
+}
+</script>
+{% endblock %}

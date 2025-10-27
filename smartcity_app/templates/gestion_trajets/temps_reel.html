@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Transport Temps Réel - SmartCity{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+    .alerte-card {
+        border-left: 4px solid #dc3545;
+        transition: all 0.3s ease;
+    }
+    .alerte-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .vehicule-status {
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid #28a745;
+    }
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    .status-operational { background-color: #28a745; }
+    .status-delayed { background-color: #ffc107; }
+    .status-disrupted { background-color: #dc3545; }
+    .realtime-badge {
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- En-tête -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-broadcast text-primary"></i>
+                        Transport en Temps Réel
+                        <span class="badge bg-danger realtime-badge ms-2">LIVE</span>
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Informations actualisées - Dernière mise à jour: {{ derniere_maj|date:"H:i:s" }}
+                    </p>
+                </div>
+                <div>
+                    <button onclick="location.reload()" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-clockwise"></i> Actualiser
+                    </button>
+                </div>
+            </div>
+
+            <!-- Statistiques rapides -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">{{ nb_alertes_total }}</h5>
+                                    <p class="card-text mb-0">Alertes Actives</p>
+                                </div>
+                                <i class="bi bi-exclamation-triangle-fill fs-2"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">{{ vehicules_etat|length }}</h5>
+                                    <p class="card-text mb-0">Services Surveillés</p>
+                                </div>
+                                <i class="bi bi-bus-front-fill fs-2"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">3-7min</h5>
+                                    <p class="card-text mb-0">Retard Moyen</p>
+                                </div>
+                                <i class="bi bi-clock-fill fs-2"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">87%</h5>
+                                    <p class="card-text mb-0">Services Opérationnels</p>
+                                </div>
+                                <i class="bi bi-check-circle-fill fs-2"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Alertes de Transport -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                Alertes & Perturbations
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if alertes_par_type %}
+                                {% for type_alerte, alertes_liste in alertes_par_type.items %}
+                                <div class="mb-4">
+                                    <h6 class="text-muted border-bottom pb-2">{{ type_alerte }}</h6>
+                                    {% for alerte in alertes_liste %}
+                                    <div class="alerte-card card mb-2">
+                                        <div class="card-body py-2">
+                                            <div class="d-flex justify-content-between">
+                                                <div>
+                                                    <h6 class="mb-1">{{ alerte.titre }}</h6>
+                                                    <p class="mb-1 text-muted small">{{ alerte.description|truncatechars:100 }}</p>
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-clock"></i>
+                                                        {{ alerte.date_creation|timesince }} 
+                                                        {% if alerte.date_fin %}
+                                                            - Fin prévue: {{ alerte.date_fin|date:"H:i" }}
+                                                        {% endif %}
+                                                    </small>
+                                                </div>
+                                                <div class="text-end">
+                                                    {% if alerte.gravite == 'critique' %}
+                                                        <span class="badge bg-danger">Critique</span>
+                                                    {% elif alerte.gravite == 'majeure' %}
+                                                        <span class="badge bg-warning">Majeure</span>
+                                                    {% else %}
+                                                        <span class="badge bg-info">Info</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-check-circle display-4"></i>
+                                    <h5 class="mt-3">Aucune Perturbation</h5>
+                                    <p>Tous les services fonctionnent normalement</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- État des Véhicules -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-speedometer2"></i>
+                                État des Services de Transport
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% for vehicule_info in vehicules_etat %}
+                            <div class="vehicule-status">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <i class="{{ vehicule_info.vehicule.icone }} fs-4 me-3" 
+                                           style="color: {{ vehicule_info.vehicule.couleur }};"></i>
+                                        <div>
+                                            <h6 class="mb-1">{{ vehicule_info.vehicule.nom }}</h6>
+                                            <small class="text-muted">{{ vehicule_info.vehicule.get_categorie_display }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        {% if vehicule_info.retard_moyen <= 2 %}
+                                            <span class="status-indicator status-operational"></span>
+                                            <span class="badge bg-success">À l'heure</span>
+                                        {% elif vehicule_info.retard_moyen <= 10 %}
+                                            <span class="status-indicator status-delayed"></span>
+                                            <span class="badge bg-warning">{{ vehicule_info.retard_moyen }}min retard</span>
+                                        {% else %}
+                                            <span class="status-indicator status-disrupted"></span>
+                                            <span class="badge bg-danger">Perturbé</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Prochains passages -->
+                                {% if vehicule_info.prochains_passages %}
+                                <div class="mt-2">
+                                    <small class="text-muted">Prochains passages:</small>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        {% for passage in vehicule_info.prochains_passages %}
+                                        <span class="badge bg-light text-dark">{{ passage }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Disponibilité -->
+                                <div class="mt-2">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">Disponibilité:</small>
+                                        <small class="fw-bold {% if vehicule_info.disponibilite >= 80 %}text-success{% elif vehicule_info.disponibilite >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                                            {{ vehicule_info.disponibilite }}%
+                                        </small>
+                                    </div>
+                                    <div class="progress" style="height: 4px;">
+                                        <div class="progress-bar {% if vehicule_info.disponibilite >= 80 %}bg-success{% elif vehicule_info.disponibilite >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                             style="width: {{ vehicule_info.disponibilite }}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conseils Temps Réel -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-lightbulb"></i>
+                                Recommandations IA en Temps Réel
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center p-3 bg-light rounded">
+                                        <i class="bi bi-speedometer2 fs-3 text-success me-3"></i>
+                                        <div>
+                                            <h6 class="mb-1">Circulation Fluide</h6>
+                                            <small class="text-muted">Conditions optimales sur les axes principaux</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center p-3 bg-light rounded">
+                                        <i class="bi bi-train-front fs-3 text-primary me-3"></i>
+                                        <div>
+                                            <h6 class="mb-1">Métro Recommandé</h6>
+                                            <small class="text-muted">Service régulier, évite les embouteillages</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center p-3 bg-light rounded">
+                                        <i class="bi bi-bicycle fs-3 text-success me-3"></i>
+                                        <div>
+                                            <h6 class="mb-1">Météo Favorable</h6>
+                                            <small class="text-muted">Conditions idéales pour les transports actifs</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-refresh toutes les 30 secondes
+    setInterval(function() {
+        $('.realtime-badge').fadeOut().fadeIn();
+    }, 2000);
+
+    // Actualisation automatique toutes les 30 secondes
+    setTimeout(function() {
+        if (confirm('Actualiser les données temps réel ?')) {
+            location.reload();
+        }
+    }, 30000);
+
+    // Animation des cartes d'alerte
+    $('.alerte-card').each(function(index) {
+        $(this).css('opacity', '0').css('transform', 'translateX(-20px)');
+        $(this).delay(index * 100).animate({
+            opacity: 1
+        }, 400, function() {
+            $(this).css('transform', 'translateX(0)');
+        });
+    });
+
+    // Animation des véhicules
+    $('.vehicule-status').each(function(index) {
+        $(this).css('opacity', '0').css('transform', 'translateY(20px)');
+        $(this).delay(index * 150).animate({
+            opacity: 1
+        }, 500, function() {
+            $(this).css('transform', 'translateY(0)');
+        });
+    });
+});
+</script>
+{% endblock %}

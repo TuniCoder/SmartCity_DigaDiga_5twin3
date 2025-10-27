@@ -1,0 +1,426 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load smartcity_filters %}
+
+{% block title %}Interrogation IA - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Hero Section -->
+    <div class="hero-section text-center mb-5">
+        <h1><i class="fas fa-brain"></i> Interrogation Sémantique</h1>
+        <p class="lead">Posez vos questions en langage naturel ou écrivez vos requêtes SPARQL</p>
+    </div>
+
+    <div class="row">
+        <!-- Formulaire de requête -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <ul class="nav nav-pills card-header-pills" id="queryTypeTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="natural-tab" data-bs-toggle="pill" data-bs-target="#natural-query" type="button" role="tab">
+                                <i class="fas fa-comments"></i> Question Naturelle
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="sparql-tab" data-bs-toggle="pill" data-bs-target="#sparql-query" type="button" role="tab">
+                                <i class="fas fa-code"></i> Requête SPARQL
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="predefined-tab" data-bs-toggle="pill" data-bs-target="#predefined-query" type="button" role="tab">
+                                <i class="fas fa-list"></i> Requêtes Prédéfinies
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card-body">
+                    <form method="post" id="queryForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="query_type" id="query_type" value="natural">
+                        
+                        <div class="tab-content" id="queryTypeTabsContent">
+                            
+                            <!-- Question en langage naturel -->
+                            <div class="tab-pane fade show active" id="natural-query" role="tabpanel">
+                                <div class="mb-3">
+                                    <label for="question" class="form-label">
+                                        <i class="fas fa-question-circle"></i> Votre question
+                                    </label>
+                                    <textarea class="form-control" id="question" name="question" rows="3" 
+                                              placeholder="Ex: Quels sont les véhicules disponibles? Combien d'utilisateurs sont inscrits?"
+                                              value="{{ request.GET.q }}"></textarea>
+                                    <div class="form-text">
+                                        Posez votre question en français. L'IA générera automatiquement la requête SPARQL correspondante.
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-brain"></i> Interroger l'IA
+                                    <span class="loading-spinner spinner-border spinner-border-sm ms-2" role="status"></span>
+                                </button>
+                            </div>
+
+                            <!-- Requête SPARQL directe -->
+                            <div class="tab-pane fade" id="sparql-query" role="tabpanel">
+                                <div class="mb-3">
+                                    <label for="sparql_query" class="form-label">
+                                        <i class="fas fa-code"></i> Requête SPARQL
+                                    </label>
+                                    <textarea class="form-control font-monospace" id="sparql_query" name="sparql_query" rows="8"
+                                              placeholder="SELECT ?subject ?predicate ?object WHERE { ?subject ?predicate ?object } LIMIT 10"></textarea>
+                                    <div class="form-text">
+                                        Écrivez votre requête SPARQL. Les préfixes mobility:, rdf:, rdfs:, owl: sont disponibles.
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-play"></i> Exécuter SPARQL
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6 text-end">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="insertSampleSparql()">
+                                            <i class="fas fa-paste"></i> Exemple
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Requêtes prédéfinies -->
+                            <div class="tab-pane fade" id="predefined-query" role="tabpanel">
+                                <div class="mb-3">
+                                    <label for="predefined_query_id" class="form-label">
+                                        <i class="fas fa-list"></i> Choisir une requête
+                                    </label>
+                                    <select class="form-select" id="predefined_query_id" name="predefined_query_id" onchange="showPredefDetails()">
+                                        <option value="">Sélectionnez une requête prédéfinie...</option>
+                                        {% for category, queries in predefined_queries.items %}
+                                            <optgroup label="{{ category }}">
+                                                {% for query_id, query_info in queries.items %}
+                                                    <option value="{{ query_id }}" 
+                                                            data-description="{{ query_info.description }}"
+                                                            data-query="{{ query_info.query }}">
+                                                        {{ query_info.name }}
+                                                    </option>
+                                                {% endfor %}
+                                            </optgroup>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div id="predefQueryDetails" class="alert alert-info d-none">
+                                    <h6><i class="fas fa-info-circle"></i> Description</h6>
+                                    <p id="predefDescription"></p>
+                                    <details>
+                                        <summary>Voir la requête SPARQL</summary>
+                                        <pre id="predefQuery" class="sparql-query mt-2"></pre>
+                                    </details>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-play"></i> Exécuter la Requête
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Résultats -->
+            {% if query_executed %}
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="fas fa-table"></i> Résultats 
+                            {% if query_type == 'natural' %}
+                                - Question IA
+                            {% elif query_type == 'sparql' %}
+                                - Requête SPARQL
+                            {% elif query_type == 'predefined' %}
+                                - {{ query_name }}
+                            {% endif %}
+                        </span>
+                        <span class="badge bg-success">{{ results_count }} résultat(s)</span>
+                    </div>
+                    
+                    <div class="card-body">
+                        {% if query_type == 'natural' and ai_explanation %}
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-lightbulb"></i> Interprétation IA</h6>
+                                <p class="mb-2">{{ ai_explanation }}</p>
+                                {% if detected_info %}
+                                    <small class="text-muted">
+                                        Entité: <span class="badge bg-info">{{ detected_info.entity }}</span>
+                                        Action: <span class="badge bg-warning">{{ detected_info.action }}</span>
+                                        {% if detected_info.properties %}
+                                            Propriétés: 
+                                            {% for prop in detected_info.properties %}
+                                                <span class="badge bg-secondary">{{ prop }}</span>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                        {% if generated_sparql or sparql_query %}
+                            <div class="mb-3">
+                                <details>
+                                    <summary>
+                                        <i class="fas fa-code"></i> Requête SPARQL 
+                                        {% if query_type == 'natural' %} générée{% endif %}
+                                    </summary>
+                                    <pre class="sparql-query mt-2">{% if generated_sparql %}{{ generated_sparql }}{% elif sparql_query %}{{ sparql_query }}{% endif %}</pre>
+                                </details>
+                            </div>
+                        {% endif %}
+
+                        {% if results %}
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            {% for key in results.0.keys %}
+                                                <th><i class="fas fa-tag"></i> {{ key }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for result in results %}
+                                            <tr>
+                                                {% for key, value in result.items %}
+                                                    <td>
+                                                        {% if 'http' in value %}
+                                                            <span class="badge bg-light text-dark" title="{{ value }}">
+                                                                {{ value|extract_name|default:value }}
+                                                            </span>
+                                                        {% else %}
+                                                            {{ value|default:"-" }}
+                                                        {% endif %}
+                                                    </td>
+                                                {% endfor %}
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="text-end mt-3">
+                                <button class="btn btn-outline-primary" onclick="exportResults('csv')">
+                                    <i class="fas fa-download"></i> Exporter CSV
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="exportResults('json')">
+                                    <i class="fas fa-download"></i> Exporter JSON
+                                </button>
+                            </div>
+                        {% else %}
+                            <div class="text-center text-muted">
+                                <i class="fas fa-info-circle fa-3x mb-3"></i>
+                                <p>Aucun résultat trouvé pour cette requête.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if query_error %}
+                <div class="alert alert-danger">
+                    <h5><i class="fas fa-exclamation-triangle"></i> Erreur</h5>
+                    <p>{{ error_message }}</p>
+                    {% if suggestions %}
+                        <hr>
+                        <h6>Suggestions:</h6>
+                        <ul>
+                            {% for suggestion in suggestions %}
+                                <li>{{ suggestion }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Panneau d'aide -->
+        <div class="col-lg-4">
+            <!-- Exemples de questions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-lightbulb"></i> Exemples de Questions
+                </div>
+                <div class="card-body">
+                    {% for example in example_questions %}
+                        <div class="question-example mb-2" onclick="setQuestion('{{ example }}')">
+                            <i class="fas fa-arrow-right text-primary"></i> "{{ example }}"
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Guide SPARQL -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-book"></i> Guide SPARQL
+                </div>
+                <div class="card-body">
+                    <h6>Préfixes disponibles:</h6>
+                    <div class="sparql-query small mb-3">
+PREFIX mobility: &lt;{{ settings.ONTOLOGY_NAMESPACE }}&gt;
+PREFIX rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX owl: &lt;http://www.w3.org/2002/07/owl#&gt;</div>
+                    
+                    <h6>Classes principales:</h6>
+                    <ul class="small">
+                        <li><code>mobility:Utilisateur</code></li>
+                        <li><code>mobility:Véhicule</code></li>
+                        <li><code>mobility:Station</code></li>
+                        <li><code>mobility:Trajet</code></li>
+                        <li><code>mobility:Route</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Statistiques rapides -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-line"></i> Liens Rapides
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'smartcity_app:ontology_view' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-project-diagram"></i> Explorer l'Ontologie
+                        </a>
+                        <a href="{% url 'smartcity_app:search' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-search"></i> Recherche par Mots-clés
+                        </a>
+                        <a href="/api/status/" target="_blank" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-api"></i> Documentation API
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Pré-remplir la question depuis l'URL
+    $(document).ready(function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const question = urlParams.get('q');
+        if (question) {
+            $('#question').val(question);
+        }
+        
+        // Gérer le changement d'onglet pour mettre à jour le type de requête
+        $('#queryTypeTabs button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
+            const target = e.target.getAttribute('data-bs-target');
+            let queryType = 'natural';
+            
+            if (target === '#sparql-query') {
+                queryType = 'sparql';
+            } else if (target === '#predefined-query') {
+                queryType = 'predefined';
+            }
+            
+            document.getElementById('query_type').value = queryType;
+        });
+    });
+
+    // Fonction pour définir une question
+    function setQuestion(question) {
+        $('#question').val(question);
+        // Activer l'onglet question naturelle
+        $('#natural-tab').tab('show');
+        // Faire défiler vers le formulaire
+        document.getElementById('question').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Afficher les détails de la requête prédéfinie
+    function showPredefDetails() {
+        const select = document.getElementById('predefined_query_id');
+        const option = select.selectedOptions[0];
+        
+        if (option && option.value) {
+            const description = option.getAttribute('data-description');
+            const query = option.getAttribute('data-query');
+            
+            document.getElementById('predefDescription').textContent = description;
+            document.getElementById('predefQuery').textContent = query;
+            document.getElementById('predefQueryDetails').classList.remove('d-none');
+        } else {
+            document.getElementById('predefQueryDetails').classList.add('d-none');
+        }
+    }
+
+    // Insérer un exemple SPARQL
+    function insertSampleSparql() {
+        const sampleQuery = `SELECT ?utilisateur ?nom ?email ?typeUtilisateur
+WHERE {
+    ?utilisateur rdf:type mobility:Utilisateur .
+    OPTIONAL { ?utilisateur mobility:nom ?nom }
+    OPTIONAL { ?utilisateur mobility:email ?email }
+    OPTIONAL { ?utilisateur mobility:typeUtilisateur ?typeUtilisateur }
+}
+LIMIT 10`;
+        
+        document.getElementById('sparql_query').value = sampleQuery;
+    }
+
+    // Gestion du formulaire
+    $('#queryForm').on('submit', function() {
+        showLoading(this);
+    });
+
+    // Export des résultats
+    function exportResults(format) {
+        {% if results %}
+            const resultsData = {{ results|safe }};
+            
+            if (format === 'csv') {
+                exportToCSV(resultsData);
+            } else if (format === 'json') {
+                exportToJSON(resultsData);
+            }
+        {% endif %}
+    }
+
+    function exportToCSV(data) {
+        if (data.length === 0) return;
+        
+        const headers = Object.keys(data[0]);
+        let csv = headers.join(',') + '\n';
+        
+        data.forEach(row => {
+            const values = headers.map(header => {
+                const value = row[header] || '';
+                return `"${value.toString().replace(/"/g, '""')}"`;
+            });
+            csv += values.join(',') + '\n';
+        });
+        
+        downloadFile(csv, 'resultats.csv', 'text/csv');
+    }
+
+    function exportToJSON(data) {
+        const json = JSON.stringify(data, null, 2);
+        downloadFile(json, 'resultats.json', 'application/json');
+    }
+
+    function downloadFile(content, filename, contentType) {
+        const blob = new Blob([content], { type: contentType });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+</script>
+{% endblock %}

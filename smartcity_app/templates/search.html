@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load smartcity_filters %}
+
+{% block title %}Recherche - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Hero Section -->
+    <div class="hero-section text-center mb-5">
+        <h1><i class="fas fa-search"></i> Recherche Sémantique</h1>
+        <p class="lead">Recherchez dans toute l'ontologie par mots-clés</p>
+    </div>
+
+    <!-- Formulaire de recherche -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="d-flex">
+                        <input type="text" 
+                               class="form-control form-control-lg" 
+                               name="q" 
+                               value="{{ keyword }}"
+                               placeholder="Tapez votre mot-clé de recherche..."
+                               autocomplete="off">
+                        <button type="submit" class="btn btn-primary btn-lg ms-2">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                    <div class="form-text mt-2">
+                        <i class="fas fa-info-circle"></i>
+                        Recherchez par nom, type, propriété... Minimum 2 caractères.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Résultats de recherche -->
+    {% if search_performed %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="fas fa-list"></i> Résultats pour "{{ keyword }}"
+                        </span>
+                        <span class="badge bg-info">{{ total_results }} résultat(s)</span>
+                    </div>
+                    
+                    {% if results %}
+                        <div class="card-body">
+                            <div class="row">
+                                {% for result in results %}
+                                    <div class="col-lg-6 mb-3">
+                                        <div class="card border-start border-info border-3 h-100">
+                                            <div class="card-body">
+                                                <h6 class="card-title">
+                                                    <i class="fas fa-tag text-info"></i>
+                                                    {{ result.subject|extract_name|default:result.subject }}
+                                                </h6>
+                                                <p class="card-text">
+                                                    <strong>Type:</strong> 
+                                                    <span class="badge bg-light text-dark">
+                                                        {{ result.type|extract_name|default:"Non spécifié" }}
+                                                    </span>
+                                                </p>
+                                                <p class="card-text">
+                                                    <strong>Propriété:</strong> {{ result.predicate|extract_name|default:result.predicate }}
+                                                </p>
+                                                <p class="card-text">
+                                                    <strong>Valeur:</strong> {{ result.object|truncatechars:50 }}
+                                                </p>
+                                                <button class="btn btn-sm btn-outline-info" 
+                                                        onclick="smartCity.showEntityDetails('{{ result.subject }}')">
+                                                    <i class="fas fa-eye"></i> Détails
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Pagination -->
+                            {% if results.has_other_pages %}
+                                <nav aria-label="Navigation des résultats">
+                                    <ul class="pagination justify-content-center">
+                                        {% if results.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?q={{ keyword }}&page=1">Première</a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?q={{ keyword }}&page={{ results.previous_page_number }}">Précédente</a>
+                                            </li>
+                                        {% endif %}
+
+                                        <li class="page-item active">
+                                            <span class="page-link">
+                                                Page {{ results.number }} sur {{ results.paginator.num_pages }}
+                                            </span>
+                                        </li>
+
+                                        {% if results.has_next %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?q={{ keyword }}&page={{ results.next_page_number }}">Suivante</a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?q={{ keyword }}&page={{ results.paginator.num_pages }}">Dernière</a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="card-body text-center">
+                            <i class="fas fa-search fa-5x text-muted mb-4"></i>
+                            <h4 class="text-muted">Aucun résultat trouvé</h4>
+                            <p class="text-muted">
+                                Aucun élément ne correspond à votre recherche "{{ keyword }}".
+                                <br>Essayez avec d'autres termes ou vérifiez l'orthographe.
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Suggestions de recherche -->
+    {% if not search_performed %}
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-lightbulb"></i> Suggestions de Recherche
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text mb-3">Voici quelques idées de mots-clés à rechercher :</p>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-users"></i> Utilisateurs</h6>
+                                <div class="mb-3">
+                                    <span class="badge bg-light text-dark me-2 mb-1 search-suggestion" onclick="searchFor('Alice')">Alice</span>
+                                    <span class="badge bg-light text-dark me-2 mb-1 search-suggestion" onclick="searchFor('cycliste')">cycliste</span>
+                                    <span class="badge bg-light text-dark me-2 mb-1 search-suggestion" onclick="searchFor('utilisateur')">utilisateur</span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-car"></i> Véhicules</h6>
+                                <div class="mb-3">
+                                    <span class="badge bg-light text-dark me-2 mb-1 search-suggestion" onclick="searchFor('vélo')">vélo</span>
+                                    <span class="badge bg-light text-dark me-2 mb-1 search-suggestion" onclick="searchFor('voiture')">voiture</span>
+                                    <span class="badge bg-light text-dark me-2 mb-1 search-suggestion" onclick="searchFor('électrique')">électrique</span>
+                                    <span class="badge bg-light text-dark me-2 mb-1 search-suggestion" onclick="searchFor('disponible')">disponible</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-map-marker-alt"></i> Stations</h6>
+                                <div class="mb-3">
+                                    <span class="badge bg-light text-dark me-2 mb-1 search-suggestion" onclick="searchFor('station')">station</span>
+                                    <span class="badge bg-light text-dark me-2 mb-1 search-suggestion" onclick="searchFor('centre')">centre</span>
+                                    <span class="badge bg-light text-dark me-2 mb-1 search-suggestion" onclick="searchFor('parking')">parking</span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-route"></i> Trajets</h6>
+                                <div class="mb-3">
+                                    <span class="badge bg-light text-dark me-2 mb-1 search-suggestion" onclick="searchFor('trajet')">trajet</span>
+                                    <span class="badge bg-light text-dark me-2 mb-1 search-suggestion" onclick="searchFor('université')">université</span>
+                                    <span class="badge bg-light text-dark me-2 mb-1 search-suggestion" onclick="searchFor('distance')">distance</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if search_error %}
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger">
+                    <h5><i class="fas fa-exclamation-triangle"></i> Erreur</h5>
+                    <p>{{ error_message }}</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal pour les détails d'entité -->
+<div class="modal fade" id="entityDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle"></i> Détails de l'Entité
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="entityDetailsContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function searchFor(keyword) {
+        const searchInput = document.querySelector('input[name="q"]');
+        searchInput.value = keyword;
+        searchInput.form.submit();
+    }
+    
+    // Style pour les suggestions cliquables
+    document.addEventListener('DOMContentLoaded', function() {
+        const suggestions = document.querySelectorAll('.search-suggestion');
+        suggestions.forEach(suggestion => {
+            suggestion.style.cursor = 'pointer';
+            suggestion.addEventListener('mouseenter', function() {
+                this.classList.remove('bg-light', 'text-dark');
+                this.classList.add('bg-primary', 'text-white');
+            });
+            suggestion.addEventListener('mouseleave', function() {
+                this.classList.remove('bg-primary', 'text-white');
+                this.classList.add('bg-light', 'text-dark');
+            });
+        });
+    });
+</script>
+{% endblock %}

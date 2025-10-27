@@ -1,0 +1,552 @@
+{% extends 'base.html' %}
+{% load smartcity_filters %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.trajet-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid #007bff;
+}
+
+.trajet-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.vehicule-option {
+    transition: all 0.2s ease;
+}
+
+.vehicule-option:hover {
+    background-color: #f8f9fa;
+    border-color: #007bff;
+}
+
+.vehicule-option input[type="checkbox"]:checked + .card {
+    border-color: #007bff;
+    background-color: #e3f2fd;
+}
+
+.priority-selector .form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.lieu-suggestion {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.lieu-suggestion:hover {
+    background-color: #f8f9fa;
+}
+
+.alert-transport {
+    border-left: 4px solid;
+    margin-bottom: 10px;
+}
+
+.alert-info { border-left-color: #17a2b8; }
+.alert-attention { border-left-color: #ffc107; }
+.alert-important { border-left-color: #fd7e14; }
+.alert-critique { border-left-color: #dc3545; }
+
+.real-time-indicator {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête avec alertes temps réel -->
+    {% if alertes_actives %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Alertes Transport en Cours
+                        <span class="real-time-indicator badge bg-danger ms-2">LIVE</span>
+                    </h6>
+                </div>
+                <div class="card-body py-2">
+                    <div class="row">
+                        {% for alerte in alertes_actives %}
+                        <div class="col-md-6 mb-2">
+                            <div class="alert alert-{{ alerte.severite }} alert-transport py-2 mb-0">
+                                <small>
+                                    <strong>{{ alerte.get_type_alerte_display }}</strong>: {{ alerte.titre }}
+                                    {% if alerte.ligne_transport %}
+                                        <span class="badge bg-secondary ms-1">{{ alerte.ligne_transport }}</span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Formulaire de planification -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-route me-2"></i>
+                        Planificateur de Trajets Intelligent
+                    </h4>
+                    <small>Trouvez le meilleur trajet adapté à vos besoins</small>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'gestion_trajets:creer_demande_trajet' %}" id="trajetForm">
+                        {% csrf_token %}
+                        
+                        <!-- Lieux de départ et arrivée -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-map-marker-alt text-success me-1"></i>
+                                    Lieu de départ
+                                </label>
+                                <div class="position-relative">
+                                    <input type="text" 
+                                           class="form-control form-control-lg" 
+                                           name="lieu_depart" 
+                                           id="lieu_depart"
+                                           placeholder="Ex: Gare Centrale, Mon domicile..."
+                                           required
+                                           autocomplete="off">
+                                    <input type="hidden" name="lat_depart" id="lat_depart">
+                                    <input type="hidden" name="lng_depart" id="lng_depart">
+                                    <div id="suggestions_depart" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                    Lieu d'arrivée
+                                </label>
+                                <div class="position-relative">
+                                    <input type="text" 
+                                           class="form-control form-control-lg" 
+                                           name="lieu_arrivee" 
+                                           id="lieu_arrivee"
+                                           placeholder="Ex: Université, Centre commercial..."
+                                           required
+                                           autocomplete="off">
+                                    <input type="hidden" name="lat_arrivee" id="lat_arrivee">
+                                    <input type="hidden" name="lng_arrivee" id="lng_arrivee">
+                                    <div id="suggestions_arrivee" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Heure de départ -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Heure de départ (optionnel)
+                                </label>
+                                <input type="datetime-local" 
+                                       class="form-control" 
+                                       name="heure_depart"
+                                       id="heure_depart">
+                                <small class="text-muted">Laissez vide pour un départ immédiat</small>
+                            </div>
+                        </div>
+
+                        <!-- Priorité et contraintes -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-star me-1"></i>
+                                    Votre priorité
+                                </label>
+                                <div class="priority-selector">
+                                    {% for value, label in priorites_choix %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" 
+                                               type="radio" 
+                                               name="priorite" 
+                                               value="{{ value }}"
+                                               id="priorite_{{ value }}"
+                                               {% if value == preferences.priorite_defaut %}checked{% endif %}>
+                                        <label class="form-check-label" for="priorite_{{ value }}">
+                                            {{ label }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-euro-sign me-1"></i>
+                                    Budget maximum (€)
+                                </label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       name="budget_maximum"
+                                       placeholder="Ex: 10"
+                                       step="0.5"
+                                       min="0"
+                                       value="{{ preferences.budget_defaut|default:'' }}">
+                                <small class="text-muted">Optionnel</small>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-hourglass-half me-1"></i>
+                                    Durée max (minutes)
+                                </label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       name="duree_maximum"
+                                       placeholder="Ex: 45"
+                                       min="5"
+                                       value="{{ preferences.duree_max_defaut|default:'' }}">
+                                <small class="text-muted">Optionnel</small>
+                            </div>
+                        </div>
+
+                        <!-- Véhicules préférés -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-car me-1"></i>
+                                Types de véhicules souhaités
+                            </label>
+                            <small class="text-muted d-block mb-3">Laissez vide pour considérer toutes les options</small>
+                            
+                            <div class="row">
+                                {% for categorie, vehicules in vehicules_par_categorie.items %}
+                                <div class="col-md-6 mb-3">
+                                    <h6 class="text-muted mb-2">{{ categorie }}</h6>
+                                    {% for vehicule in vehicules %}
+                                    <div class="vehicule-option mb-2">
+                                        <input type="checkbox" 
+                                               name="vehicules_preferes" 
+                                               value="{{ vehicule.id }}"
+                                               id="vehicule_{{ vehicule.id }}"
+                                               class="d-none"
+                                               {% if vehicule in preferences.vehicules_favoris.all %}checked{% endif %}>
+                                        <label for="vehicule_{{ vehicule.id }}" class="w-100">
+                                            <div class="card border">
+                                                <div class="card-body py-2 px-3">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="{{ vehicule.icone }} fa-lg me-3" style="color: {{ vehicule.couleur }};"></i>
+                                                        <div class="flex-grow-1">
+                                                            <div class="fw-semibold">{{ vehicule.nom }}</div>
+                                                            <small class="text-muted">
+                                                                {{ vehicule.vitesse_moyenne|floatformat:0 }} km/h
+                                                                {% if vehicule.cout_par_km > 0 %}
+                                                                    • {{ vehicule.cout_par_km|floatformat:2 }}€/km
+                                                                {% endif %}
+                                                            </small>
+                                                        </div>
+                                                        {% if vehicule.accessible_pmr %}
+                                                            <i class="fas fa-wheelchair text-info ms-2" title="Accessible PMR"></i>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Options avancées -->
+                        <div class="mb-4">
+                            <h6 class="fw-semibold mb-3">
+                                <i class="fas fa-cogs me-1"></i>
+                                Options avancées
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" 
+                                               type="checkbox" 
+                                               name="accessible_pmr"
+                                               id="accessible_pmr"
+                                               {% if preferences.necessite_pmr %}checked{% endif %}>
+                                        <label class="form-check-label" for="accessible_pmr">
+                                            <i class="fas fa-wheelchair me-1"></i>
+                                            Nécessite accessibilité PMR
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" 
+                                               type="checkbox" 
+                                               name="eviter_circulation"
+                                               id="eviter_circulation">
+                                        <label class="form-check-label" for="eviter_circulation">
+                                            <i class="fas fa-road me-1"></i>
+                                            Éviter la circulation dense
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bouton de soumission -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-magic me-2"></i>
+                                Calculer les meilleurs trajets
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panneau latéral -->
+        <div class="col-lg-4">
+            <!-- Trajets récents -->
+            {% if demandes_recentes %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Trajets récents
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    {% for demande in demandes_recentes %}
+                    <div class="p-3 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold small">{{ demande.lieu_depart }}</div>
+                                <div class="text-muted small">
+                                    <i class="fas fa-arrow-down fa-xs me-1"></i>
+                                    {{ demande.lieu_arrivee }}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">{{ demande.date_creation|timesince }}</small>
+                                {% if demande.statut == 'complete' %}
+                                    <div>
+                                        <a href="{% url 'gestion_trajets:resultats_trajet' demande.id %}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            Voir
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{% url 'gestion_trajets:mes_trajets' %}" class="btn btn-outline-secondary btn-sm">
+                        Voir tous mes trajets
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Liens rapides -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>
+                        Accès rapide
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'gestion_trajets:temps_reel_transport' %}" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-broadcast-tower me-2"></i>
+                            Info Transport Temps Réel
+                        </a>
+                        <a href="{% url 'gestion_trajets:preferences_trajet' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-cog me-2"></i>
+                            Mes Préférences
+                        </a>
+                        <a href="{% url 'gestion_trajets:mes_trajets' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-list me-2"></i>
+                            Historique Trajets
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques rapides -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Votre mobilité
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-primary mb-0">{{ demandes_recentes.count }}</h4>
+                                <small class="text-muted">Trajets ce mois</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success mb-0">{{ preferences.priorite_defaut|capfirst }}</h4>
+                            <small class="text-muted">Priorité habituelle</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script pour l'autocomplétion et interactions -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Autocomplétion des lieux
+    setupAutocompleteLieux('lieu_depart', 'suggestions_depart');
+    setupAutocompleteLieux('lieu_arrivee', 'suggestions_arrivee');
+    
+    // Sélection des véhicules
+    setupVehiculeSelection();
+    
+    // Validation du formulaire
+    setupFormValidation();
+});
+
+function setupAutocompleteLieux(inputId, suggestionsId) {
+    const input = document.getElementById(inputId);
+    const suggestions = document.getElementById(suggestionsId);
+    let debounceTimer;
+    
+    input.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const query = this.value.trim();
+            
+            if (query.length < 3) {
+                suggestions.style.display = 'none';
+                return;
+            }
+            
+            // Appel AJAX pour récupérer les suggestions
+            fetch(`{% url 'gestion_trajets:ajax_recherche_lieux' %}?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    suggestions.innerHTML = '';
+                    
+                    if (data.lieux && data.lieux.length > 0) {
+                        data.lieux.forEach(lieu => {
+                            const item = document.createElement('a');
+                            item.className = 'list-group-item list-group-item-action lieu-suggestion';
+                            item.innerHTML = `
+                                <div class="fw-semibold">${lieu.nom}</div>
+                                <small class="text-muted">${lieu.adresse}</small>
+                            `;
+                            
+                            item.addEventListener('click', function() {
+                                input.value = lieu.nom;
+                                document.getElementById(inputId.replace('lieu_', 'lat_')).value = lieu.lat;
+                                document.getElementById(inputId.replace('lieu_', 'lng_')).value = lieu.lng;
+                                suggestions.style.display = 'none';
+                            });
+                            
+                            suggestions.appendChild(item);
+                        });
+                        
+                        suggestions.style.display = 'block';
+                    } else {
+                        suggestions.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la recherche de lieux:', error);
+                    suggestions.style.display = 'none';
+                });
+        }, 300);
+    });
+    
+    // Masquer les suggestions au clic extérieur
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.style.display = 'none';
+        }
+    });
+}
+
+function setupVehiculeSelection() {
+    const checkboxes = document.querySelectorAll('.vehicule-option input[type="checkbox"]');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const card = this.nextElementSibling.querySelector('.card');
+            if (this.checked) {
+                card.style.borderColor = '#007bff';
+                card.style.backgroundColor = '#e3f2fd';
+            } else {
+                card.style.borderColor = '#dee2e6';
+                card.style.backgroundColor = '#fff';
+            }
+        });
+        
+        // Appliquer l'état initial
+        if (checkbox.checked) {
+            const card = checkbox.nextElementSibling.querySelector('.card');
+            card.style.borderColor = '#007bff';
+            card.style.backgroundColor = '#e3f2fd';
+        }
+    });
+}
+
+function setupFormValidation() {
+    const form = document.getElementById('trajetForm');
+    
+    form.addEventListener('submit', function(e) {
+        const lieuDepart = document.getElementById('lieu_depart').value.trim();
+        const lieuArrivee = document.getElementById('lieu_arrivee').value.trim();
+        
+        if (!lieuDepart || !lieuArrivee) {
+            e.preventDefault();
+            alert('Veuillez renseigner les lieux de départ et d\'arrivée.');
+            return;
+        }
+        
+        if (lieuDepart === lieuArrivee) {
+            e.preventDefault();
+            alert('Le lieu de départ et d\'arrivée ne peuvent pas être identiques.');
+            return;
+        }
+        
+        // Afficher un indicateur de chargement
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Calcul en cours...';
+        submitBtn.disabled = true;
+        
+        // Remettre le bouton normal en cas d'erreur de validation côté serveur
+        setTimeout(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }, 10000);
+    });
+}
+</script>
+{% endblock %}
