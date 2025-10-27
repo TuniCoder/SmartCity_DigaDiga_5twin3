@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Liste des Stations{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/smartcity.css' %}">
+<style>
+    #map {
+        height: 500px;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    .station-card {
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Stations Disponibles</h2>
+            <!-- Carte Google Maps -->
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Liste des stations -->
+            <div class="row" id="stations-list">
+                {% for station in stations %}
+                <div class="col-md-6">
+                    <div class="card station-card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ station.nom }}</h5>
+                            <p class="card-text">
+                                <strong>Type:</strong> {{ station.type_station.get_categorie_display }}<br>
+                                <strong>État:</strong> <span class="badge {% if station.est_active %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ station.get_statut_display }}
+                                </span><br>
+                                <strong>Capacité:</strong> {{ station.capacite_actuelle }}/{{ station.capacite_maximale }}<br>
+                                <strong>Accessibilité:</strong> {{ station.get_niveau_accessibilite_display }}
+                            </p>
+                            <button class="btn btn-primary btn-sm show-on-map" 
+                                    data-lat="{{ station.latitude }}" 
+                                    data-lng="{{ station.longitude }}"
+                                    data-name="{{ station.nom }}">
+                                Voir sur la carte
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Filtres -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Filtres</h5>
+                </div>
+                <div class="card-body">
+                    <form id="filter-form">
+                        <div class="mb-3">
+                            <label for="type-station" class="form-label">Type de station</label>
+                            <select class="form-select" id="type-station" name="type">
+                                <option value="">Tous</option>
+                                {% for type in types_stations %}
+                                <option value="{{ type.id }}">{{ type.get_categorie_display }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="status" class="form-label">État</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="">Tous</option>
+                                <option value="active">Active</option>
+                                <option value="maintenance">En maintenance</option>
+                                <option value="fermee">Fermée</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="accessible" name="accessible">
+                                <label class="form-check-label" for="accessible">
+                                    Accessible PMR uniquement
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Appliquer les filtres</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap" async defer></script>
+<script>
+let map;
+let markers = [];
+let stations = {{ stations_json|safe }};
+
+function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 48.8566, lng: 2.3522 }, // Centre par défaut
+        zoom: 12
+    });
+
+    // Ajouter les marqueurs pour chaque station
+    stations.forEach(station => {
+        addMarker(station);
+    });
+}
+
+function addMarker(station) {
+    const marker = new google.maps.Marker({
+        position: { lat: station.latitude, lng: station.longitude },
+        map: map,
+        title: station.nom
+    });
+
+    const infoWindow = new google.maps.InfoWindow({
+        content: `
+            <div>
+                <h5>${station.nom}</h5>
+                <p>
+                    Type: ${station.type}<br>
+                    État: ${station.statut}<br>
+                    Capacité: ${station.capacite_actuelle}/${station.capacite_maximale}
+                </p>
+            </div>
+        `
+    });
+
+    marker.addListener('click', () => {
+        infoWindow.open(map, marker);
+    });
+
+    markers.push(marker);
+}
+
+// Événements pour les boutons "Voir sur la carte"
+document.querySelectorAll('.show-on-map').forEach(button => {
+    button.addEventListener('click', (e) => {
+        const lat = parseFloat(e.target.dataset.lat);
+        const lng = parseFloat(e.target.dataset.lng);
+        const position = { lat, lng };
+        
+        map.setCenter(position);
+        map.setZoom(15);
+    });
+});
+
+// Gestion des filtres
+document.getElementById('filter-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const filters = Object.fromEntries(formData.entries());
+    
+    fetch(`/stations/filter/?${new URLSearchParams(filters)}`)
+        .then(response => response.json())
+        .then(data => {
+            // Mettre à jour la liste des stations et les marqueurs
+            updateStationsDisplay(data.stations);
+        });
+});
+</script>
+{% endblock %}

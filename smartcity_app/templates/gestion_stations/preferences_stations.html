@@ -1,0 +1,556 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Préférences Stations{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<style>
+    .preference-card {
+        transition: all 0.3s ease;
+    }
+    .preference-card:hover {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 0.375rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .section-title {
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .custom-range {
+        background: linear-gradient(to right, #007bff 0%, #6c757d 0%);
+    }
+    .distance-display {
+        background: #e3f2fd;
+        border: 1px solid #bbdefb;
+        border-radius: 0.25rem;
+        padding: 0.5rem;
+        text-align: center;
+        font-weight: bold;
+        color: #1976d2;
+    }
+    .equipment-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.5rem;
+    }
+    .equipment-item {
+        background: white;
+        border: 2px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .equipment-item:hover {
+        border-color: #007bff;
+        background: #f8f9fa;
+    }
+    .equipment-item.selected {
+        border-color: #007bff;
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+    .location-display {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    .map-container {
+        border-radius: 0.375rem;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .success-message {
+        display: none;
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card preference-card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-cogs"></i> Mes Préférences de Stations
+                    </h4>
+                    <p class="mb-0 mt-2">Personnalisez vos préférences pour obtenir des recommandations adaptées</p>
+                </div>
+                <div class="card-body">
+                    <!-- Message de succès -->
+                    <div id="success-message" class="success-message">
+                        <i class="fas fa-check-circle"></i> Vos préférences ont été enregistrées avec succès !
+                    </div>
+
+                    <form method="post" id="preferences-form">
+                        {% csrf_token %}
+                        
+                        <!-- Section Type de Station -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-map-marker-alt"></i> Type de Station Préféré
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <select class="form-select form-select-lg" name="type_station" id="type_station">
+                                        <option value="all" {% if preferences.type_station == 'all' %}selected{% endif %}>
+                                            🚌 Tous les types
+                                        </option>
+                                        <option value="bus" {% if preferences.type_station == 'bus' %}selected{% endif %}>
+                                            🚌 Station de Bus
+                                        </option>
+                                        <option value="metro" {% if preferences.type_station == 'metro' %}selected{% endif %}>
+                                            🚇 Station de Métro
+                                        </option>
+                                        <option value="tram" {% if preferences.type_station == 'tram' %}selected{% endif %}>
+                                            🚊 Station de Tramway
+                                        </option>
+                                        <option value="train" {% if preferences.type_station == 'train' %}selected{% endif %}>
+                                            🚂 Station de Train
+                                        </option>
+                                        <option value="recharge" {% if preferences.type_station == 'recharge' %}selected{% endif %}>
+                                            🔌 Borne de Recharge
+                                        </option>
+                                        <option value="mixte" {% if preferences.type_station == 'mixte' %}selected{% endif %}>
+                                            🚉 Station Mixte
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i> 
+                                        Choisissez le type de station que vous utilisez le plus souvent
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Distance -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-route"></i> Distance Maximale
+                            </h5>
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <label class="form-label" for="distance_max">Distance maximale acceptable (km)</label>
+                                    <input type="range" class="form-range" name="distance_max" id="distance_max"
+                                           min="0.5" max="20" step="0.5" 
+                                           value="{{ preferences.distance_max|default:5.0 }}">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">0.5 km</small>
+                                        <small class="text-muted">20 km</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="distance-display" id="distance-display">
+                                        {{ preferences.distance_max|default:5.0 }} km
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Équipements -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-tools"></i> Équipements Souhaités
+                            </h5>
+                            <div class="equipment-grid">
+                                <div class="equipment-item" data-value="ascenseur">
+                                    <i class="fas fa-elevator fa-2x mb-2"></i>
+                                    <div><strong>Ascenseur</strong></div>
+                                    <small>Accès vertical</small>
+                                    <input type="checkbox" name="equipements" value="ascenseur" class="d-none"
+                                           {% if 'ascenseur' in preferences.equipements %}checked{% endif %}>
+                                </div>
+                                <div class="equipment-item" data-value="escalator">
+                                    <i class="fas fa-stairs fa-2x mb-2"></i>
+                                    <div><strong>Escalator</strong></div>
+                                    <small>Escalier mécanique</small>
+                                    <input type="checkbox" name="equipements" value="escalator" class="d-none"
+                                           {% if 'escalator' in preferences.equipements %}checked{% endif %}>
+                                </div>
+                                <div class="equipment-item" data-value="parking">
+                                    <i class="fas fa-parking fa-2x mb-2"></i>
+                                    <div><strong>Parking</strong></div>
+                                    <small>Place de stationnement</small>
+                                    <input type="checkbox" name="equipements" value="parking" class="d-none"
+                                           {% if 'parking' in preferences.equipements %}checked{% endif %}>
+                                </div>
+                                <div class="equipment-item" data-value="wifi">
+                                    <i class="fas fa-wifi fa-2x mb-2"></i>
+                                    <div><strong>Wi-Fi</strong></div>
+                                    <small>Internet gratuit</small>
+                                    <input type="checkbox" name="equipements" value="wifi" class="d-none"
+                                           {% if 'wifi' in preferences.equipements %}checked{% endif %}>
+                                </div>
+                                <div class="equipment-item" data-value="toilettes">
+                                    <i class="fas fa-restroom fa-2x mb-2"></i>
+                                    <div><strong>Toilettes</strong></div>
+                                    <small>Installations sanitaires</small>
+                                    <input type="checkbox" name="equipements" value="toilettes" class="d-none"
+                                           {% if 'toilettes' in preferences.equipements %}checked{% endif %}>
+                                </div>
+                                <div class="equipment-item" data-value="surveillance">
+                                    <i class="fas fa-video fa-2x mb-2"></i>
+                                    <div><strong>Sécurité</strong></div>
+                                    <small>Vidéosurveillance</small>
+                                    <input type="checkbox" name="equipements" value="surveillance" class="d-none"
+                                           {% if 'surveillance' in preferences.equipements %}checked{% endif %}>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Accessibilité -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-universal-access"></i> Accessibilité
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="accessibilite" 
+                                               id="accessibilite" {% if preferences.accessibilite %}checked{% endif %}>
+                                        <label class="form-check-label" for="accessibilite">
+                                            <strong>Nécessite une accessibilité PMR</strong>
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">
+                                        Stations adaptées aux personnes à mobilité réduite
+                                    </small>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="notification" 
+                                               id="notification" {% if preferences.notification %}checked{% endif %}>
+                                        <label class="form-check-label" for="notification">
+                                            <strong>Notifications</strong>
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">
+                                        Recevoir des alertes sur les stations recommandées
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Position -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-map-marked-alt"></i> Position de Référence
+                            </h5>
+                            
+                            <div class="location-display">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <strong>Position actuelle :</strong>
+                                        <span id="location-text">{{ preferences.latitude|default:36.8065 }}, {{ preferences.longitude|default:10.1815 }}</span>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <button type="button" class="btn btn-outline-primary" id="get-location">
+                                            <i class="fas fa-location-arrow"></i> Utiliser ma position
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="map-container">
+                                <div id="map" style="height: 400px;"></div>
+                            </div>
+                            
+                            <input type="hidden" name="latitude" id="lat" value="{{ preferences.latitude|default:36.8065 }}">
+                            <input type="hidden" name="longitude" id="lng" value="{{ preferences.longitude|default:10.1815 }}">
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="text-center">
+                            <button type="button" class="btn btn-outline-secondary me-2" id="reset-preferences">
+                                <i class="fas fa-undo"></i> Réinitialiser
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-lg px-4">
+                                <i class="fas fa-save"></i> Enregistrer mes préférences
+                            </button>
+                            <a href="{% url 'gestion_stations:recommandations' %}" class="btn btn-success ms-2">
+                                <i class="fas fa-search"></i> Voir les recommandations
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+let map;
+let marker;
+
+function initMap() {
+    // Position initiale (Tunis par défaut ou position sauvegardée)
+    const position = {
+        lat: Number.parseFloat(document.getElementById('lat').value),
+        lng: Number.parseFloat(document.getElementById('lng').value)
+    };
+
+    // Initialiser la carte
+    map = L.map('map').setView([position.lat, position.lng], 13);
+
+    // Ajouter le layer de carte
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Ajouter un marqueur déplaçable
+    marker = L.marker([position.lat, position.lng], {
+        draggable: true
+    }).addTo(map);
+
+    marker.bindPopup('📍 Votre position de référence<br>Glissez pour déplacer').openPopup();
+
+    // Mettre à jour les coordonnées quand le marqueur est déplacé
+    marker.on('dragend', function() {
+        const pos = marker.getLatLng();
+        // Utiliser des points comme séparateurs décimaux
+        document.getElementById('lat').value = pos.lat.toString().replace(',', '.');
+        document.getElementById('lng').value = pos.lng.toString().replace(',', '.');
+        updateLocationDisplay(pos.lat, pos.lng);
+    });
+
+    // Permettre de cliquer sur la carte pour déplacer le marqueur
+    map.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        // Utiliser des points comme séparateurs décimaux
+        document.getElementById('lat').value = e.latlng.lat.toString().replace(',', '.');
+        document.getElementById('lng').value = e.latlng.lng.toString().replace(',', '.');
+        updateLocationDisplay(e.latlng.lat, e.latlng.lng);
+    });
+}
+
+function updateLocationDisplay(lat, lng) {
+    document.getElementById('location-text').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+}
+
+// Géolocalisation
+function getMyLocation() {
+    if (navigator.geolocation) {
+        // Afficher un indicateur de chargement
+        const button = document.getElementById('get-location');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Localisation...';
+        button.disabled = true;
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                // Mettre à jour la carte et le marqueur
+                map.setView([lat, lng], 15);
+                marker.setLatLng([lat, lng]);
+                
+                // Mettre à jour les coordonnées avec des points comme séparateurs
+                document.getElementById('lat').value = lat.toString().replace(',', '.');
+                document.getElementById('lng').value = lng.toString().replace(',', '.');
+                updateLocationDisplay(lat, lng);
+                
+                // Remettre le bouton à son état normal
+                button.innerHTML = originalText;
+                button.disabled = false;
+                
+                // Afficher une confirmation
+                marker.bindPopup('📍 Position actuelle détectée !').openPopup();
+            },
+            function(error) {
+                console.error('Erreur de géolocalisation:', error);
+                
+                // Remettre le bouton à son état normal
+                button.innerHTML = originalText;
+                button.disabled = false;
+                
+                let errorMessage = 'Impossible d\'obtenir votre position.';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = 'Permission de géolocalisation refusée.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = 'Position non disponible.';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = 'Délai de géolocalisation dépassé.';
+                        break;
+                }
+                alert(errorMessage);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000
+            }
+        );
+    } else {
+        alert('La géolocalisation n\'est pas supportée par votre navigateur.');
+    }
+}
+
+// Gestion des équipements
+function initEquipments() {
+    for (const item of document.querySelectorAll('.equipment-item')) {
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        
+        // Initialiser l'état visuel
+        if (checkbox.checked) {
+            item.classList.add('selected');
+        }
+        
+        // Événement de clic
+        item.addEventListener('click', function() {
+            checkbox.checked = !checkbox.checked;
+            this.classList.toggle('selected', checkbox.checked);
+        });
+    }
+}
+
+// Gestion du slider de distance
+function initDistanceSlider() {
+    const slider = document.getElementById('distance_max');
+    const display = document.getElementById('distance-display');
+    
+    function updateDistance() {
+        display.textContent = slider.value + ' km';
+        
+        // Mettre à jour la couleur du slider
+        const percent = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+        slider.style.background = `linear-gradient(to right, #007bff ${percent}%, #dee2e6 ${percent}%)`;
+    }
+    
+    slider.addEventListener('input', updateDistance);
+    updateDistance(); // Initialiser
+}
+
+// Gestionnaire de soumission du formulaire
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    // Normaliser les coordonnées avant l'envoi
+    const latInput = document.getElementById('lat');
+    const lngInput = document.getElementById('lng');
+    const distanceInput = document.getElementById('distance');
+    
+    if (latInput) latInput.value = latInput.value.replace(',', '.');
+    if (lngInput) lngInput.value = lngInput.value.replace(',', '.');
+    if (distanceInput) distanceInput.value = distanceInput.value.replace(',', '.');
+    
+    const formData = new FormData(e.target);
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    
+    // Debug: Afficher les données du formulaire
+    console.log('Données du formulaire:');
+    for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+    }
+    
+    // Afficher l'état de chargement
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
+    submitButton.disabled = true;
+    
+    try {
+        const response = await fetch('{% url "gestion_stations:preferences" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        console.log('Réponse du serveur:', data);
+        
+        if (response.ok && data.success) {
+            // Afficher le message de succès
+            const successMessage = document.getElementById('success-message');
+            successMessage.style.display = 'block';
+            
+            // Faire défiler vers le haut
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Masquer le message après 5 secondes
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 5000);
+        } else {
+            // Afficher l'erreur spécifique du serveur
+            const errorMessage = data.message || 'Erreur lors de l\'enregistrement';
+            console.error('Erreur serveur:', errorMessage);
+            alert(`Erreur: ${errorMessage}`);
+        }
+    } catch (error) {
+        console.error('Erreur réseau:', error);
+        alert('Une erreur est survenue lors de l\'enregistrement des préférences. Veuillez réessayer.');
+    } finally {
+        // Remettre le bouton à son état normal
+        submitButton.innerHTML = originalText;
+        submitButton.disabled = false;
+    }
+}
+
+// Réinitialiser les préférences
+function resetPreferences() {
+    if (confirm('Êtes-vous sûr de vouloir réinitialiser toutes vos préférences ?')) {
+        // Réinitialiser le formulaire
+        document.getElementById('preferences-form').reset();
+        
+        // Réinitialiser les équipements
+        for (const item of document.querySelectorAll('.equipment-item')) {
+            item.classList.remove('selected');
+            item.querySelector('input[type="checkbox"]').checked = false;
+        }
+        
+        // Réinitialiser la position
+        const defaultLat = 36.8065;
+        const defaultLng = 10.1815;
+        document.getElementById('lat').value = defaultLat;
+        document.getElementById('lng').value = defaultLng;
+        map.setView([defaultLat, defaultLng], 13);
+        marker.setLatLng([defaultLat, defaultLng]);
+        updateLocationDisplay(defaultLat, defaultLng);
+        
+        // Réinitialiser le slider
+        initDistanceSlider();
+    }
+}
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    initEquipments();
+    initDistanceSlider();
+    
+    // Événements
+    document.getElementById('get-location').addEventListener('click', getMyLocation);
+    document.getElementById('preferences-form').addEventListener('submit', handleFormSubmit);
+    document.getElementById('reset-preferences').addEventListener('click', resetPreferences);
+});
+</script>
+{% endblock %}

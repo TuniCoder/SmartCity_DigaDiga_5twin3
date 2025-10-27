@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ station.nom }} - Détails de la Station{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'gestion_stations:index_stations' %}">Stations</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'gestion_stations:liste' %}">Liste des Stations</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ station.nom }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Informations principales -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ station.nom }}</h5>
+                    <div>
+                        <a href="{% url 'gestion_stations:modifier' station.id %}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-pencil"></i> Modifier
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Type:</strong> <span class="badge bg-primary">{{ station.type }}</span></p>
+                            <p><strong>Adresse:</strong> {{ station.adresse }}</p>
+                            <p><strong>Capacité:</strong> {{ station.capacite }} personnes</p>
+                            <p><strong>Heures d'ouverture:</strong> {{ station.heures_ouverture }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Coordonnées:</strong></p>
+                            <p>Latitude: {{ station.latitude }}<br>Longitude: {{ station.longitude }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carte -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Localisation</h5>
+                </div>
+                <div class="card-body">
+                    <div id="map" style="height: 400px;"></div>
+                </div>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Statistiques</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center mb-3">
+                                <h6>Affluence moyenne</h6>
+                                <h3>{{ statistiques.affluence_moyenne }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center mb-3">
+                                <h6>Taux d'occupation</h6>
+                                <h3>{{ statistiques.taux_occupation }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center mb-3">
+                                <h6>Passages quotidiens</h6>
+                                <h3>{{ statistiques.nombre_passages }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- État des équipements -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Équipements</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for equipement in equipements %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ equipement.nom }}
+                            {% if equipement.statut == 'Opérationnel' %}
+                            <span class="badge bg-success">Opérationnel</span>
+                            {% elif equipement.statut == 'En maintenance' %}
+                            <span class="badge bg-warning">En maintenance</span>
+                            {% else %}
+                            <span class="badge bg-danger">Hors service</span>
+                            {% endif %}
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center">
+                            Aucun équipement enregistré
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'gestion_stations:equipements' %}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="bi bi-tools"></i> Gérer les équipements
+                    </a>
+                </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Actions rapides</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="bi bi-camera-video"></i> Voir les caméras
+                        </a>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="bi bi-graph-up"></i> Rapport détaillé
+                        </a>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="bi bi-people"></i> Personnel affecté
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}"></script>
+<script>
+function initMap() {
+    const position = {
+        lat: Number.parseFloat('{{ station.latitude }}'),
+        lng: Number.parseFloat('{{ station.longitude }}')
+    };
+
+    const map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 15,
+        center: position
+    });
+
+    const marker = new google.maps.Marker({
+        position: position,
+        map: map,
+        title: '{{ station.nom }}',
+        icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: '#4285F4',
+            fillOpacity: 1,
+            strokeWeight: 2,
+            strokeColor: '#FFFFFF',
+            scale: 8
+        }
+    });
+
+    const infowindow = new google.maps.InfoWindow({
+        content: `
+            <div>
+                <h6>{{ station.nom }}</h6>
+                <p>Type: {{ station.type }}<br>
+                Adresse: {{ station.adresse }}</p>
+            </div>
+        `
+    });
+
+    marker.addListener('click', () => {
+        infowindow.open(map, marker);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initMap);
+</script>
+{% endblock %}
+{% endblock %}

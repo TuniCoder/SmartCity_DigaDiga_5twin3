@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Ajouter une Station{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Ajouter une Nouvelle Station</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" id="station-form">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <!-- Informations de base -->
+                        <div class="mb-3">
+                            <label for="nom" class="form-label">Nom de la Station</label>
+                            <input type="text" class="form-control" id="nom" name="nom" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="type" class="form-label">Type de Station</label>
+                            <select class="form-select" id="type" name="type" required>
+                                <option value="">Sélectionner un type...</option>
+                                <option value="bus">Station de Bus</option>
+                                <option value="metro">Station de Métro</option>
+                                <option value="recharge">Station de Recharge</option>
+                                <option value="mixte">Station Mixte</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="capacite" class="form-label">Capacité</label>
+                            <input type="number" class="form-control" id="capacite" name="capacite" min="1" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="heures_ouverture" class="form-label">Heures d'Ouverture</label>
+                            <input type="text" class="form-control" id="heures_ouverture" name="heures_ouverture" 
+                                   placeholder="ex: 24h/24 ou 6h-22h" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <!-- Localisation -->
+                        <div class="mb-3">
+                            <label for="adresse" class="form-label">Adresse</label>
+                            <input type="text" class="form-control" id="adresse" name="adresse" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="latitude" class="form-label">Latitude</label>
+                            <input type="number" class="form-control" id="latitude" name="latitude" 
+                                   step="0.000001" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="longitude" class="form-label">Longitude</label>
+                            <input type="number" class="form-control" id="longitude" name="longitude" 
+                                   step="0.000001" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-secondary" id="get-location">
+                                <i class="fas fa-location-arrow"></i> Utiliser ma position
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carte pour sélectionner l'emplacement -->
+                <div class="mb-3">
+                    <div id="map" style="height: 300px;"></div>
+                </div>
+
+                <div class="text-end">
+                    <a href="{% url 'liste_stations' %}" class="btn btn-secondary">Annuler</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Ajouter la Station
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+<script>
+let map;
+let marker;
+
+function initMap() {
+    // Centrer sur Tunis par défaut
+    const defaultPosition = {lat: 36.8065, lng: 10.1815};
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: defaultPosition,
+        zoom: 12
+    });
+
+    // Ajouter un marker quand on clique sur la carte
+    map.addListener('click', (e) => {
+        placeMarker(e.latLng);
+    });
+}
+
+function placeMarker(latLng) {
+    if (marker) {
+        marker.setMap(null);
+    }
+    
+    marker = new google.maps.Marker({
+        position: latLng,
+        map: map
+    });
+
+    // Mettre à jour les champs de latitude et longitude
+    document.getElementById('latitude').value = latLng.lat();
+    document.getElementById('longitude').value = latLng.lng();
+
+    // Géocodage inverse pour obtenir l'adresse
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ location: latLng }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+            document.getElementById('adresse').value = results[0].formatted_address;
+        }
+    });
+}
+
+document.getElementById('get-location').addEventListener('click', () => {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+            const pos = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            };
+            map.setCenter(pos);
+            placeMarker(new google.maps.LatLng(pos.lat, pos.lng));
+        });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', initMap);
+</script>
+{% endblock %}

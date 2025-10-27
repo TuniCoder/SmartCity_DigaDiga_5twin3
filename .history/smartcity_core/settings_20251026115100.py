@@ -56,7 +56,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'smartcity_app.context_processors.google_maps_api_key',
             ],
         },
     },
@@ -134,15 +133,7 @@ ONTOLOGY_PATH = BASE_DIR / 'ontology' / 'mobility_ontology_clean.rdf'
 ONTOLOGY_NAMESPACE = 'http://example.org/mobility-ontology/2025/09#'
 
 # Google Maps API Key
-import os
-from pathlib import Path
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-env_path = BASE_DIR / '.env'
-load_dotenv(env_path)
-
-GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
+GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY'  # À remplacer par votre clé API Google Maps
 
 # AI API Settings (pour intégration future avec des services IA)
 AI_API_ENDPOINT = 'http://localhost:8080/api/ai'  # À configurer selon le service IA choisi

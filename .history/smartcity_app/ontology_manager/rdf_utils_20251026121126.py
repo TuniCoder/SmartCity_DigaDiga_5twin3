@@ -224,16 +224,15 @@ class RDFManager:
     def get_stations_data(self) -> List[Dict]:
         """Récupère les données des stations"""
         query = """
-        SELECT ?station ?nomStation ?latitude ?longitude ?adresse ?capacité ?typeStation ?heuresOuverture
+        SELECT ?station ?nomStation ?latitude ?longitude ?adresse ?capacite ?typeStation
         WHERE {
             ?station rdf:type mobility:Station .
             OPTIONAL { ?station mobility:nomStation ?nomStation }
             OPTIONAL { ?station mobility:latitude ?latitude }
             OPTIONAL { ?station mobility:longitude ?longitude }
             OPTIONAL { ?station mobility:adresse ?adresse }
-            OPTIONAL { ?station mobility:capacité ?capacité }
+            OPTIONAL { ?station mobility:capacité ?capacite }
             OPTIONAL { ?station mobility:typeStation ?typeStation }
-            OPTIONAL { ?station mobility:heuresOuverture ?heuresOuverture }
         }
         ORDER BY ?nomStation
         """
@@ -1041,252 +1040,13 @@ class RDFManager:
             logger.error(f"Erreur lors de la suppression de l'utilisateur {user_id} du RDF: {e}")
             return False
 
-    # ==========================================
-    # MÉTHODES AVANCÉES POUR TRAJETS (NOUVEAUTÉ)
-    # ==========================================
-    
-    def search_trajets_similaires(self, lieu_depart: str, lieu_arrivee: str, priorite: str = 'rapidite', utilisateur_id: int = None) -> List[Dict]:
-        """
-        Recherche des trajets similaires dans l'ontologie RDF
-        
-        Args:
-            lieu_depart: Lieu de départ recherché
-            lieu_arrivee: Lieu d'arrivée recherché  
-            priorite: Priorité de recherche ('rapidite', 'economie', 'ecologie')
-            utilisateur_id: ID de l'utilisateur (optionnel)
-        
-        Returns:
-            List[Dict]: Liste des trajets trouvés avec score de pertinence
-        """
-        try:
-            # Construire la requête SPARQL pour rechercher des trajets similaires
-            query = f"""
-            PREFIX mobility: <{self.mobility_ns}>
-            PREFIX rdf: <{self.rdf_ns}>
-            PREFIX rdfs: <{self.rdfs_ns}>
-            
-            SELECT ?trajet ?pointDepart ?pointArrivee ?duree ?distance ?cout ?mode ?scoreIA
-                   ?empreinteCarbone ?rang ?utilisateurId
-            WHERE {{
-                ?trajet rdf:type mobility:Trajet .
-                ?trajet mobility:pointDépart ?pointDepart .
-                ?trajet mobility:pointArrivée ?pointArrivee .
-                
-                OPTIONAL {{ ?trajet mobility:durée ?duree }}
-                OPTIONAL {{ ?trajet mobility:distance ?distance }}
-                OPTIONAL {{ ?trajet mobility:coût ?cout }}
-                OPTIONAL {{ ?trajet mobility:mode ?mode }}
-                OPTIONAL {{ ?trajet mobility:scoreIA ?scoreIA }}
-                OPTIONAL {{ ?trajet mobility:empreinteCarbone ?empreinteCarbone }}
-                OPTIONAL {{ ?trajet mobility:rang ?rang }}
-                OPTIONAL {{ ?trajet mobility:utilisateurId ?utilisateurId }}
-                
-                # Filtrage par similarité de lieux (recherche approximative)
-                FILTER(CONTAINS(LCASE(STR(?pointDepart)), LCASE("{lieu_depart.lower()}")) ||
-                       CONTAINS(LCASE("{lieu_depart.lower()}"), LCASE(STR(?pointDepart))))
-                       
-                FILTER(CONTAINS(LCASE(STR(?pointArrivee)), LCASE("{lieu_arrivee.lower()}")) ||
-                       CONTAINS(LCASE("{lieu_arrivee.lower()}"), LCASE(STR(?pointArrivee))))
-            }}
-            ORDER BY DESC(?scoreIA) ?duree
-            LIMIT 10
-            """
-            
-            results = self.execute_sparql_query(query)
-            trajets_similaires = []
-            
-            for result in results:
-                # Calculer un score de pertinence basé sur la priorité
-                score_pertinence = 0.5  # Score de base
-                
-                try:
-                    duree = float(result.get('duree', 0))
-                    cout = float(result.get('cout', 0))
-                    empreinte = float(result.get('empreinteCarbone', 0))
-                    score_ia = float(result.get('scoreIA', 5.0))
-                    
-                    # Ajuster le score selon la priorité
-                    if priorite == 'rapidite' and duree > 0:
-                        score_pertinence += max(0, (60 - duree) / 60) * 0.4
-                    elif priorite == 'economie' and cout > 0:
-                        score_pertinence += max(0, (20 - cout) / 20) * 0.4
-                    elif priorite == 'ecologie' and empreinte > 0:
-                        score_pertinence += max(0, (500 - empreinte) / 500) * 0.4
-                    
-                    # Bonus pour score IA élevé
-                    score_pertinence += (score_ia / 10) * 0.1
-                    
-                    # Bonus si même utilisateur
-                    if utilisateur_id and result.get('utilisateurId') == str(utilisateur_id):
-                        score_pertinence += 0.2
-                        
-                except (ValueError, TypeError):
-                    pass
-                
-                trajet_data = {
-                    'uri': str(result['trajet']),
-                    'pointDépart': str(result.get('pointDepart', '')),
-                    'pointArrivée': str(result.get('pointArrivee', '')),
-                    'durée': float(result.get('duree', 0)),
-                    'distance': float(result.get('distance', 0)),
-                    'coût': float(result.get('cout', 0)),
-                    'mode': str(result.get('mode', '')),
-                    'scoreIA': float(result.get('scoreIA', 5.0)),
-                    'empreinteCarbone': float(result.get('empreinteCarbone', 0)),
-                    'rang': int(result.get('rang', 0)),
-                    'score_pertinence': min(1.0, score_pertinence)  # Limiter à 1.0
-                }
-                
-                trajets_similaires.append(trajet_data)
-            
-            # Trier par score de pertinence
-            trajets_similaires.sort(key=lambda x: x['score_pertinence'], reverse=True)
-            
-            logger.info(f"Trouvé {len(trajets_similaires)} trajets similaires pour {lieu_depart} → {lieu_arrivee}")
-            return trajets_similaires
-            
-        except Exception as e:
-            logger.error(f"Erreur lors de la recherche de trajets similaires: {e}")
-            return []
-
-    def update_trajet_itineraire(self, trajet_id: str, itineraire_data: Dict) -> Tuple[bool, str]:
-        """
-        Met à jour un trajet avec les détails de l'itinéraire calculé
-        
-        Args:
-            trajet_id: ID du trajet à mettre à jour
-            itineraire_data: Données de l'itinéraire (coordonnées, instructions, etc.)
-        
-        Returns:
-            Tuple (success: bool, message: str)
-        """
-        try:
-            from rdflib import XSD
-            
-            # Construire l'URI du trajet
-            if trajet_id.startswith('Trajet_'):
-                trajet_uri = self.mobility_ns[trajet_id]
-            else:
-                trajet_uri = self.mobility_ns[f"Trajet_{trajet_id}"]
-            
-            # Vérifier que le trajet existe
-            if (trajet_uri, self.rdf_ns.type, self.mobility_ns.Trajet) not in self.graph:
-                return False, f"Le trajet {trajet_id} n'existe pas"
-            
-            # Supprimer les anciennes données d'itinéraire s'il y en a
-            proprietes_itineraire = [
-                self.mobility_ns.routeCoordinates,
-                self.mobility_ns.distanceCalculee,
-                self.mobility_ns.dureeCalculee,
-                self.mobility_ns.instructionsJson,
-                self.mobility_ns.sourceRouting,
-                self.mobility_ns.dateCalcul
-            ]
-            
-            for prop in proprietes_itineraire:
-                self.graph.remove((trajet_uri, prop, None))
-            
-            # Ajouter les nouvelles données
-            property_mappings = {
-                'route_coordinates': (self.mobility_ns.routeCoordinates, XSD.string),
-                'distance_calculee': (self.mobility_ns.distanceCalculee, XSD.float),
-                'duree_calculee': (self.mobility_ns.dureeCalculee, XSD.float),
-                'instructions_json': (self.mobility_ns.instructionsJson, XSD.string),
-                'source_routing': (self.mobility_ns.sourceRouting, XSD.string),
-                'date_calcul': (self.mobility_ns.dateCalcul, XSD.dateTime),
-            }
-            
-            for key, (predicate, datatype) in property_mappings.items():
-                if key in itineraire_data and itineraire_data[key] is not None:
-                    value = itineraire_data[key]
-                    
-                    # Conversion de type si nécessaire
-                    if datatype == XSD.float:
-                        value = float(value)
-                    elif datatype == XSD.string:
-                        value = str(value)
-                    
-                    self.graph.add((trajet_uri, predicate, Literal(value, datatype=datatype)))
-            
-            # Sauvegarder
-            if self.save_ontology():
-                logger.info(f"✅ Itinéraire mis à jour pour trajet {trajet_id}")
-                return True, "Itinéraire mis à jour avec succès"
-            else:
-                return False, "Erreur lors de la sauvegarde"
-                
-        except Exception as e:
-            logger.error(f"❌ Erreur lors de la mise à jour de l'itinéraire: {e}")
-            return False, str(e)
-
-    def get_trajets_by_user(self, user_id: int) -> List[Dict]:
-        """
-        Récupère tous les trajets d'un utilisateur depuis RDF
-        
-        Args:
-            user_id: ID de l'utilisateur
-        
-        Returns:
-            List[Dict]: Liste des trajets de l'utilisateur
-        """
-        try:
-            query = f"""
-            PREFIX mobility: <{self.mobility_ns}>
-            PREFIX rdf: <{self.rdf_ns}>
-            
-            SELECT ?trajet ?pointDepart ?pointArrivee ?duree ?distance ?cout ?mode
-                   ?empreinteCarbone ?scoreIA ?rang ?dateCalcul
-            WHERE {{
-                ?trajet rdf:type mobility:Trajet .
-                ?trajet mobility:utilisateurId "{user_id}" .
-                
-                OPTIONAL {{ ?trajet mobility:pointDépart ?pointDepart }}
-                OPTIONAL {{ ?trajet mobility:pointArrivée ?pointArrivee }}
-                OPTIONAL {{ ?trajet mobility:durée ?duree }}
-                OPTIONAL {{ ?trajet mobility:distance ?distance }}
-                OPTIONAL {{ ?trajet mobility:coût ?cout }}
-                OPTIONAL {{ ?trajet mobility:mode ?mode }}
-                OPTIONAL {{ ?trajet mobility:empreinteCarbone ?empreinteCarbone }}
-                OPTIONAL {{ ?trajet mobility:scoreIA ?scoreIA }}
-                OPTIONAL {{ ?trajet mobility:rang ?rang }}
-                OPTIONAL {{ ?trajet mobility:dateCalcul ?dateCalcul }}
-            }}
-            ORDER BY DESC(?dateCalcul) ?rang
-            """
-            
-            results = self.execute_sparql_query(query)
-            trajets_utilisateur = []
-            
-            for result in results:
-                trajet_data = {
-                    'uri': str(result['trajet']),
-                    'pointDépart': str(result.get('pointDepart', '')),
-                    'pointArrivée': str(result.get('pointArrivee', '')),
-                    'durée': float(result.get('duree', 0)),
-                    'distance': float(result.get('distance', 0)),
-                    'coût': float(result.get('cout', 0)),
-                    'mode': str(result.get('mode', '')),
-                    'empreinteCarbone': float(result.get('empreinteCarbone', 0)),
-                    'scoreIA': float(result.get('scoreIA', 0)),
-                    'rang': int(result.get('rang', 0)),
-                    'dateCalcul': str(result.get('dateCalcul', ''))
-                }
-                trajets_utilisateur.append(trajet_data)
-            
-            logger.info(f"Récupéré {len(trajets_utilisateur)} trajets pour l'utilisateur {user_id}")
-            return trajets_utilisateur
-            
-        except Exception as e:
-            logger.error(f"Erreur lors de la récupération des trajets utilisateur {user_id}: {e}")
-            return []
-
 
     def get_stations(self) -> List[Dict]:
         """
         Récupère la liste de toutes les stations disponibles dans l'ontologie
         """
         query = """
-        SELECT ?station ?nom ?type ?latitude ?longitude ?adresse ?capacité ?status
+        SELECT ?station ?nom ?type ?latitude ?longitude ?adresse ?capacite ?status
         WHERE {
             ?station rdf:type mobility:Station .
             OPTIONAL { ?station mobility:nomStation ?nom }
@@ -1294,7 +1054,7 @@ class RDFManager:
             OPTIONAL { ?station mobility:latitude ?latitude }
             OPTIONAL { ?station mobility:longitude ?longitude }
             OPTIONAL { ?station mobility:adresse ?adresse }
-            OPTIONAL { ?station mobility:capacité ?capacité }
+            OPTIONAL { ?station mobility:capacité ?capacite }
             OPTIONAL { ?station mobility:statut ?status }
         }
         ORDER BY ?nom
@@ -1312,7 +1072,7 @@ class RDFManager:
                 - latitude: Latitude
                 - longitude: Longitude
                 - adresse: Adresse complète
-                - capacité: Capacité maximale
+                - capacite: Capacité maximale
                 - heures_ouverture: Heures d'ouverture
         """
         try:
@@ -1338,7 +1098,7 @@ class RDFManager:
                 'latitude': (self.mobility_ns.latitude, 'float'),
                 'longitude': (self.mobility_ns.longitude, 'float'),
                 'adresse': (self.mobility_ns.adresse, 'string'),
-                'capacité': (self.mobility_ns.capacité, 'int'),
+                'capacite': (self.mobility_ns.capacité, 'int'),
                 'heures_ouverture': (self.mobility_ns.heuresOuverture, 'string')
             }
             
@@ -1378,7 +1138,7 @@ class RDFManager:
             accessibility: Si True, ne retourne que les stations accessibles
         """
         query = """
-        SELECT ?station ?nom ?type ?latitude ?longitude ?adresse ?capacité
+        SELECT ?station ?nom ?type ?latitude ?longitude ?adresse ?capacite
         WHERE {
             ?station rdf:type mobility:Station .
             OPTIONAL { ?station mobility:nomStation ?nom }
@@ -1386,7 +1146,7 @@ class RDFManager:
             OPTIONAL { ?station mobility:latitude ?latitude }
             OPTIONAL { ?station mobility:longitude ?longitude }
             OPTIONAL { ?station mobility:adresse ?adresse }
-            OPTIONAL { ?station mobility:capacité ?capacité }
+            OPTIONAL { ?station mobility:capacité ?capacite }
         """
         
         if station_type != "all":
@@ -1437,11 +1197,9 @@ class RDFManager:
         try:
             user_uri = self.mobility_ns[f"Utilisateur{user_id}"]
             
-            # Vérifier si l'utilisateur existe, sinon le créer
+            # Vérifier si l'utilisateur existe
             if (user_uri, self.rdf_ns.type, self.mobility_ns.Utilisateur) not in self.graph:
-                logger.info(f"Création de l'utilisateur {user_id} dans le RDF")
-                self.graph.add((user_uri, self.rdf_ns.type, self.mobility_ns.Utilisateur))
-                self.graph.add((user_uri, self.mobility_ns.idUtilisateur, Literal(user_id)))
+                return False
             
             # Supprimer les anciennes préférences
             self.graph.remove((user_uri, self.mobility_ns.preferencesStation, None))
@@ -1452,7 +1210,6 @@ class RDFManager:
             self.graph.add((user_uri, self.mobility_ns.preferencesStation, 
                            Literal(prefs_json, datatype="http://www.w3.org/2001/XMLSchema#string")))
             
-            logger.info(f"Préférences sauvegardées pour l'utilisateur {user_id}: {preferences}")
             return self.save_ontology()
                 
         except Exception as e:
@@ -1473,110 +1230,14 @@ class RDFManager:
             
             # Retourner des préférences par défaut si non trouvées
             return {
-                'type_station': 'all',
-                'distance_max': 5.0,
-                'accessibilite': False,
-                'equipements': [],
-                'notification': False,
-                'latitude': 36.8065,
-                'longitude': 10.1815
+                'station_type': 'all',
+                'max_distance': 5.0,
+                'accessibility': False
             }
                 
         except Exception as e:
             logger.error(f"Erreur lors de la récupération des préférences: {e}")
             return {}
-
-    def get_station_by_id(self, station_id: str) -> Optional[Dict]:
-        """
-        Récupère une station spécifique par son ID
-        
-        Args:
-            station_id: Identifiant de la station
-        
-        Returns:
-            Dictionnaire avec les données de la station ou None
-        """
-        try:
-            station_uri = self.mobility_ns[station_id]
-            
-            # Vérifier que la station existe
-            if (station_uri, self.rdf_ns.type, self.mobility_ns.Station) not in self.graph:
-                return None
-            
-            station_data = {'id': station_id, 'uri': str(station_uri)}
-            
-            # Récupérer toutes les propriétés
-            for s, p, o in self.graph.triples((station_uri, None, None)):
-                predicate_name = str(p).split('#')[-1]
-                station_data[predicate_name] = str(o)
-            
-            return station_data
-            
-        except Exception as e:
-            logger.error(f"Erreur lors de la récupération de la station: {e}")
-            return None
-
-    def update_station(self, station_id: str, station_data: Dict) -> Tuple[bool, str]:
-        """
-        Met à jour une station existante dans l'ontologie
-        
-        Args:
-            station_id: Identifiant de la station à modifier
-            station_data: Nouvelles données de la station
-        
-        Returns:
-            Tuple (success: bool, message: str)
-        """
-        try:
-            from rdflib import XSD
-            
-            station_uri = self.mobility_ns[station_id]
-            
-            # Vérifier que la station existe
-            if (station_uri, self.rdf_ns.type, self.mobility_ns.Station) not in self.graph:
-                return False, f"La station {station_id} n'existe pas"
-            
-            # Supprimer les anciennes valeurs et ajouter les nouvelles
-            property_mappings = {
-                'nom': (self.mobility_ns.nomStation, XSD.string),
-                'type': (self.mobility_ns.typeStation, XSD.string),
-                'latitude': (self.mobility_ns.latitude, XSD.float),
-                'longitude': (self.mobility_ns.longitude, XSD.float),
-                'adresse': (self.mobility_ns.adresse, XSD.string),
-                'capacité': (self.mobility_ns.capacité, XSD.integer),
-                'heures_ouverture': (self.mobility_ns.heuresOuverture, XSD.string),
-                'statut': (self.mobility_ns.statut, XSD.string),
-                'accessibilite': (self.mobility_ns.accessibilité, XSD.boolean)
-            }
-            
-            for key, (predicate, datatype) in property_mappings.items():
-                if key in station_data:
-                    # Supprimer l'ancienne valeur
-                    self.graph.remove((station_uri, predicate, None))
-                    
-                    # Ajouter la nouvelle valeur
-                    value = station_data[key]
-                    if datatype == XSD.float:
-                        value = float(value)
-                    elif datatype == XSD.integer:
-                        value = int(value)
-                    elif datatype == XSD.boolean:
-                        value = bool(value)
-                    else:
-                        value = str(value)
-                    
-                    self.graph.add((station_uri, predicate, Literal(value, datatype=datatype)))
-            
-            # Sauvegarder
-            if self.save_ontology():
-                logger.info(f"Station mise à jour: {station_id}")
-                return True, "Station mise à jour avec succès"
-            else:
-                return False, "Erreur lors de la sauvegarde"
-                
-        except Exception as e:
-            logger.error(f"Erreur lors de la mise à jour de la station: {e}")
-            return False, str(e)
 
 # Instance globale du gestionnaire RDF
 rdf_manager = RDFManager()

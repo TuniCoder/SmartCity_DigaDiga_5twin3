@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Préférences des Stations{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Mes Préférences de Stations</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="type_prefere" class="form-label">Type de Station Préféré</label>
+                            <select class="form-select" id="type_prefere" name="type_prefere">
+                                {% for type in types_stations %}
+                                <option value="{{ type.id }}" {% if preferences.type_prefere == type.id %}selected{% endif %}>
+                                    {{ type.get_categorie_display }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="distance_max" class="form-label">Distance Maximale (km)</label>
+                            <input type="number" class="form-control" id="distance_max" name="distance_max"
+                                   value="{{ preferences.distance_max|default:5 }}" min="0" max="50" step="0.5">
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="accessibilite" name="accessibilite"
+                                       {% if preferences.accessibilite %}checked{% endif %}>
+                                <label class="form-check-label" for="accessibilite">
+                                    Stations accessibles PMR uniquement
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="station_couverte" name="station_couverte"
+                                       {% if preferences.station_couverte %}checked{% endif %}>
+                                <label class="form-check-label" for="station_couverte">
+                                    Préférer les stations couvertes
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="horaires" class="form-label">Horaires Préférés</label>
+                            <select class="form-select" id="horaires" name="horaires">
+                                <option value="24/7" {% if preferences.horaires == '24/7' %}selected{% endif %}>24h/24 7j/7</option>
+                                <option value="jour" {% if preferences.horaires == 'jour' %}selected{% endif %}>Heures de journée uniquement</option>
+                                <option value="nuit" {% if preferences.horaires == 'nuit' %}selected{% endif %}>Service de nuit inclus</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Enregistrer mes préférences</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
