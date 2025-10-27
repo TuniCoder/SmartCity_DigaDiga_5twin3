@@ -5,9 +5,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Clé API Stripe pour les tests
-
+STRIPE_API_KEY = "pk_test_51SMrvCGpPwumbKmPnmOGtrn26Tp2LtLZ0J3445aVOLAjzSMV50vPIjNmSXL5mKYAGINLwBc89ZX33626QoxLfC4W00VBfI3kU0"
+STRIPE_SECRET_KEY = "sk_test_51SMrvCGpPwumbKmPa59oU0f5b8nEr3YRgE27uviLuX22b7FQa1UeTCKR19dLOi4eHaTulbKmFMGHcmiwkmhSqYbD00VURa9Y5o"
 
 # Configuration de l'API Stripe
+stripe.api_key = STRIPE_SECRET_KEY
 
 class StripeService:
     """

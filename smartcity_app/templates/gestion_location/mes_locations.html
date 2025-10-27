@@ -416,10 +416,10 @@
                         <ul class="pagination pagination-custom justify-content-center">
                             {% if page_obj.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?page=1{{ filtres_query }}">&laquo; Première</a>
+                                <a class="page-link" href="?page=1">&laquo; Première</a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ filtres_query }}">Précédente</a>
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédente</a>
                             </li>
                             {% endif %}
 
@@ -431,10 +431,10 @@
 
                             {% if page_obj.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ filtres_query }}">Suivante</a>
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivante</a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{{ filtres_query }}">Dernière
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Dernière
                                     &raquo;</a>
                             </li>
                             {% endif %}
@@ -443,7 +443,7 @@
                     {% endif %}
                     {% else %}
                     {# Affichage simplifié pour les réservations provenant uniquement de l'ontologie RDF #}
-                    {% for res_rdf in page_obj %}
+                    {% for res_rdf in reservations_rdf %}
                     <div class="card reservation-card">
                         <div class="card-body">
                             <div class="row align-items-center">
@@ -495,17 +495,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    {% empty %}
-                    <div class="no-reservations">
-                        <i class="fas fa-calendar-times"></i>
-                        <h5>Aucune réservation trouvée</h5>
-                        <p>Vous n'avez pas encore de réservations ou elles ne correspondent pas aux filtres
-                            sélectionnés.</p>
-                        <a href="{% url 'gestion_location:rechercher_vehicules' %}" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i>
-                            Créer une Réservation
-                        </a>
                     </div>
                     {% endfor %}
                     {% endif %}

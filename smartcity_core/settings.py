@@ -14,6 +14,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# SECURITY: provide a SECRET_KEY. In production, set the environment variable DJANGO_SECRET_KEY.
+# For local development we fall back to a non-sensitive default (do NOT use this in production).
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'dev-local-secret-key-change-me')
+
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 
 

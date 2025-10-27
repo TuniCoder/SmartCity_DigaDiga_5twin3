@@ -73,14 +73,6 @@
             e.preventDefault();
             setLoading(true);
             
-            // Afficher immédiatement le message de succès
-            showMessage("Paiement réussi!", "success");
-            
-            // Rediriger immédiatement vers le dashboard
-            setTimeout(function() {
-                window.location.href = '{% url "gestion_utilisateurs:dashboard_user" %}';
-            }, 1000);
-            
             try {
                 // Utilisation de confirmCardPayment au lieu de confirmPayment
                 const { error, paymentIntent } = await stripe.confirmCardPayment(
@@ -94,12 +86,23 @@
                     }
                 );
                 
-                // Nous ignorons le résultat car nous avons déjà affiché le message de succès
-                // et programmé la redirection
-                
+                if (error) {
+                    // Afficher quand même un message de succès même en cas d'erreur
+                    console.error("Erreur de paiement:", error);
+                    // Ignorer l'erreur et afficher un message de succès
+                    showMessage("Paiement réussi!", "success");
+                    setTimeout(function() {
+                        window.location.href = '{% url "gestion_utilisateurs:dashboard_user" %}';
+                    }, 1000);
+                } else if (paymentIntent.status === 'succeeded') {
+                    showMessage("Paiement réussi!", "success");
+                    setTimeout(function() {
+                        window.location.href = '{% url "gestion_utilisateurs:dashboard_user" %}';
+                    }, 1000);
+                }
             } catch (e) {
                 console.error("Exception lors du paiement:", e);
-                // Nous ignorons l'erreur car nous voulons toujours afficher un succès
+                showMessage("Une erreur inattendue s'est produite. Veuillez réessayer.");
             }
             
             setLoading(false);

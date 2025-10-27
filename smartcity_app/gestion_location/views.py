@@ -278,7 +278,7 @@ def mes_locations_view(request):
             date_debut_parsed = timezone.datetime.strptime(date_debut_str, '%Y-%m-%d').date()
             filtered_locations = [
                 loc for loc in filtered_locations 
-                if loc.get('dateDebutLocation') and datetime.fromisoformat(loc['dateDebutLocation']).date() >= date_debut_parsed
+                if loc.get('dateDebutLocation') and timezone.datetime.fromisoformat(loc['dateDebutLocation']).date() >= date_debut_parsed
             ]
         except (ValueError, TypeError):
             pass  # Ignorer les dates invalides
@@ -288,7 +288,7 @@ def mes_locations_view(request):
             date_fin_parsed = timezone.datetime.strptime(date_fin_str, '%Y-%m-%d').date()
             filtered_locations = [
                 loc for loc in filtered_locations 
-                if loc.get('dateFinLocation') and datetime.fromisoformat(loc['dateFinLocation']).date() <= date_fin_parsed
+                if loc.get('dateDebutLocation') and timezone.datetime.fromisoformat(loc['dateDebutLocation']).date() <= date_fin_parsed
             ]
         except (ValueError, TypeError):
             pass # Ignorer les dates invalides
@@ -302,23 +302,17 @@ def mes_locations_view(request):
     total_locations = len(filtered_locations)
     locations_actives = len([loc for loc in filtered_locations if loc.get('statutLocation') in ['en_attente', 'confirmee', 'en_cours']])
 
-    # Préserver les paramètres de filtrage dans les liens de pagination
-    filtres_query = '&'.join([f"{k}={v}" for k, v in request.GET.items() if k != 'page' and v])
-    if filtres_query:
-        filtres_query = '&' + filtres_query
-
     context = {
         'page_title': 'Mes Locations - SmartCity',
         'locations': [],  # Gardé vide pour forcer l'utilisation du bloc RDF dans le template
         'reservations': [],  # Alias vide
-        'reservations_rdf': filtered_locations,  # Toutes les données filtrées (non paginées) pour le template
+        'reservations_rdf': page_obj,  # Les données RDF paginées
         'total_locations': total_locations,
         'total_reservations': total_locations, # Alias
         'locations_actives': locations_actives,
         'reservations_actives': locations_actives, # Alias
         'is_paginated': page_obj.has_other_pages(),
         'page_obj': page_obj,
-        'filtres_query': filtres_query,  # Pour préserver les filtres dans la pagination
         'statuts_choices': Location.STATUTS_LOCATION, # Gardé pour les filtres du template
         'types_choices': Location.TYPES_LOCATION,   # Gardé pour les filtres du template
         'source_donnees': 'Ontologie RDF', # Indiquer la source unique
