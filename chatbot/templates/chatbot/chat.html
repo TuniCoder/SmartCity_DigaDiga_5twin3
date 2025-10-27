@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-robot me-2"></i>Assistant IA - SmartCity
+                    </h3>
+                    <p class="mb-0 mt-2 small opacity-75">Posez vos questions sur la ville intelligente</p>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Chat Box -->
+                    <div id="chat-container" class="position-relative" style="height: 500px; overflow-y: auto; background: #f8f9fa; padding: 20px;">
+                        <div id="chat-messages" class="mb-3">
+                            <!-- Messages will be dynamically inserted here -->
+                            {% if chat_messages %}
+                                {% for msg in chat_messages %}
+                                <div class="message-wrapper mb-3">
+                                    <div class="user-message d-flex justify-content-end mb-2">
+                                        <div class="message-bubble bg-primary text-white p-3 rounded-3" style="max-width: 70%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                            <div class="fw-bold mb-1">
+                                                <i class="fas fa-user me-2"></i>Vous
+                                            </div>
+                                            <div>{{ msg.message }}</div>
+                                            <small class="opacity-75 d-block mt-2">{{ msg.timestamp|date:"H:i" }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="ai-message d-flex justify-content-start mb-2">
+                                        <div class="message-bubble bg-white text-dark p-3 rounded-3 border" style="max-width: 70%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                            <div class="fw-bold mb-1 text-primary">
+                                                <i class="fas fa-robot me-2"></i>Assistant IA
+                                            </div>
+                                            <div>{{ msg.response }}</div>
+                                            <small class="text-muted d-block mt-2">{{ msg.timestamp|date:"H:i" }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center text-muted py-5" id="empty-chat">
+                                    <i class="fas fa-comments fa-3x mb-3 opacity-25"></i>
+                                    <p>Commencez une conversation avec l'assistant IA</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Loading indicator -->
+                    <div id="loading-indicator" class="d-none text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                        <p class="text-muted mt-2">L'assistant réfléchit...</p>
+                    </div>
+                    
+                    <!-- Error message -->
+                    <div id="error-message" class="alert alert-danger d-none m-3"></div>
+                    
+                    <!-- Input form -->
+                    <div class="card-footer bg-white border-top p-3">
+                        <form id="chat-form">
+                            <div class="input-group">
+                                <input type="text" 
+                                       id="user-message" 
+                                       class="form-control" 
+                                       placeholder="Posez votre question..." 
+                                       autocomplete="off">
+                                <button type="submit" 
+                                        class="btn btn-primary" 
+                                        id="send-button">
+                                    <i class="fas fa-paper-plane me-2"></i>Envoyer
+                                </button>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Powered by OpenAI {{ assistant.name|default:"GPT-4" }}
+                                </small>
+                                {% if chat_messages %}
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-danger" 
+                                        id="clear-chat-btn">
+                                    <i class="fas fa-trash me-1"></i>Effacer l'historique
+                                </button>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #chat-container {
+        scroll-behavior: smooth;
+    }
+    
+    .message-bubble {
+        word-wrap: break-word;
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .user-message .message-bubble {
+        border-top-right-radius: 0.75rem !important;
+    }
+    
+    .ai-message .message-bubble {
+        border-top-left-radius: 0.75rem !important;
+    }
+    
+    #send-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+</style>
+
+<script>
+(function() {
+    const chatForm = document.getElementById('chat-form');
+    const userMessageInput = document.getElementById('user-message');
+    const chatMessages = document.getElementById('chat-messages');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const errorMessage = document.getElementById('error-message');
+    const emptyChat = document.getElementById('empty-chat');
+    const sendButton = document.getElementById('send-button');
+    const clearChatBtn = document.getElementById('clear-chat-btn');
+    
+    // Scroll to bottom of chat
+    function scrollToBottom() {
+        const chatContainer = document.getElementById('chat-container');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+    
+    // Add message to chat
+    function addMessage(message, isUser = true) {
+        // Remove empty chat message
+        if (emptyChat) {
+            emptyChat.remove();
+        }
+        
+        const messageWrapper = document.createElement('div');
+        messageWrapper.className = 'message-wrapper mb-3';
+        
+        const icon = isUser ? 'fa-user' : 'fa-robot';
+        const label = isUser ? 'Vous' : 'Assistant IA';
+        const bgColor = isUser ? 'bg-primary text-white' : 'bg-white text-dark border';
+        const timestamp = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        
+        messageWrapper.innerHTML = `
+            <div class="d-flex ${isUser ? 'justify-content-end' : 'justify-content-start'} mb-2">
+                <div class="message-bubble ${bgColor} p-3 rounded-3" style="max-width: 70%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div class="fw-bold mb-1">
+                        <i class="fas ${icon} me-2"></i>${label}
+                    </div>
+                    <div>${message}</div>
+                    <small class="opacity-75 d-block mt-2">${timestamp}</small>
+                </div>
+            </div>
+        `;
+        
+        chatMessages.appendChild(messageWrapper);
+        scrollToBottom();
+    }
+    
+    // Show error message
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.classList.remove('d-none');
+        setTimeout(() => {
+            errorMessage.classList.add('d-none');
+        }, 5000);
+    }
+    
+    // Handle form submission
+    chatForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const message = userMessageInput.value.trim();
+        
+        if (!message) {
+            return;
+        }
+        
+        // Disable form
+        sendButton.disabled = true;
+        userMessageInput.disabled = true;
+        
+        // Add user message
+        addMessage(message, true);
+        userMessageInput.value = '';
+        
+        // Show loading
+        loadingIndicator.classList.remove('d-none');
+        scrollToBottom();
+        
+        try {
+            const response = await fetch('{% url "chatbot:api_chat" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ message: message })
+            });
+            
+            const data = await response.json();
+            
+            loadingIndicator.classList.add('d-none');
+            
+            if (data.status === 'success') {
+                // Add AI response
+                addMessage(data.response, false);
+            } else {
+                // Show error
+                showError(data.message || 'Une erreur est survenue');
+            }
+        } catch (error) {
+            loadingIndicator.classList.add('d-none');
+            console.error('Error:', error);
+            showError('Erreur de connexion. Veuillez réessayer.');
+        } finally {
+            // Re-enable form
+            sendButton.disabled = false;
+            userMessageInput.disabled = false;
+            userMessageInput.focus();
+        }
+    });
+    
+    // Handle clear chat
+    if (clearChatBtn) {
+        clearChatBtn.addEventListener('click', async function() {
+            if (confirm('Êtes-vous sûr de vouloir effacer tout l\'historique de la conversation ?')) {
+                try {
+                    const response = await fetch('{% url "chatbot:api_clear" %}', {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        chatMessages.innerHTML = '<div id="empty-chat" class="text-center text-muted py-5"><i class="fas fa-comments fa-3x mb-3 opacity-25"></i><p>Commencez une conversation avec l\'assistant IA</p></div>';
+                        clearChatBtn.remove();
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+        });
+    }
+    
+    // Focus input on load
+    userMessageInput.focus();
+    
+    // Scroll to bottom on load
+    scrollToBottom();
+})();
+</script>
+{% endblock %}
+

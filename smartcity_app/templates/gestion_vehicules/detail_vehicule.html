@@ -1,0 +1,492 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+    .detail-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .detail-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #333;
+        flex: 1;
+    }
+    
+    .info-value {
+        color: #666;
+        flex: 2;
+        text-align: right;
+    }
+    
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .status-actif { background-color: #d4edda; color: #155724; }
+    .status-maintenance { background-color: #fff3cd; color: #856404; }
+    .status-hors_service { background-color: #f8d7da; color: #721c24; }
+    .status-reserve { background-color: #cce5ff; color: #004085; }
+    
+    .action-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        margin: 0.25rem;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-edit { background: #28a745; color: white; }
+    .btn-delete { background: #dc3545; color: white; }
+    .btn-sync { background: #17a2b8; color: white; }
+    .btn-back { background: #6c757d; color: white; }
+    
+    .action-btn:hover {
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .battery-indicator {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    
+    .battery-high { background-color: #d4edda; color: #155724; }
+    .battery-medium { background-color: #fff3cd; color: #856404; }
+    .battery-low { background-color: #f8d7da; color: #721c24; }
+    
+    .rdf-data {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+    
+    .rdf-indicator {
+        background: #28a745;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+    
+    .maintenance-item {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-left: 4px solid #667eea;
+    }
+    
+    .utilisation-item {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-left: 4px solid #28a745;
+    }
+    
+    .tab-content {
+        padding: 1.5rem 0;
+    }
+    
+    .nav-tabs .nav-link {
+        border-radius: 10px 10px 0 0;
+        border: none;
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .nav-tabs .nav-link.active {
+        background: #667eea;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">{{ page_title }}</h1>
+                    <p class="text-muted mb-0">Détails du véhicule {{ vehicule.numero_identification }}</p>
+                </div>
+                <div>
+                    <a href="{% url 'gestion_vehicules:liste_vehicules' %}" class="action-btn btn-back">
+                        <i class="bi bi-arrow-left"></i> Retour à la liste
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informations principales -->
+        <div class="col-lg-8">
+            <div class="detail-card">
+                <div class="detail-header">
+                    <h4 class="mb-2"><i class="bi bi-truck"></i> {{ vehicule.numero_identification }}</h4>
+                    <p class="mb-0">{{ vehicule.type_vehicule.nom }} - {{ vehicule.type_vehicule.get_categorie_display }}</p>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <span class="info-label">Type de Véhicule</span>
+                            <span class="info-value">{{ vehicule.type_vehicule.nom }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Catégorie</span>
+                            <span class="info-value">{{ vehicule.type_vehicule.get_categorie_display }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Mode de Propulsion</span>
+                            <span class="info-value">{{ vehicule.type_vehicule.get_mode_propulsion_display }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Capacité Passagers</span>
+                            <span class="info-value">{{ vehicule.type_vehicule.capacite_passagers }} personnes</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Émissions CO2</span>
+                            <span class="info-value">{{ vehicule.type_vehicule.emission_co2 }} g/km</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <span class="info-label">Statut</span>
+                            <span class="info-value">
+                                <span class="status-badge status-{{ vehicule.statut }}">
+                                    {{ vehicule.get_statut_display }}
+                                </span>
+                            </span>
+                        </div>
+                        {% if vehicule.immatriculation %}
+                        <div class="info-row">
+                            <span class="info-label">Immatriculation</span>
+                            <span class="info-value">{{ vehicule.immatriculation }}</span>
+                        </div>
+                        {% endif %}
+                        {% if vehicule.localisation_actuelle %}
+                        <div class="info-row">
+                            <span class="info-label">Localisation</span>
+                            <span class="info-value">{{ vehicule.localisation_actuelle }}</span>
+                        </div>
+                        {% endif %}
+                        {% if vehicule.latitude and vehicule.longitude %}
+                        <div class="info-row">
+                            <span class="info-label">Coordonnées GPS</span>
+                            <span class="info-value">{{ vehicule.latitude }}, {{ vehicule.longitude }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="info-row">
+                            <span class="info-label">Date de Mise en Service</span>
+                            <span class="info-value">{{ vehicule.date_mise_en_service|date:"d/m/Y à H:i" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% if vehicule.annee_fabrication or vehicule.kilometrage or vehicule.niveau_batterie %}
+                <hr>
+                <h5 class="mb-3"><i class="bi bi-gear"></i> Informations Techniques</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        {% if vehicule.annee_fabrication %}
+                        <div class="info-row">
+                            <span class="info-label">Année de Fabrication</span>
+                            <span class="info-value">{{ vehicule.annee_fabrication }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        {% if vehicule.kilometrage %}
+                        <div class="info-row">
+                            <span class="info-label">Kilométrage</span>
+                            <span class="info-value">{{ vehicule.kilometrage|floatformat:0 }} km</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        {% if vehicule.niveau_batterie %}
+                        <div class="info-row">
+                            <span class="info-label">Niveau de Batterie</span>
+                            <span class="info-value">
+                                <span class="battery-indicator 
+                                    {% if vehicule.niveau_batterie > 50 %}battery-high
+                                    {% elif vehicule.niveau_batterie > 20 %}battery-medium
+                                    {% else %}battery-low{% endif %}">
+                                    {{ vehicule.niveau_batterie }}%
+                                </span>
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Actions -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="rdf-indicator">
+                                <i class="bi bi-check-circle"></i> Synchronisé avec l'ontologie RDF
+                            </div>
+                            <div>
+                                <button onclick="syncVehicle({{ vehicule.id }})" class="action-btn btn-sync">
+                                    <i class="bi bi-arrow-repeat"></i> Synchroniser RDF
+                                </button>
+                                <a href="{% url 'gestion_vehicules:modifier_vehicule' vehicule.id %}" class="action-btn btn-edit">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </a>
+                                <a href="{% url 'gestion_vehicules:supprimer_vehicule' vehicule.id %}" class="action-btn btn-delete">
+                                    <i class="bi bi-trash"></i> Supprimer
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations RDF -->
+        <div class="col-lg-4">
+            <div class="detail-card">
+                <h5 class="mb-3"><i class="bi bi-diagram-3"></i> Données RDF</h5>
+                {% if rdf_data %}
+                    <div class="rdf-data">
+                        <div class="info-row">
+                            <span class="info-label">URI RDF</span>
+                            <span class="info-value" style="font-size: 0.8rem; word-break: break-all;">{{ rdf_data.uri }}</span>
+                        </div>
+                        {% if rdf_data.marque %}
+                        <div class="info-row">
+                            <span class="info-label">Marque</span>
+                            <span class="info-value">{{ rdf_data.marque }}</span>
+                        </div>
+                        {% endif %}
+                        {% if rdf_data.modèle %}
+                        <div class="info-row">
+                            <span class="info-label">Modèle</span>
+                            <span class="info-value">{{ rdf_data.modèle }}</span>
+                        </div>
+                        {% endif %}
+                        {% if rdf_data.couleur %}
+                        <div class="info-row">
+                            <span class="info-label">Couleur</span>
+                            <span class="info-value">{{ rdf_data.couleur }}</span>
+                        </div>
+                        {% endif %}
+                        {% if rdf_data.statut %}
+                        <div class="info-row">
+                            <span class="info-label">Statut RDF</span>
+                            <span class="info-value">{{ rdf_data.statut }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Aucune donnée RDF trouvée pour ce véhicule.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Onglets pour maintenance et utilisation -->
+    <div class="row">
+        <div class="col-12">
+            <div class="detail-card">
+                <ul class="nav nav-tabs" id="vehicleTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="maintenance-tab" data-bs-toggle="tab" 
+                                data-bs-target="#maintenance" type="button" role="tab">
+                            <i class="bi bi-wrench"></i> Maintenance ({{ maintenances|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="utilisation-tab" data-bs-toggle="tab" 
+                                data-bs-target="#utilisation" type="button" role="tab">
+                            <i class="bi bi-clock-history"></i> Utilisation ({{ utilisations|length }})
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="vehicleTabsContent">
+                    <!-- Maintenance -->
+                    <div class="tab-pane fade show active" id="maintenance" role="tabpanel">
+                        {% if maintenances %}
+                            {% for maintenance in maintenances %}
+                            <div class="maintenance-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ maintenance.get_type_maintenance_display }}</h6>
+                                        <p class="text-muted mb-1">{{ maintenance.description }}</p>
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar"></i> {{ maintenance.date_planifiee|date:"d/m/Y à H:i" }}
+                                        </small>
+                                    </div>
+                                    <span class="badge bg-{% if maintenance.statut == 'terminee' %}success{% elif maintenance.statut == 'en_cours' %}warning{% else %}info{% endif %}">
+                                        {{ maintenance.get_statut_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted text-center">Aucune maintenance enregistrée</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Utilisation -->
+                    <div class="tab-pane fade" id="utilisation" role="tabpanel">
+                        {% if utilisations %}
+                            {% for utilisation in utilisations %}
+                            <div class="utilisation-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ utilisation.lieu_depart }} → {{ utilisation.lieu_arrivee|default:"Non spécifié" }}</h6>
+                                        <p class="text-muted mb-1">
+                                            <i class="bi bi-clock"></i> {{ utilisation.heure_debut|date:"d/m/Y à H:i" }}
+                                            {% if utilisation.heure_fin %}
+                                                - {{ utilisation.heure_fin|date:"H:i" }}
+                                            {% endif %}
+                                        </p>
+                                        {% if utilisation.distance_parcourue %}
+                                            <small class="text-muted">
+                                                <i class="bi bi-speedometer2"></i> {{ utilisation.distance_parcourue }} km
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                    {% if utilisation.note_experience %}
+                                        <span class="badge bg-primary">{{ utilisation.note_experience }}/5</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted text-center">Aucune utilisation enregistrée</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function syncVehicle(vehicleId) {
+        const button = event.target.closest('button');
+        const originalContent = button.innerHTML;
+        
+        // Afficher le spinner
+        button.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Synchronisation...';
+        button.disabled = true;
+        
+        fetch(`/vehicules/api/vehicles/${vehicleId}/sync/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification('Véhicule synchronisé avec succès avec l\'ontologie RDF', 'success');
+                // Recharger la page pour afficher les nouvelles données RDF
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } else {
+                showNotification('Erreur lors de la synchronisation: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showNotification('Erreur lors de la synchronisation', 'error');
+        })
+        .finally(() => {
+            // Restaurer le bouton
+            button.innerHTML = originalContent;
+            button.disabled = false;
+        });
+    }
+    
+    function showNotification(message, type) {
+        // Créer une notification toast
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Supprimer automatiquement après 5 secondes
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 5000);
+    }
+    
+    // Ajouter une classe CSS pour l'animation de rotation
+    const style = document.createElement('style');
+    style.textContent = `
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

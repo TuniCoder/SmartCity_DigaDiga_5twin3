@@ -1,0 +1,959 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+    /* ==================== STYLES PRINCIPAUX ==================== */
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stats-card h3 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 0;
+    }
+    
+    .stats-card p {
+        margin: 0;
+        opacity: 0.9;
+    }
+    
+    .feature-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .feature-icon {
+        font-size: 2rem;
+        color: #667eea;
+        margin-bottom: 1rem;
+    }
+    
+    .vehicle-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-left: 4px solid #667eea;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .status-actif { background-color: #d4edda; color: #155724; }
+    .status-maintenance { background-color: #fff3cd; color: #856404; }
+    .status-hors_service { background-color: #f8d7da; color: #721c24; }
+    .status-reserve { background-color: #cce5ff; color: #004085; }
+    
+    .quick-action-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 0.75rem 1.5rem;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        margin: 0.25rem;
+    }
+    
+    .quick-action-btn:hover {
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .rdf-indicator {
+        background: #28a745;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+
+    /* ==================== CHAT IA MESSENGER - BAS GAUCHE ==================== */
+    #chat-container {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 350px;
+        height: 500px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        display: flex;
+        flex-direction: column;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        z-index: 10000;
+        overflow: hidden;
+        border: 1px solid #e0e0e0;
+        transition: all 0.3s ease;
+    }
+
+    #chat-container.minimized {
+        height: 60px;
+        width: 300px;
+    }
+
+    #chat-container.hidden {
+        display: none;
+    }
+
+    .chat-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .chat-header-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .chat-header h5 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .chat-status {
+        font-size: 0.7rem;
+        opacity: 0.9;
+    }
+
+    .chat-controls {
+        display: flex;
+        gap: 5px;
+    }
+
+    .chat-controls button {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .chat-controls button:hover {
+        background: rgba(255,255,255,0.3);
+    }
+
+    #chat-messages {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        background: #f8f9fa;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .message {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        max-width: 85%;
+    }
+
+    .message-user {
+        align-self: flex-end;
+    }
+
+    .message-ai {
+        align-self: flex-start;
+    }
+
+    .message-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+
+    .message-user .message-avatar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        order: 2;
+    }
+
+    .message-ai .message-avatar {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+
+    .message-content {
+        padding: 12px 15px;
+        border-radius: 18px;
+        position: relative;
+        word-wrap: break-word;
+        line-height: 1.4;
+    }
+
+    .message-user .message-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom-right-radius: 5px;
+    }
+
+    .message-ai .message-content {
+        background: white;
+        color: #333;
+        border: 1px solid #e0e0e0;
+        border-bottom-left-radius: 5px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .message-time {
+        font-size: 0.7rem;
+        opacity: 0.7;
+        margin-top: 5px;
+    }
+
+    #chat-form {
+        display: flex;
+        padding: 15px;
+        background: white;
+        border-top: 1px solid #e0e0e0;
+        gap: 10px;
+    }
+
+    #chat-input {
+        flex: 1;
+        border: 2px solid #e0e0e0;
+        border-radius: 25px;
+        padding: 10px 15px;
+        outline: none;
+        font-size: 0.9rem;
+        transition: border-color 0.3s ease;
+    }
+
+    #chat-input:focus {
+        border-color: #28a745;
+    }
+
+    #chat-send {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    #chat-send:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+    }
+
+    #chat-send:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .typing-indicator {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 15px;
+        color: #666;
+        font-style: italic;
+    }
+
+    .typing-dots {
+        display: flex;
+        gap: 3px;
+    }
+
+    .typing-dot {
+        width: 6px;
+        height: 6px;
+        background: #666;
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes typing {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
+    }
+
+    .welcome-message {
+        text-align: center;
+        color: #666;
+        padding: 20px;
+    }
+
+    .welcome-message i {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        color: #ccc;
+    }
+
+    /* Chat Toggle Button */
+    #chat-toggle-button {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+        z-index: 9999;
+        transition: all 0.3s ease;
+    }
+
+    #chat-toggle-button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+    }
+
+    #chat-toggle-button.hidden {
+        display: none;
+    }
+
+    /* Animation de spin */
+    .spin {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        #chat-container {
+            width: calc(100vw - 40px);
+            left: 20px;
+            right: 20px;
+        }
+        
+        #chat-container.minimized {
+            width: calc(100vw - 40px);
+        }
+        
+        #chat-toggle-button {
+            left: 20px;
+            bottom: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">{{ module_name }}</h1>
+                    <p class="text-muted mb-0">{{ module_description }}</p>
+                </div>
+                <div>
+                    <span class="rdf-indicator">
+                        <i class="bi bi-check-circle"></i> RDF Intégré
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ stats.total_vehicles|default:0 }}</h3>
+                <p><i class="bi bi-truck"></i> Total Véhicules</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ stats.active_vehicles|default:0 }}</h3>
+                <p><i class="bi bi-check-circle"></i> Actifs</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ stats.electric_vehicles|default:0 }}</h3>
+                <p><i class="bi bi-lightning-charge"></i> Électriques</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ stats.accessible_vehicles|default:0 }}</h3>
+                <p><i class="bi bi-person-wheelchair"></i> Accessibles PMR</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-lightning"></i> Actions Rapides</h5>
+                </div>
+                <div class="card-body">
+                    {% if is_admin %}
+                    <a href="{% url 'gestion_vehicules:creer_vehicule' %}" class="quick-action-btn">
+                        <i class="bi bi-plus-circle"></i> Ajouter Véhicule
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'gestion_vehicules:liste_vehicules' %}" class="quick-action-btn">
+                        <i class="bi bi-list"></i> Liste Complète
+                    </a>
+                    <a href="{% url 'gestion_vehicules:tracking_vehicules' %}" class="quick-action-btn">
+                        <i class="bi bi-geo-alt"></i> Tracking GPS
+                    </a>
+                    <a href="{% url 'gestion_vehicules:gestion_maintenance' %}" class="quick-action-btn">
+                        <i class="bi bi-wrench"></i> Maintenance
+                    </a>
+                    <a href="{% url 'gestion_vehicules:analytics_vehicules' %}" class="quick-action-btn">
+                        <i class="bi bi-graph-up"></i> Analytics
+                    </a>
+                    <button onclick="toggleChat()" class="quick-action-btn" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                        <i class="bi bi-robot"></i> Assistant IA
+                    </button>
+                    {% if not is_admin %}
+                    <button onclick="syncVehiclesFromRDF()" class="quick-action-btn" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                        <i class="bi bi-arrow-repeat"></i> Synchroniser RDF
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Véhicules récents -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Véhicules Récents</h5>
+                    <a href="{% url 'gestion_vehicules:liste_vehicules' %}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_vehicles %}
+                        {% for vehicule in recent_vehicles %}
+                        <div class="vehicle-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ vehicule.numero_identification }}</h6>
+                                    <p class="text-muted mb-1">{{ vehicule.type_vehicule.nom }}</p>
+                                    <small class="text-muted">{{ vehicule.date_mise_en_service|date:"d/m/Y" }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="status-badge status-{{ vehicule.statut }}">
+                                        {{ vehicule.get_statut_display }}
+                                    </span>
+                                    <br>
+                                    <a href="{% url 'gestion_vehicules:detail_vehicule' vehicule.id %}" class="btn btn-sm btn-outline-primary mt-1">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">Aucun véhicule récent</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Véhicules en maintenance -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-wrench"></i> Maintenance Requise</h5>
+                    <a href="{% url 'gestion_vehicules:gestion_maintenance' %}" class="btn btn-sm btn-outline-warning">Gérer</a>
+                </div>
+                <div class="card-body">
+                    {% if maintenance_vehicles %}
+                        {% for vehicule in maintenance_vehicles %}
+                        <div class="vehicle-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ vehicule.numero_identification }}</h6>
+                                    <p class="text-muted mb-1">{{ vehicule.type_vehicule.nom }}</p>
+                                    {% if vehicule.prochaine_maintenance %}
+                                        <small class="text-warning">
+                                            <i class="bi bi-calendar"></i> {{ vehicule.prochaine_maintenance|date:"d/m/Y" }}
+                                        </small>
+                                    {% endif %}
+                                </div>
+                                <div class="text-end">
+                                    <span class="status-badge status-{{ vehicule.statut }}">
+                                        {{ vehicule.get_statut_display }}
+                                    </span>
+                                    <br>
+                                    <a href="{% url 'gestion_vehicules:detail_vehicule' vehicule.id %}" class="btn btn-sm btn-outline-warning mt-1">
+                                        <i class="bi bi-tools"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">Aucune maintenance requise</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fonctionnalités -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-grid"></i> Fonctionnalités</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="feature-card">
+                                <div class="feature-icon">
+                                    <i class="bi bi-truck"></i>
+                                </div>
+                                <h6>Gestion de Flotte</h6>
+                                <p class="text-muted">Inventaire complet et suivi des véhicules municipaux</p>
+                                <a href="{% url 'gestion_vehicules:gestion_flotte' %}" class="btn btn-sm btn-primary">Accéder</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="feature-card">
+                                <div class="feature-icon">
+                                    <i class="bi bi-geo-alt"></i>
+                                </div>
+                                <h6>Tracking GPS</h6>
+                                <p class="text-muted">Géolocalisation temps réel de tous les véhicules</p>
+                                <a href="{% url 'gestion_vehicules:tracking_vehicules' %}" class="btn btn-sm btn-primary">Accéder</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="feature-card">
+                                <div class="feature-icon">
+                                    <i class="bi bi-wrench"></i>
+                                </div>
+                                <h6>Maintenance Prédictive</h6>
+                                <p class="text-muted">IA pour anticiper les besoins de maintenance</p>
+                                <a href="{% url 'gestion_vehicules:gestion_maintenance' %}" class="btn btn-sm btn-primary">Accéder</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="feature-card">
+                                <div class="feature-icon">
+                                    <i class="bi bi-share"></i>
+                                </div>
+                                <h6>Véhicules Partagés</h6>
+                                <p class="text-muted">Gestion Vélib, Autolib et services de partage</p>
+                                <a href="{% url 'gestion_vehicules:vehicules_partages' %}" class="btn btn-sm btn-primary">Accéder</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="feature-card">
+                                <div class="feature-icon">
+                                    <i class="bi bi-lightning-charge"></i>
+                                </div>
+                                <h6>Véhicules Électriques</h6>
+                                <p class="text-muted">Optimisation autonomie et gestion recharge</p>
+                                <a href="{% url 'gestion_vehicules:liste_vehicules' %}?type=electrique" class="btn btn-sm btn-primary">Accéder</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="feature-card">
+                                <div class="feature-icon">
+                                    <i class="bi bi-graph-up"></i>
+                                </div>
+                                <h6>Analytics</h6>
+                                <p class="text-muted">Rapports et analyses de performance</p>
+                                <a href="{% url 'gestion_vehicules:analytics_vehicules' %}" class="btn btn-sm btn-primary">Accéder</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== BOUTON TOGGLE CHAT ==================== -->
+<button id="chat-toggle-button" onclick="toggleChat()">
+    <i class="bi bi-robot"></i>
+</button>
+
+<!-- ==================== CHAT IA MESSENGER ==================== -->
+<div id="chat-container" class="hidden">
+    <div class="chat-header" onclick="toggleMinimize()">
+        <div class="chat-header-content">
+            <i class="bi bi-robot"></i>
+            <div>
+                <h5>Assistant Véhicules</h5>
+                <div class="chat-status">En ligne • Prêt à vous aider</div>
+            </div>
+        </div>
+        <div class="chat-controls">
+            <button onclick="event.stopPropagation(); toggleMinimize()">
+                <i class="bi bi-dash"></i>
+            </button>
+            <button onclick="event.stopPropagation(); toggleChat()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div id="chat-messages">
+        <div class="welcome-message">
+            <i class="bi bi-robot"></i>
+            <h6>Bonjour ! 👋</h6>
+            <p>Je suis votre assistant IA spécialisé véhicules. Comment puis-je vous aider aujourd'hui ?</p>
+        </div>
+    </div>
+    
+    <div class="typing-indicator" id="typingIndicator">
+        <div class="message-ai">
+            <div class="message-avatar">
+                <i class="bi bi-robot"></i>
+            </div>
+            <div class="message-content">
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <form id="chat-form">
+        <input type="text" id="chat-input" placeholder="Posez votre question sur les véhicules..." autocomplete="off">
+        <button type="submit" id="chat-send">
+            <i class="bi bi-send"></i>
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // ==================== FONCTIONS PRINCIPALES ====================
+    
+    // Auto-refresh des statistiques toutes les 30 secondes
+    setInterval(function() {
+        fetch('{% url "gestion_vehicules:api_vehicle_statistics" %}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Mettre à jour les statistiques
+                    document.querySelector('.stats-card h3').textContent = data.data.total_vehicles || 0;
+                }
+            })
+            .catch(error => console.log('Erreur lors du rafraîchissement des stats:', error));
+    }, 30000);
+    
+    // Fonction pour synchroniser les véhicules depuis le RDF
+    function syncVehiclesFromRDF() {
+        const button = event.target.closest('button');
+        const originalContent = button.innerHTML;
+        
+        // Afficher le spinner
+        button.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Synchronisation...';
+        button.disabled = true;
+        
+        fetch('{% url "gestion_vehicules:api_sync_from_rdf" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification('Véhicules synchronisés avec succès depuis l\'ontologie RDF', 'success');
+                // Recharger la page pour afficher les nouvelles données
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } else {
+                showNotification('Erreur lors de la synchronisation: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showNotification('Erreur lors de la synchronisation', 'error');
+        })
+        .finally(() => {
+            // Restaurer le bouton
+            button.innerHTML = originalContent;
+            button.disabled = false;
+        });
+    }
+    
+    function showNotification(message, type) {
+        // Créer une notification toast
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Supprimer automatiquement après 5 secondes
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 5000);
+    }
+
+    // ==================== FONCTIONS CHAT IA ====================
+    
+    let isChatMinimized = false;
+    let isChatVisible = false;
+    
+    function toggleChat() {
+        const chatContainer = document.getElementById('chat-container');
+        const toggleButton = document.getElementById('chat-toggle-button');
+        
+        if (isChatVisible) {
+            chatContainer.classList.add('hidden');
+            toggleButton.classList.remove('hidden');
+            isChatVisible = false;
+        } else {
+            chatContainer.classList.remove('hidden');
+            chatContainer.classList.remove('minimized');
+            toggleButton.classList.add('hidden');
+            isChatMinimized = false;
+            isChatVisible = true;
+            document.getElementById('chat-input').focus();
+        }
+    }
+    
+    function toggleMinimize() {
+        const chatContainer = document.getElementById('chat-container');
+        const toggleButton = document.getElementById('chat-toggle-button');
+        
+        if (isChatMinimized) {
+            chatContainer.classList.remove('minimized');
+            toggleButton.classList.add('hidden');
+            isChatMinimized = false;
+            document.getElementById('chat-input').focus();
+        } else {
+            chatContainer.classList.add('minimized');
+            toggleButton.classList.remove('hidden');
+            isChatMinimized = true;
+        }
+    }
+    
+    // Get CSRF token
+    function getCsrfToken() {
+        const name = 'csrftoken';
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Add message to chat
+    function addMessageToChat(message, sender) {
+        const chatMessages = document.getElementById('chat-messages');
+        
+        // Remove welcome message if it's the first user message
+        const welcomeMessage = chatMessages.querySelector('.welcome-message');
+        if (welcomeMessage && sender === 'user') {
+            welcomeMessage.remove();
+        }
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message message-${sender}`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar';
+        avatar.innerHTML = sender === 'user' ? '<i class="bi bi-person"></i>' : '<i class="bi bi-robot"></i>';
+        
+        const content = document.createElement('div');
+        content.className = 'message-content';
+        content.innerHTML = `
+            <div>${message.replace(/\n/g, '<br>')}</div>
+            <div class="message-time">${new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</div>
+        `;
+        
+        if (sender === 'user') {
+            messageDiv.appendChild(content);
+            messageDiv.appendChild(avatar);
+        } else {
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+        }
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Show typing indicator
+    function showTypingIndicator() {
+        const typingIndicator = document.getElementById('typingIndicator');
+        typingIndicator.style.display = 'flex';
+        document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+    }
+    
+    // Hide typing indicator
+    function hideTypingIndicator() {
+        const typingIndicator = document.getElementById('typingIndicator');
+        typingIndicator.style.display = 'none';
+    }
+    
+    // Show error message
+    function showChatError(message) {
+        const chatMessages = document.getElementById('chat-messages');
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'message message-ai';
+        errorDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="bi bi-robot"></i>
+            </div>
+            <div class="message-content" style="background: #f8d7da; color: #721c24; border-color: #f5c6cb;">
+                <div><i class="bi bi-exclamation-triangle"></i> <strong>Erreur:</strong> ${message}</div>
+            </div>
+        `;
+        chatMessages.appendChild(errorDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // ==================== INITIALISATION DU CHAT ====================
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+        
+        // Send message function
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessageToChat(message, 'user');
+            chatInput.value = '';
+            chatSend.disabled = true;
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Send to API
+            fetch('{% url "gestion_vehicules:api_chat_with_ai" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                body: JSON.stringify({
+                    message: message,
+                    type: 'question'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideTypingIndicator();
+                if (data.status === 'success') {
+                    addMessageToChat(data.response, 'ai');
+                } else {
+                    showChatError(data.message || 'Une erreur est survenue');
+                }
+            })
+            .catch(error => {
+                hideTypingIndicator();
+                console.error('Error:', error);
+                showChatError('Erreur de connexion. Veuillez réessayer.');
+            })
+            .finally(() => {
+                chatSend.disabled = false;
+                chatInput.focus();
+            });
+        });
+        
+        // Handle Enter key press
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+        
+        // Auto-focus chat input when chat is opened
+        document.getElementById('chat-container').addEventListener('transitionend', function() {
+            if (!this.classList.contains('hidden') && !this.classList.contains('minimized')) {
+                chatInput.focus();
+            }
+        });
+    });
+</script>
+{% endblock %}

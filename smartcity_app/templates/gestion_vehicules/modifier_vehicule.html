@@ -1,0 +1,373 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+    }
+    
+    .btn-secondary {
+        border-radius: 25px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+    }
+    
+    .rdf-indicator {
+        background: #28a745;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: inline-block;
+        margin-top: 1rem;
+    }
+    
+    .help-text {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+    
+    .current-value {
+        background: #f8f9fa;
+        padding: 0.5rem;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">{{ page_title }}</h1>
+                    <p class="text-muted mb-0">Modifier les informations du véhicule</p>
+                </div>
+                <div>
+                    <a href="{% url 'gestion_vehicules:detail_vehicule' vehicule.id %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Retour au détail
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <div class="form-header">
+                    <h4 class="mb-2"><i class="bi bi-pencil-square"></i> Modifier {{ vehicule.numero_identification }}</h4>
+                    <p class="mb-0">Mise à jour des informations du véhicule</p>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <!-- Type de véhicule -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="type_vehicule" class="form-label required-field">Type de Véhicule</label>
+                                <select class="form-select" id="type_vehicule" name="type_vehicule" required>
+                                    <option value="">Sélectionner un type</option>
+                                    {% for vehicle_type in vehicle_types %}
+                                        <option value="{{ vehicle_type.id }}" {% if vehicule.type_vehicule.id == vehicle_type.id %}selected{% endif %}>
+                                            {{ vehicle_type.nom }} - {{ vehicle_type.get_categorie_display }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="help-text">Choisissez le type de véhicule</div>
+                            </div>
+                        </div>
+
+                        <!-- Numéro d'identification -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="numero_identification" class="form-label required-field">Numéro d'Identification</label>
+                                <input type="text" class="form-control" id="numero_identification" name="numero_identification" 
+                                       value="{{ vehicule.numero_identification }}" required>
+                                <div class="help-text">Identifiant unique du véhicule</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Immatriculation -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="immatriculation" class="form-label">Immatriculation</label>
+                                <input type="text" class="form-control" id="immatriculation" name="immatriculation" 
+                                       value="{{ vehicule.immatriculation }}">
+                                <div class="help-text">Plaque d'immatriculation (optionnel)</div>
+                            </div>
+                        </div>
+
+                        <!-- Statut -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="statut" class="form-label">Statut</label>
+                                <select class="form-select" id="statut" name="statut">
+                                    {% for status_code, status_label in status_choices %}
+                                        <option value="{{ status_code }}" {% if vehicule.statut == status_code %}selected{% endif %}>
+                                            {{ status_label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="help-text">Statut actuel du véhicule</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Localisation actuelle -->
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="localisation_actuelle" class="form-label">Localisation Actuelle</label>
+                                <input type="text" class="form-control" id="localisation_actuelle" name="localisation_actuelle" 
+                                       value="{{ vehicule.localisation_actuelle }}">
+                                <div class="help-text">Lieu où se trouve actuellement le véhicule</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Latitude -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="latitude" class="form-label">Latitude</label>
+                                <input type="number" class="form-control" id="latitude" name="latitude" 
+                                       step="0.000001" value="{{ vehicule.latitude }}">
+                                <div class="help-text">Coordonnée GPS latitude (optionnel)</div>
+                            </div>
+                        </div>
+
+                        <!-- Longitude -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="longitude" class="form-label">Longitude</label>
+                                <input type="number" class="form-control" id="longitude" name="longitude" 
+                                       step="0.000001" value="{{ vehicule.longitude }}">
+                                <div class="help-text">Coordonnée GPS longitude (optionnel)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Année de fabrication -->
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="annee_fabrication" class="form-label">Année de Fabrication</label>
+                                <input type="number" class="form-control" id="annee_fabrication" name="annee_fabrication" 
+                                       min="1900" max="{% now 'Y' %}" value="{{ vehicule.annee_fabrication }}">
+                                <div class="help-text">Année de fabrication du véhicule</div>
+                            </div>
+                        </div>
+
+                        <!-- Kilométrage -->
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="kilometrage" class="form-label">Kilométrage</label>
+                                <input type="number" class="form-control" id="kilometrage" name="kilometrage" 
+                                       min="0" step="0.1" value="{{ vehicule.kilometrage }}">
+                                <div class="help-text">Kilométrage actuel en km</div>
+                            </div>
+                        </div>
+
+                        <!-- Niveau de batterie -->
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="niveau_batterie" class="form-label">Niveau de Batterie (%)</label>
+                                <input type="number" class="form-control" id="niveau_batterie" name="niveau_batterie" 
+                                       min="0" max="100" value="{{ vehicule.niveau_batterie }}">
+                                <div class="help-text">Pourcentage de charge (véhicules électriques)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informations actuelles -->
+                    <hr>
+                    <h5 class="mb-3"><i class="bi bi-info-circle"></i> Informations Actuelles</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="current-value">
+                                <strong>Date de mise en service:</strong> {{ vehicule.date_mise_en_service|date:"d/m/Y à H:i" }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="current-value">
+                                <strong>Dernière mise à jour:</strong> {{ vehicule.derniere_mise_a_jour|date:"d/m/Y à H:i" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="rdf-indicator">
+                                    <i class="bi bi-check-circle"></i> Synchronisation automatique avec l'ontologie RDF
+                                </div>
+                                <div>
+                                    <a href="{% url 'gestion_vehicules:detail_vehicule' vehicule.id %}" class="btn btn-secondary me-2">
+                                        <i class="bi bi-x-circle"></i> Annuler
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle"></i> Sauvegarder les Modifications
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Validation en temps réel
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const numeroInput = document.getElementById('numero_identification');
+        
+        // Validation du numéro d'identification
+        numeroInput.addEventListener('blur', function() {
+            const value = this.value.trim();
+            if (value && !/^[A-Z0-9-_]+$/i.test(value)) {
+                this.setCustomValidity('Le numéro d\'identification ne peut contenir que des lettres, chiffres, tirets et underscores');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+        
+        // Validation de l'année de fabrication
+        const anneeInput = document.getElementById('annee_fabrication');
+        anneeInput.addEventListener('blur', function() {
+            const value = parseInt(this.value);
+            const currentYear = new Date().getFullYear();
+            if (this.value && (value < 1900 || value > currentYear)) {
+                this.setCustomValidity(`L'année doit être entre 1900 et ${currentYear}`);
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+        
+        // Validation des coordonnées GPS
+        const latInput = document.getElementById('latitude');
+        const lngInput = document.getElementById('longitude');
+        
+        function validateGPS(input, min, max, name) {
+            input.addEventListener('blur', function() {
+                const value = parseFloat(this.value);
+                if (this.value && (value < min || value > max)) {
+                    this.setCustomValidity(`La ${name} doit être entre ${min} et ${max}`);
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+        }
+        
+        validateGPS(latInput, -90, 90, 'latitude');
+        validateGPS(lngInput, -180, 180, 'longitude');
+        
+        // Validation du niveau de batterie
+        const batteryInput = document.getElementById('niveau_batterie');
+        batteryInput.addEventListener('blur', function() {
+            const value = parseInt(this.value);
+            if (this.value && (value < 0 || value > 100)) {
+                this.setCustomValidity('Le niveau de batterie doit être entre 0 et 100%');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+        
+        // Soumission du formulaire
+        form.addEventListener('submit', function(e) {
+            // Vérifier que tous les champs requis sont remplis
+            const requiredFields = form.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.setCustomValidity('Ce champ est obligatoire');
+                    isValid = false;
+                } else {
+                    field.setCustomValidity('');
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                alert('Veuillez remplir tous les champs obligatoires');
+            }
+        });
+    });
+</script>
+{% endblock %}
